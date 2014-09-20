@@ -2,20 +2,37 @@
 var VDataFilters = Backbone.View.extend({
 	columnFilterSelected:function(){},
 	filterFactory:null,
-	CFDispatcher:_.clone(Backbone.Events),
+	dispatcher:_.clone(Backbone.Events),
 	
 	tagName:'div',
 	className:'panel panel-default',
 	initialize:function(options) {
 		
 		// Event Functions
-		this.CFDispatcher.on('init-complete', function(e) {
+		this.dispatcher.on('init-complete', function(e) {
 			console.log('init complete of data filter controller');
 		});
-		this.CFDispatcher.on('column-filter-click', function(alink) {
+		
+		// when a data column from the drop down is selected
+		this.dispatcher.on('column-filter-click', function(alink) {
 			//tell the filter factory to load the filter widget
-			this.filterFactory.load($(alink).attr('data-type'), $(alink).html());
+			this.filterFactory.load($(alink).attr('data-type'), $(alink).attr('data-name'), $(alink).html());
 		}, this);
+		
+		// when the 'add filter' button is clicked
+		this.dispatcher.on('filter-add-click', function() {
+			//validate filter pull from filter factory
+			console.log('filter add click');
+			//test enable/disable
+			this.filterFactory.disable();
+		}, this);
+		
+		//
+		this.dispatcher.on('test-event', function() {
+			console.log('test event fired');
+			this.filterFactory.enable();
+		}, this);
+		
 		
 		//<div class="panel-heading well-sm">
 		//  <div class="row">
@@ -44,7 +61,7 @@ var VDataFilters = Backbone.View.extend({
 				if(_.isObject(tc) && (_.has(tc,'name') && _.has(tc,'type') && _.has(tc,'label'))) {
 					var li = $(document.createElement('li')),
 						alink = $(document.createElement('a')).attr({'href':'#','data-type':tc.type,'data-name':tc.name}).html(tc.label);
-					alink.click({dispatcher:this.CFDispatcher}, function(e){
+					alink.click({dispatcher:this.dispatcher}, function(e){
 						e.data.dispatcher.trigger('column-filter-click', e.currentTarget);
 					});
 					filterOptions.push(li.append(alink));
@@ -54,11 +71,11 @@ var VDataFilters = Backbone.View.extend({
 		
 		this.filterFactory = new VDataFilterFactory({collection:new Backbone.Collection(
 			[
-				new VDataColumnFilterWidget({type:'text',collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({type:'text',model:new MDataColumnFilterWidget(),collection:new Backbone.Collection([
 					new VFilterWidgetTypeTextEq(),
 					new VFilterWidgetTypeTextSrch()
 				])}),
-				new VDataColumnFilterWidget({type:'number',collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({type:'number',model:new MDataColumnFilterWidget(),collection:new Backbone.Collection([
 					new VFilterWidgetTypeNumberEq(),
 					new VFilterWidgetTypeNumberBtwn(),
 					new VFilterWidgetTypeNumberSel()
@@ -73,7 +90,12 @@ var VDataFilters = Backbone.View.extend({
 				),
 				$(document.createElement('div')).addClass('col-md-2').append(
 					$(document.createElement('div')).addClass('btn-group').append(
-						$(document.createElement('button')).attr({'type':'button'}).addClass('btn btn-default btn-xs').html('Add Filter'),
+						$(document.createElement('button')).attr({'type':'button'})
+														   .addClass('btn btn-default btn-xs')
+														   .click({dispatcher:this.dispatcher}, function(e) {
+															   e.data.dispatcher.trigger('filter-add-click');
+														   })
+														   .html('Add Filter'),
 						$(document.createElement('button')).attr({'type':'button','data-toggle':'dropdown'})
 														   .addClass('btn btn-default btn-xs dropdown-toggle')
 														   .append(
@@ -91,7 +113,7 @@ var VDataFilters = Backbone.View.extend({
 			panelBody = $(document.createElement('div')).addClass('panel-body').html('foo bar');
 		
 		this.$el.append(panelHeading,panelBody);
-		this.CFDispatcher.trigger('datafiltercontroller-initcomplete',{foo:'bar'});
+		this.dispatcher.trigger('datafiltercontroller-initcomplete',{foo:'bar'});
 	},
 	render:function() {
 		

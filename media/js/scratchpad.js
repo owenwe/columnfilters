@@ -30,10 +30,12 @@
 	
 */
 
+var tc,df;
+
 $(document).ready(function(e) {
 	
 	//these will come from the data table
-	var tc = [
+	tc = [
 		{'name':'text-column', 'type':'text', 'label':'Text'},
 		{'name':'number-column', 'type':'number', 'label':'Number'},
 		{'name':'date-column', 'type':'date', 'label':'Date'},
@@ -45,4 +47,8 @@ $(document).ready(function(e) {
 		df = new VDataFilters({tableColumns:tc});
 	
 	$('div.container-fluid').append(df.el);
+	
+	$('#btnTest').click(function(e) {
+		df.dispatcher.trigger('test-event', e.currentTarget);
+	});
 });

@@ -1,25 +1,41 @@
 // DataFilterFactory Class
 var VDataFilterFactory = Backbone.View.extend({
 	types:[],
+	activeColumn:null,
 	activeFilter:function(){
 		//return any visible filter widgets (should only be 1)
-		//can we use the collection to find
-		console.log(this.collection);
-		
-		return $('div.cf-filter-widget:visible',this.$el);
+		return this.collection.findWhere({visible:true});
 	},
 	getFilterValue:function() {},
-	enable:function() {},
-	disable:function() {},
-	load:function(dataCol,dataLabel) {
+	enable:function() {
+		//enable the active filter
+		var af = this.activeFilter();
+		if(af){
+			af.attributes.enable();
+		}
+	},
+	disable:function() {
+		//disable the active filter
+		var af = this.activeFilter();
+		if(af) {
+			af.attributes.disable();
+		}
+	},
+	load:function(dataType,dataCol,dataLabel) {
 		//find it in the collection
-		var reqfw = this.collection.findWhere({'type':dataCol}),
+		var reqfw = this.collection.findWhere({'type':dataType}),
 			curfw = this.activeFilter();
 		if(reqfw) {
 			//if not asking for the currently visible filter widget, and there is one visible, hide it
-			if(curfw) {
-				curfw.hide();
+			if(curfw && (curfw.cid!=reqfw.cid)) {
+				curfw.attributes.hide();
 			}
+			//set the active column value
+			this.activeColumn = dataCol;
+			
+			//set the data label for the widget
+			reqfw.attributes.setLabel(dataLabel);
+			
 			//show the requested filter widget
 			reqfw.attributes.show();
 		}

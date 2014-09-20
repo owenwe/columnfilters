@@ -6,6 +6,7 @@ var VFilterWidgetTypeTextEq = VFilterWidgetType.extend({
 		$('input',this.$el)[0].disabled = false;
 	},
 	disable:function() {
+		console.log('text equals disable');
 		$('input',this.$el)[0].disabled = true;
 	},
 	load:function(data) {

@@ -2,6 +2,7 @@
 
 // event function for when a widget type is selected
 function evtFunc_FilterWidgetTypeSelected(e) {
+	//e.data.selectedType.trigger('filter-widget-type-selected');
 	var visWidgetType = $('div.cf-widget-type:visible', e.data.selectedType.$el.parent());
 	if(e.data.selectedType.type!=visWidgetType.attr('title')) {
 		//change filter widget type selector label
