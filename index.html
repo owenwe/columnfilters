@@ -6,6 +6,9 @@
     <link rel="stylesheet" href="media/css/bootstrap.min.css" />
     <link rel="stylesheet" href="media/css/bootstrap-theme.min.css" />
     <link rel="stylesheet" href="media/css/dataTables.bootstrap.css" />
+    <link rel="stylesheet" href="media/css/datepicker.css" />
+    <link rel="stylesheet" href="media/css/datepicker3.css" />
+    <!--<link rel="stylesheet" href="media/css/fuelux.min.css" />-->
     <style>
 	.cf-filter-widget {
 		clear:both;
@@ -20,13 +23,12 @@
 	}
 	</style>
 </head>
-<body>
+<body class="fuelux">
 	<div class="container-fluid">
         <div class="page-header">
             <h2>Data Table Scratchpad</h2>
         </div>
     </div>
-    <button type="button" id="btnTest">test</button>
     
     <!-- base javascript resources -->
     <script src="media/js/jquery-2.1.1.min.js"></script>
@@ -36,10 +38,17 @@
     <script src="media/js/typeahead.bundle.js"></script>
     <script src="media/js/jquery.dataTables.min.js"></script>
     <script src="media/js/dataTables.bootstrap.js"></script>
+    <script src="media/js/bootstrap-datepicker.js"></script>
+    <!--<script src="media/js/fuelux.min.js"></script>-->
+    
+    <!-- templates -->
+    <script src="media/js/columnfilters/templates/baseTemplateClass.js"></script>
+    <script src="media/js/columnfilters/templates/datepickerType4.js"></script>
+    <script src="media/js/columnfilters/templates/datepickerType3.js"></script>
+    <script src="media/js/columnfilters/templates/dateBetweenFilterWidgetType.js"></script>
     
     <!-- columnfilters base classes -->
-    <script src="media/js/columnfilters/events/eventHandlers.js"></script>
-    <script src="media/js/columnfilters/baseClasses/FilterWidgetType.js"></script>
+	<script src="media/js/columnfilters/baseClasses/FilterWidgetType.js"></script>
     <script src="media/js/columnfilters/baseClasses/MDataColumnFilterWidget.js"></script>
     <script src="media/js/columnfilters/baseClasses/DataColumnFilterWidget.js"></script>
     <script src="media/js/columnfilters/baseClasses/DataFilterFactory.js"></script>
@@ -49,6 +58,9 @@
     <script src="media/js/columnfilters/baseClasses/filterTypes/number/numberEq.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/number/numberBtwn.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/number/numberSel.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateEq.js"></script>
+    
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateBtwn.js"></script>
     
     <script src="media/js/scratchpad.js"></script>
 </body>

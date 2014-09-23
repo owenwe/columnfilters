@@ -2,38 +2,24 @@
 var VDataFilters = Backbone.View.extend({
 	columnFilterSelected:function(){},
 	filterFactory:null,
-	dispatcher:_.clone(Backbone.Events),
 	
 	tagName:'div',
 	className:'panel panel-default',
-	initialize:function(options) {
-		
-		// Event Functions
-		this.dispatcher.on('init-complete', function(e) {
-			console.log('init complete of data filter controller');
-		});
-		
-		// when a data column from the drop down is selected
-		this.dispatcher.on('column-filter-click', function(alink) {
-			//tell the filter factory to load the filter widget
-			this.filterFactory.load($(alink).attr('data-type'), $(alink).attr('data-name'), $(alink).html());
-		}, this);
-		
-		// when the 'add filter' button is clicked
-		this.dispatcher.on('filter-add-click', function() {
-			//validate filter pull from filter factory
-			console.log('filter add click');
-			//test enable/disable
+	events:{
+		// triggered when the data column from the dropdown list is clicked
+		'click ul.dropdown-menu li a':function(e) {
+			this.filterFactory.load($(e.currentTarget).attr('data-type'), $(e.currentTarget).attr('data-name'), $(e.currentTarget).html());
+		},
+		// triggered when the add filter button is clicked
+		'click button.cf-add-filter-button':function() {
 			this.filterFactory.disable();
-		}, this);
-		
-		//
-		this.dispatcher.on('test-event', function() {
-			console.log('test event fired');
+		},
+		// 
+		'click #btnTest':function() {
 			this.filterFactory.enable();
-		}, this);
-		
-		
+		}
+	},
+	initialize:function(options) {
 		//<div class="panel-heading well-sm">
 		//  <div class="row">
 		//    <div class="col-md-2 text-center">
@@ -59,12 +45,11 @@ var VDataFilters = Backbone.View.extend({
 			for(var i in options.tableColumns) {
 				var tc = options.tableColumns[i];
 				if(_.isObject(tc) && (_.has(tc,'name') && _.has(tc,'type') && _.has(tc,'label'))) {
-					var li = $(document.createElement('li')),
-						alink = $(document.createElement('a')).attr({'href':'#','data-type':tc.type,'data-name':tc.name}).html(tc.label);
-					alink.click({dispatcher:this.dispatcher}, function(e){
-						e.data.dispatcher.trigger('column-filter-click', e.currentTarget);
-					});
-					filterOptions.push(li.append(alink));
+					filterOptions.push(
+						$(document.createElement('li')).append(
+							$(document.createElement('a')).attr({'href':'#','data-type':tc.type,'data-name':tc.name}).html(tc.label)
+						)
+					);
 				}
 			}
 		}
@@ -79,6 +64,12 @@ var VDataFilters = Backbone.View.extend({
 					new VFilterWidgetTypeNumberEq(),
 					new VFilterWidgetTypeNumberBtwn(),
 					new VFilterWidgetTypeNumberSel()
+				])}),
+				new VDataColumnFilterWidget({type:'date',model:new MDataColumnFilterWidget(),collection:new Backbone.Collection([
+					new VFilterWidgetTypeDateEq(),
+					new VFilterWidgetTypeDateBtwn()
+					
+					
 				])})
 			]
 		)});
@@ -91,10 +82,7 @@ var VDataFilters = Backbone.View.extend({
 				$(document.createElement('div')).addClass('col-md-2').append(
 					$(document.createElement('div')).addClass('btn-group').append(
 						$(document.createElement('button')).attr({'type':'button'})
-														   .addClass('btn btn-default btn-xs')
-														   .click({dispatcher:this.dispatcher}, function(e) {
-															   e.data.dispatcher.trigger('filter-add-click');
-														   })
+														   .addClass('btn btn-default btn-xs cf-add-filter-button')
 														   .html('Add Filter'),
 						$(document.createElement('button')).attr({'type':'button','data-toggle':'dropdown'})
 														   .addClass('btn btn-default btn-xs dropdown-toggle')
@@ -110,10 +98,9 @@ var VDataFilters = Backbone.View.extend({
 				)
 			)
 		),
-			panelBody = $(document.createElement('div')).addClass('panel-body').html('foo bar');
+			panelBody = $(document.createElement('div')).addClass('panel-body').html('<button type="button" id="btnTest">test</button>');
 		
 		this.$el.append(panelHeading,panelBody);
-		this.dispatcher.trigger('datafiltercontroller-initcomplete',{foo:'bar'});
 	},
 	render:function() {
 		

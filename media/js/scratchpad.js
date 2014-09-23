@@ -47,8 +47,4 @@ $(document).ready(function(e) {
 		df = new VDataFilters({tableColumns:tc});
 	
 	$('div.container-fluid').append(df.el);
-	
-	$('#btnTest').click(function(e) {
-		df.dispatcher.trigger('test-event', e.currentTarget);
-	});
 });

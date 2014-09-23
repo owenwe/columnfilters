@@ -4,7 +4,7 @@ var VDataFilterFactory = Backbone.View.extend({
 	activeColumn:null,
 	activeFilter:function(){
 		//return any visible filter widgets (should only be 1)
-		return this.collection.findWhere({visible:true});
+		return this.collection.findWhere({active:true});
 	},
 	getFilterValue:function() {},
 	enable:function() {

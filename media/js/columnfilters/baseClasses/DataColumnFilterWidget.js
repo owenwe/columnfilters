@@ -2,20 +2,36 @@
 var VDataColumnFilterWidget = Backbone.View.extend({
 	type:'text',
 	visible:false,
+	active:false,
 	filterTypes:[],
 	activeType:function() {
-		return this.collection.findWhere({visible:true});
+		return this.collection.findWhere({active:true});
 	},
-	getFilterValue:function() {},
+	getFilterValue:function() {
+		var at = this.activeType();
+		if(at) {
+			return at.getValue();
+		} else {
+			return false;
+		}
+	},
 	setLabel:function(label) {
 		$('div.cf-widget-type-label',this.$el).html(label);
 	},
 	show:function() {
 		this.visible = true;
+		this.active = true;
 		this.$el.show();
+		//render the active type
+		var at = this.activeType();
+		if(at) {
+			//console.log(this.type+':'+at.attributes.type);
+			at.attributes.show();
+		}
 	},
 	hide:function() {
 		this.visible = false;
+		this.active = false;
 		this.$el.hide();
 	},
 	enable:function() {
@@ -29,7 +45,6 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 		}
 	},
 	disable:function() {
-		console.log('data column filter widget disable');
 		//disable the drop down
 		var ddbtn = $('button.dropdown-toggle',this.$el);
 		if(ddbtn) {
@@ -39,8 +54,7 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 		//need to get active widget and call disable on it
 		var at = this.activeType();
 		if(at) {
-			console.log('calling disable on active type');
-			console.log(at);
+			at.attributes.getValue();
 			at.attributes.disable();
 		}
 	},
@@ -49,18 +63,24 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 	tagName:'div',
 	className:'cf-filter-widget',
 	events:{
+		// triggered when the type dropdown item is clicked
 		'click ul.dropdown-menu li a':function(e) {
 			//this == view, e == event object
 			//find the visible filter widget
 			var at = this.activeType(),
 				selectedTypeStr = $(e.currentTarget).html(),
 				selAt = this.collection.findWhere({'type':selectedTypeStr});
-			
 			if(at && (selectedTypeStr!=at.attributes.type)){
-				
+				//change filter widget type selector label
 				$('span.cf-widget-type-selector-btn-title', this.$el).html(selectedTypeStr);
+				//hide current widget type
 				at.attributes.hide();
-				
+				//show selected widget type
+				//selAt.attributes.render();
+				selAt.attributes.show();
+			} else {
+				console.log('no active type: '+at);
+				console.log('requested type: '+selectedTypeStr);
 			}
 		}
 	},
@@ -92,6 +112,7 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 				typesContainer.append(widgetType.attributes.el);
 			});
 			//show the first widget type
+			options.collection.at(0).attributes.active = true;
 			options.collection.at(0).attributes.show();
 		}
 		this.$el.append([typeSelector,typesContainer]);
