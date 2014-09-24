@@ -8,7 +8,7 @@
 	
 	number:(equality) n [=,<,>,<=,>=] [number stepper] -number type
 		   (between) [number stepper1] [<,<=] n [>,>=] [number stepper2]
-		   (select) [dropdown input list]
+		   (select) [dropdown input list] :: translates to {column} IN(...)
 	
 	date:(equality) d [=,<,>,<=,>=] [date input]
 		 (between) [date input1] [<,<=] d [>,>=] [date input2]

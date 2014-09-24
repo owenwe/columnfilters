@@ -54,7 +54,7 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 		//need to get active widget and call disable on it
 		var at = this.activeType();
 		if(at) {
-			at.attributes.getValue();
+			console.log(at.attributes.getValue());
 			at.attributes.disable();
 		}
 	},

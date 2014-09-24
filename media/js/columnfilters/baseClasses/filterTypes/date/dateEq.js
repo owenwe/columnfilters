@@ -42,7 +42,6 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 			viewMode: use CFTEMPLATES.DATEPICKER_VIEW_MODES.YEARS/MONTHS/DAYS, 
 			minViewMode: same as viewMode
 		*/
-		console.log(this.dpConfig);
 		this.$el.html(this.template(this.dpConfig));
 		$('.dpeq',this.$el).datepicker(this.dpConfig);
 		this.dp = $('.dpeq input',this.$el);

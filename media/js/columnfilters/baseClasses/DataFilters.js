@@ -54,7 +54,7 @@ var VDataFilters = Backbone.View.extend({
 			}
 		}
 		
-		this.filterFactory = new VDataFilterFactory({collection:new Backbone.Collection(
+		this.filterFactory = new VDataFilterFactory({showOnInit:true,collection:new Backbone.Collection(
 			[
 				new VDataColumnFilterWidget({type:'text',model:new MDataColumnFilterWidget(),collection:new Backbone.Collection([
 					new VFilterWidgetTypeTextEq(),
@@ -64,6 +64,7 @@ var VDataFilters = Backbone.View.extend({
 					new VFilterWidgetTypeNumberEq(),
 					new VFilterWidgetTypeNumberBtwn(),
 					new VFilterWidgetTypeNumberSel()
+					
 				])}),
 				new VDataColumnFilterWidget({type:'date',model:new MDataColumnFilterWidget(),collection:new Backbone.Collection([
 					new VFilterWidgetTypeDateEq(),
