@@ -3,6 +3,7 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 	type:'equals',
 	dp:null,
 	dpConfig:{
+		autoclose:true,
 		'name':'dpeq',
 		'format':CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us
 	},

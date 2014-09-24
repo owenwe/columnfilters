@@ -68,8 +68,8 @@ var VDataFilters = Backbone.View.extend({
 				])}),
 				new VDataColumnFilterWidget({type:'date',model:new MDataColumnFilterWidget(),collection:new Backbone.Collection([
 					new VFilterWidgetTypeDateEq(),
-					new VFilterWidgetTypeDateBtwn()
-					
+					new VFilterWidgetTypeDateBtwn(),
+					new VFilterWidgetTypeDateSel()
 					
 				])})
 			]
