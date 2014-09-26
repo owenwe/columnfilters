@@ -1,9 +1,11 @@
 // DataColumnFilterWidget Class
 var VDataColumnFilterWidget = Backbone.View.extend({
 	type:'text',
+	test:function() {
+		return this.type;
+	},
 	visible:false,
 	active:false,
-	filterTypes:[],
 	activeType:function() {
 		return this.collection.findWhere({active:true});
 	},
@@ -54,7 +56,6 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 		//need to get active widget and call disable on it
 		var at = this.activeType();
 		if(at) {
-			console.log(at.attributes.getValue());
 			at.attributes.disable();
 		}
 	},

@@ -12,7 +12,10 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 	},
 	getValue:function() {
 		var d = this.dp.datepicker('getDate');
-		return isNaN(d.getTime())?null:d;
+		return {
+			'type':this.type,
+			'value':isNaN(d.getTime())?null:d
+		};
 	},
 	setValue:function(date) {
 		// date should be a date
@@ -30,7 +33,7 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 	template:_.template(CFTEMPLATES.datepicker3,{variable:'datepicker'}),
 	events:{
 		'changeDate div.dpeq':function(e) {
-			console.log('date changed');
+			return false;
 			
 		}
 	},

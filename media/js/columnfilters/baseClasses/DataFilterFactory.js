@@ -4,9 +4,12 @@ var VDataFilterFactory = Backbone.View.extend({
 	activeColumn:null,
 	activeFilter:function(){
 		//return any visible filter widgets (should only be 1)
-		return this.collection.findWhere({active:true});
+		var af = this.collection.findWhere({active:true});
+		return af?af.attributes:false;
 	},
-	getFilterValue:function() {},
+	getFilterValue:function() {
+		return this.activeFilter().activeType().attributes.getValue();
+	},
 	enable:function() {
 		//enable the active filter
 		var af = this.activeFilter();
@@ -28,7 +31,7 @@ var VDataFilterFactory = Backbone.View.extend({
 		if(reqfw) {
 			//if not asking for the currently visible filter widget, and there is one visible, hide it
 			if(curfw && (curfw.cid!=reqfw.cid)) {
-				curfw.attributes.hide();
+				curfw.hide();
 			}
 			//set the active column value
 			this.activeColumn = dataCol;

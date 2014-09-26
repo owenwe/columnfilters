@@ -35,6 +35,9 @@ var tc,df;
 $(document).ready(function(e) {
 	
 	//these will come from the data table
+	//name = the column name used in the query
+	//type = the data type
+	//label = descriptve text for the column
 	tc = [
 		{'name':'text-column', 'type':'text', 'label':'Text'},
 		{'name':'number-column', 'type':'number', 'label':'Number'},
@@ -44,7 +47,7 @@ $(document).ready(function(e) {
 		{'name':'list-column', 'type':'big-list', 'label':'Big List'},
 		{'name':'fk-column', 'type':'foreign-key', 'label':'Foreign Key'}
 	],
-		df = new VDataFilters({tableColumns:tc});
+		df = new VDataFilters({table:'employees',tableColumns:tc});
 	
 	$('div.container-fluid').append(df.el);
 });

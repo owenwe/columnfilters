@@ -3,7 +3,8 @@ var CFTEMPLATES = {
 	DATEPICKER_DATE_FORMATS:{
 		'en_us':'mm/dd/yyyy',
 		'en_gb':'dd-mm-yyyy',
-		'zh_cn':'yyyy.mm.dd'
+		'zh_cn':'yyyy.mm.dd',
+		'month_year':'MM, yyyy'
 	},
 	DATEPICKER_VIEW_MODES:{
 		'DAYS':0,

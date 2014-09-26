@@ -10,6 +10,37 @@
     <link rel="stylesheet" href="media/css/datepicker3.css" />
     <link rel="stylesheet" href="media/css/fuelux.min.css" />
     <style>
+	.cf-data-filters-container {
+		min-height:50px;
+		max-height:150px;
+		overflow:auto;
+	}
+	/*.cf-data-filters-container > div.row > div {
+		max-height:150px;
+		overflow:auto;
+	}
+	.cf-data-filters-container .list-group {
+		margin-bottom:0;
+	}
+	.cf-data-filters-container .list-group .list-group-item {
+		
+		border-radius:0;
+	}*/
+	
+	.cf-datafilters-controller-footer {
+		margin-bottom:0;
+		border-top-left-radius:0;
+		border-top-right-radius:0;
+		min-height:20px;
+	}
+	.cf-datafilters-controller-footer .navbar-nav > li > a {
+		line-height:none;
+		padding-top:inherit;
+		padding-bottom:inherit;
+	}
+	.cf-datafilters-controller-footer .nav > li > a {
+		padding:inherit;
+	}
 	.cf-filter-widget {
 		clear:both;
 		padding:1px;
@@ -46,7 +77,7 @@
         
     </div>
     
-    <!-- base javascript resources -->
+    <!-- javascript resources -->
     <script src="media/js/jquery-2.1.1.min.js"></script>
 	<script src="media/js/underscore-min.js"></script>
     <script src="media/js/backbone-min.js"></script>
@@ -59,17 +90,32 @@
     
     <!-- templates -->
     <script src="media/js/columnfilters/templates/baseTemplateClass.js"></script>
+    <script src="media/js/columnfilters/templates/dataFiltersControlBody.js"></script>
+    <script src="media/js/columnfilters/templates/dataFiltersControlFooter.js"></script>
+    <script src="media/js/columnfilters/templates/filterCategoryDropup.js"></script>
     <script src="media/js/columnfilters/templates/datepickerType4.js"></script>
     <script src="media/js/columnfilters/templates/datepickerType3.js"></script>
     <script src="media/js/columnfilters/templates/dateBetweenFilterWidgetType.js"></script>
     <script src="media/js/columnfilters/templates/numberSpinnerType1.js"></script>
     
-    <!-- columnfilters base classes -->
+    <!-- columnfilters base classes (Collection/Model) -->
+    <script src="media/js/columnfilters/baseClasses/MColumnFilter.js"></script>
+    <script src="media/js/columnfilters/baseClasses/CColumnFilters.js"></script>
+    <script src="media/js/columnfilters/baseClasses/MDataColumnFilter.js"></script>
+    <script src="media/js/columnfilters/baseClasses/CDataColumnFilters.js"></script>
+    <script src="media/js/columnfilters/baseClasses/MDataFilter.js"></script>
+    <script src="media/js/columnfilters/baseClasses/CDataFilters.js"></script>
+    <!---->
+    
+    
+    <!-- columnfilters base classes (Views) -->
 	<script src="media/js/columnfilters/baseClasses/FilterWidgetType.js"></script>
-    <script src="media/js/columnfilters/baseClasses/MDataColumnFilterWidget.js"></script>
     <script src="media/js/columnfilters/baseClasses/DataColumnFilterWidget.js"></script>
     <script src="media/js/columnfilters/baseClasses/DataFilterFactory.js"></script>
+    <script src="media/js/columnfilters/baseClasses/DataFiltersContainer.js"></script>
     <script src="media/js/columnfilters/baseClasses/DataFilters.js"></script>
+    
+    <!-- columnfilters widget types classes (Views) -->
     <script src="media/js/columnfilters/baseClasses/filterTypes/text/textEq.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/text/textSrch.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/number/numberEq.js"></script>
@@ -78,6 +124,7 @@
     <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateEq.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateBtwn.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateSel.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateCycle.js"></script>
     
     <script src="media/js/scratchpad.js"></script>
 </body>
