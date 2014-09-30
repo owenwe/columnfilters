@@ -2,7 +2,7 @@
 var VDataFilters = Backbone.View.extend({
 	defaultConfig:{
 		'table':'undefined',
-		'showOnInit':true,
+		'showFirst':null,
 		'filters':false,
 		'filterCategories':[]
 	},
@@ -31,11 +31,14 @@ var VDataFilters = Backbone.View.extend({
 	
 	tagName:'div',
 	className:'panel panel-default',
+	
+	
 	events:{
 		// triggered when the data column from the dropdown list is clicked
 		// is to load the data info from the clicked event into the filter factory
 		'click ul.cf-columns-select-dd li a':function(e) {
 			this.currentColumnFilter = {
+				'table':this.table,
 				'type':$(e.currentTarget).attr('data-type'),
 				'column':$(e.currentTarget).attr('data-name'),
 				'label':$(e.currentTarget).html()
@@ -63,6 +66,8 @@ var VDataFilters = Backbone.View.extend({
 			}
 		}
 	},
+	
+	
 	initialize:function(options) {
 		if(_.has(options,'table') && _.isString(options.table)) {
 			this.table = options.table;
@@ -84,19 +89,12 @@ var VDataFilters = Backbone.View.extend({
 			}
 		}
 		
-		if(_.has(options,'showOnInit') && _.isBoolean(options.showOnInit)) {
-			this.defaultConfig.showOnInit = options.showOnInit;
+		if(_.has(options,'showFirst') && _.isString(options.showFirst)) {
+			this.defaultConfig.showFirst = options.showFirst;
 		}
 		
 		this.filterFactory = new VDataFilterFactory({showOnInit:this.defaultConfig.showOnInit, collection:new Backbone.Collection(
 			[
-				new VDataColumnFilterWidget({type:'date',collection:new Backbone.Collection([
-					new VFilterWidgetTypeDateEq(),
-					new VFilterWidgetTypeDateBtwn(),
-					new VFilterWidgetTypeDateSel(),
-					new VFilterWidgetTypeDateCycle()
-					
-				])}),
 				new VDataColumnFilterWidget({type:'text',collection:new Backbone.Collection([
 					new VFilterWidgetTypeTextEq(),
 					new VFilterWidgetTypeTextSrch()
@@ -107,7 +105,13 @@ var VDataFilters = Backbone.View.extend({
 					new VFilterWidgetTypeNumberSel()
 					
 				])}),
-				
+				new VDataColumnFilterWidget({type:'date',collection:new Backbone.Collection([
+					new VFilterWidgetTypeDateEq(),
+					new VFilterWidgetTypeDateBtwn(),
+					new VFilterWidgetTypeDateSel(),
+					new VFilterWidgetTypeDateCycle()
+					
+				])})
 			]
 		)});
 		
@@ -136,18 +140,6 @@ var VDataFilters = Backbone.View.extend({
 			)
 		);
 		
-		if(this.defaultConfig.showOnInit) {
-			var colSelList = $('ul.cf-columns-select-dd li a', panelHeading);
-			if(colSelList.length) {
-				var firstColFilter = colSelList.first();
-				this.currentColumnFilter = {
-					'group':firstColFilter.attr('data-type'),
-					'column':firstColFilter.attr('data-name'),
-					'label':firstColFilter.html()
-				};
-			}
-		}
-		
 		// check for filters on construction
 		if(_.has(options,'filters')) {
 			this.defaultConfig.filters = options.filters;
@@ -155,18 +147,7 @@ var VDataFilters = Backbone.View.extend({
 			this.filters = new CDataFilters();
 		}
 		this.filters.on('add', function(filter) {
-			console.log('filters category add event triggered');
-			console.log(filter);
-			// TODO find out if a pill-tab exists for this group
-			//filter = model with {group,column,label}
-			/*$('.nav',this.$el).append(
-				_.template(
-					'<li><a href="" role="pill" data-toggle="pill"><%= filterAttributes.label %> <span class="badge pull-right"></span></a></li>'
-				)({'filterAttributes':filter.attributes})
-			);*/
-			//first look for an existing li in <ul class="dropdown-menu" role="menu">
-			
-			
+			this.dataFiltersContainer.add(filter);
 		}, this);
 		
 		// There will always be a user (or default) filter
@@ -191,13 +172,18 @@ var VDataFilters = Backbone.View.extend({
 		}
 		
 		
-		//$('div.navbar-collapse',this.dataFiltersControl).append(
-		//	_.template(
-		//		'<li><a href="" role="pill" data-toggle="pill"><%= filterAttributes.label %> <span class="badge pull-right"></span></a></li>',
-		//		{variable:'filterGroup'}
-		//	)({})
-		//);
-		//filterCategoryDropup
+		if(_.isString(this.defaultConfig.showFirst)) {
+			var dfDdLi = $('ul.cf-columns-select-dd li a[data-name="'+this.defaultConfig.showFirst+'"]',this.$el);
+			if(dfDdLi.length) {
+				this.currentColumnFilter = {
+					'table':this.table,
+					'type':dfDdLi.first().data('type'),
+					'column':dfDdLi.first().data('name'),
+					'label':dfDdLi.first().html()
+				};
+				this.filterFactory.load(this.currentColumnFilter.type, this.currentColumnFilter.column, this.currentColumnFilter.label);
+			}
+		}
 		
 	},
 	render:function() {
