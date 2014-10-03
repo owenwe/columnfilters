@@ -9,11 +9,40 @@ var VFilterWidgetTypeDateSel = VFilterWidgetType.extend({
 	},
 	valueList:[],
 	listEl:null,
+	
+	isValid:function() {
+		return this.valueList.length>0;
+	},
 	validate:function() {
+		// TODO unset inputs/labels from danger status
+		if(this.isValid()) {
+			// TODO set inputs/labels to danger status
+			return true;
+		}
 		
+		console.log('one or more dates must be selected');
+		return false;
+	},
+	getValueDescription:function() {
+		if(this.isValid()) {
+			var dStrArr = [];
+			for(var d in this.valueList) {
+				dStrArr.push(new Date(this.valueList[d]).toLocaleDateString());
+			}
+			return 'is one of these dates: (' + dStrArr.join(',') + ')';
+		} else {
+			return false;
+		}
 	},
 	getValue:function() {
-		return {'type':this.type, value:this.valueList};
+		if(this.validate()) {
+			return {
+				'type':this.type,
+				'value':this.valueList,
+				'description':this.getValueDescription()
+			};
+		}
+		return false;
 	},
 	setValue:function(data) {
 		//expecting array of date timestamp numbers

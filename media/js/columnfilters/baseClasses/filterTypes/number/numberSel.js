@@ -5,11 +5,37 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 	sbOptions:{min:-10, max:100, step:.25},
 	valueList:[],
 	listEl:null,
+	
+	
+	isValid:function() {
+		return this.valueList.length>0;
+	},
 	validate:function() {
+		// TODO unset inputs/labels from danger status
+		if(this.isValid()) {
+			// TODO set inputs/labels to danger status
+			return true;
+		}
 		
+		console.log('one or more numbers must be selected');
+		return false;
+	},
+	getValueDescription:function() {
+		if(this.isValid()) {
+			return 'is one of these numbers: (' + this.valueList.join(',') + ')';
+		} else {
+			return false;
+		}
 	},
 	getValue:function() {
-		return {'type':this.type, value:this.valueList};
+		if(this.validate()) {
+			return {
+				'type':this.type,
+				'value':this.valueList,
+				'description':this.getValueDescription()
+			};
+		}
+		return false;
 	},
 	setValue:function(data) {
 		//expecting array of numbers
@@ -23,6 +49,12 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 	},
 	
 	addToList:function(value) {
+		/*
+		<div class="cf-list-item">
+			<span>x.x</span>
+			<button class="close" data-numberValue="x.x"><span area-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+		</div>
+		*/
 		this.valueList.push(value);
 		return $(document.createElement('div')).addClass('cf-list-item')
 											   .mouseover(function(e){

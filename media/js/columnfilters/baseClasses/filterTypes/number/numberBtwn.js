@@ -14,15 +14,43 @@ var VFilterWidgetTypeNumberBtwn = VFilterWidgetType.extend({
 		//units:<array> array of strings that are allowed to be entered in the input with the number
 		min:-10, max:100, step:.25
 	},
+	
+	
+	isValid:function() {
+		var fromNum = this.sbFrom.spinbox('value')*1,
+			toNum = this.sbTo.spinbox('value')*1,
+			fromNumCheck = !isNaN(fromNum),
+			toNumCheck = !isNaN(toNum),
+			isNotEqualCheck = (fromNum!==toNum);
+		return (fromNumCheck && toNumCheck && isNotEqualCheck);
+	},
 	validate:function() {
+		// TODO unset inputs/labels from danger status
+		if(this.isValid()) {
+			// TODO set inputs/labels to danger status
+			return true;
+		}
 		
+		console.log('a from and to number must be given');
+		return false;
+	},
+	getValueDescription:function() {
+		if(this.isValid()) {
+			return 'is between ' + this.sbFrom.spinbox('value') + ' and ' + this.sbTo.spinbox('value');
+		} else {
+			return false;
+		}
 	},
 	getValue:function() {
-		return retVal = {
-			'type':this.type,
-			from:$.trim(this.sbFrom.spinbox('value'))*1,
-			to:$.trim(this.sbTo.spinbox('value'))*1
-		};
+		if(this.validate()) {
+			return {
+				'type':this.type,
+				from:this.sbFrom.spinbox('value')*1,
+				to:this.sbTo.spinbox('value')*1,
+				'description':this.getValueDescription()
+			};
+		}
+		return false;
 	},
 	setValue:function(data) {
 		//data is expected to be an object with from/to keys

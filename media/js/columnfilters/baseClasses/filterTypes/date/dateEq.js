@@ -7,15 +7,36 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 		'name':'dpeq',
 		'format':CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us
 	},
+	
+	isValid:function() {
+		return !isNaN(this.dp.datepicker('getDate').getTime());
+	},
 	validate:function() {
-		// TODO
+		// TODO unset inputs/labels from danger status
+		if(this.isValid()) {
+			// TODO set inputs/labels to danger status
+			return true;
+		}
+		
+		console.log('a date must be selected');
+		return false;
+	},
+	getValueDescription:function() {
+		if(this.isValid()) {
+			return 'is equal to ' + this.dp.datepicker('getDate').toLocaleDateString();
+		} else {
+			return false;
+		}
 	},
 	getValue:function() {
-		var d = this.dp.datepicker('getDate');
-		return {
-			'type':this.type,
-			'value':isNaN(d.getTime())?null:d
-		};
+		if(this.validate()) {
+			return {
+				'type':this.type,
+				'value':this.dp.datepicker('getDate'),
+				'description':this.getValueDescription()
+			};
+		}
+		return false;
 	},
 	setValue:function(date) {
 		// date should be a date
@@ -49,8 +70,5 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 		this.$el.html(this.template(this.dpConfig));
 		$('.dpeq',this.$el).datepicker(this.dpConfig);
 		this.dp = $('.dpeq input',this.$el);
-	},
-	render:function() {
-		return this;
 	}
 });

@@ -1,11 +1,37 @@
 // Filter Widget Type Implementation Class for Text (Search)
 var VFilterWidgetTypeTextSrch = VFilterWidgetType.extend({
 	type:'search',
+	
+	
+	isValid:function() {
+		return $.trim($('input',this.$el).val()).length>0;
+	},
 	validate:function() {
+		// TODO unset inputs/labels from danger status
+		if(this.isValid()) {
+			// TODO set inputs/labels to danger status
+			return true;
+		}
 		
+		console.log('text cannot be empty');
+		return false;
+	},
+	getValueDescription:function() {
+		if(this.isValid()) {
+			return 'is like to ' + $.trim($('input',this.$el).val());
+		} else {
+			return false;
+		}
 	},
 	getValue:function() {
-		return {'type':this.type, value:$.trim($('input',this.$el).val())};
+		if(this.validate()) {
+			return {
+				'type':this.type,
+				value:$.trim($('input',this.$el).val()),
+				'description':this.getValueDescription()
+			};
+		}
+		return false;
 	},
 	setValue:function(data) {
 		$('input',this.$el).val(data);

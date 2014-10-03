@@ -9,18 +9,42 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 		autoclose:true,
 		format:CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us
 	},
-	validate:function() {
-		// TODO
+	
+	isValid:function() {
+		return !isNaN(this.dpFrom.datepicker('getDate').getTime()) && !isNaN(this.dpTo.datepicker('getDate').getTime());
 	},
-	getValue:function() {
-		//should return {type:<t>, fromDate:<d>, toDate:<d>}
-		var f = this.dpFrom.datepicker('getDate'),
-			t = this.dpTo.datepicker('getDate');
-		return {
-			'type':this.type,
-			fromDate:isNaN(f.getTime())?null:f,
-			toDate:isNaN(t.getTime())?null:t
-		};
+	validate:function() {
+		// TODO unset inputs/labels from danger status
+		if(this.isValid()) {
+			// TODO set inputs/labels to danger status
+			return true;
+		}
+		
+		console.log('a to and from date must be selected');
+		return false;
+	},
+	getValueDescription:function() {
+		if(this.isValid()) {
+			return [
+				'is between ',
+				this.dpFrom.datepicker('getDate').toLocaleDateString(),
+				' and ',
+				this.dpTo.datepicker('getDate').toLocaleDateString()
+			].join('');
+		} else {
+			return false;
+		}
+	},
+	getValue:function() {		
+		if(this.validate()) {
+			return {
+				'type':this.type,
+				'fromDate':this.dpFrom.datepicker('getDate'),
+				'toDate':this.dpTo.datepicker('getDate'),
+				'description':this.getValueDescription()
+			};
+		}
+		return false;
 	},
 	setValue:function(dates) {
 		//dates should be a array of dates (max 2)

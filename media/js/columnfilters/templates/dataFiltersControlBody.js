@@ -1,3 +1,4 @@
+// 
 CFTEMPLATES.dataFiltersControlBody = '<div class="row">'+
 	'<div class="col-xs-4">'+
 			'<ul class="nav nav-pills nav-stacked" role="tablist">'+

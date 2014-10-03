@@ -47,7 +47,7 @@ $(document).ready(function(e) {
 		{'name':'list-column', 'type':'big-list', 'label':'Big List'},
 		{'name':'fk-column', 'type':'foreign-key', 'label':'Foreign Key'}
 	],
-		df = new VDataFilters({table:'employees',tableColumns:tc, showFirst:'date-column'});
+		df = new VDataFilters({table:'employees', tableColumns:tc, showFirst:'date-column', filterCategories:['user','public']});
 	
 	$('div.container-fluid').append(df.el);
 });

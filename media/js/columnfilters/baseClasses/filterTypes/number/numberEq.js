@@ -13,11 +13,32 @@ var VFilterWidgetTypeNumberEq = VFilterWidgetType.extend({
 		//units:<array> array of strings that are allowed to be entered in the input with the number
 		min:-10, max:100, step:.25
 	},
+	
+	
+	isValid:function() {
+		return !isNaN(this.sb.spinbox('value')*1);
+	},
 	validate:function() {
-		
+		if(this.isValid()) {
+			return true;
+		}
+	},
+	getValueDescription:function() {
+		if(this.isValid()) {
+			return 'is equal to ' + this.sb.spinbox('value')*1;
+		} else {
+			return false;
+		}
 	},
 	getValue:function() {
-		return {'type':this.type, value:$.trim(this.sb.spinbox('value'))*1};
+		if(this.validate()) {
+			return {
+				'type':this.type,
+				'value':this.sb.spinbox('value')*1,
+				'description':this.getValueDescription()
+			};
+		}
+		return false;
 	},
 	setValue:function(data) {
 		this.sb.spinbox('value',data);

@@ -1,6 +1,14 @@
 // Filter Widget Type Implementation Class for Date (Equals)
 var VFilterWidgetTypeDateCycle = VFilterWidgetType.extend({
 	type:'cycle',
+	
+	////////////////////////////////////////////////////////////////////
+	// TODO Fix bug where the datepicker looses minViewMode setting
+	////////////////////////////////////////////////////////////////////
+	
+	//aren't these available somewhere else like JQuery or Backbone or something?
+	months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+	
 	dp:null,
 	dpConfig:{
 		autoclose:true,
@@ -13,16 +21,40 @@ var VFilterWidgetTypeDateCycle = VFilterWidgetType.extend({
 		{label:'1st-15th', value:1},
 		{label:'16th-End Of Month', value:2}
 	],
+	
+	
+	isValid:function() {
+		var d = this.dp.datepicker('getDate');
+		return !isNaN(d.getTime());
+	},
 	validate:function() {
-		// TODO
+		// TODO unset inputs/labels from danger status
+		if(this.isValid()) {
+			// TODO set inputs/labels to danger status
+			return true;
+		}
+		
+		console.log('a month and year must be selected');
+		return false;
+	},
+	getValueDescription:function() {
+		if(this.isValid()) {
+			var d = this.dp.datepicker('getDate');
+			return 'for the billing cycle of ' + this.months[d.getMonth()] + ', ' + d.getFullYear();
+		} else {
+			return false;
+		}
 	},
 	getValue:function() {
-		var d = this.dp.datepicker('getDate');
-		return {
-			'type':this.type,
-			monthYear:isNaN(d.getTime())?null:d,
-			'cycle':$('div.btn-group label.active input',this.$el).val()*1
-		};
+		if(this.validate()) {
+			return {
+				'type':this.type,
+				monthYear:this.dp.datepicker('getDate'),
+				'cycle':$('div.btn-group label.active input',this.$el).val()*1,
+				'description':this.getValueDescription()
+			};
+		}
+		return false;
 	},
 	setValue:function(data) {
 		// data is expected to be: {date:<d>, cycle:<cycle>}
