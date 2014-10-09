@@ -1,5 +1,6 @@
 // Filter Widget Type Implementation Class for Number (Select)
 var VFilterWidgetTypeDateSel = VFilterWidgetType.extend({
+	version:'1.0.2',
 	type:'select',
 	dp:null,
 	dpConfig:{
@@ -44,15 +45,18 @@ var VFilterWidgetTypeDateSel = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	setValue:function(data) {
+	setValue:function(filterValue) {
 		//expecting array of date timestamp numbers
-		this.valueList = data;
-		for(var i in data) {
-			addToList(new Date(data[i]));
+		this.valueList = filterValue.value;
+		for(var i in filterValue.value) {
+			addToList(new Date(filterValue.value[i]));
 		}
 	},
 	reset:function() {
-		$('input',this.$el)[0].reset();
+		//TODO reset datepicker and list
+		this.dp.datepicker('setDate',null);
+		this.listEl.empty();
+		this.valueList = [];
 	},
 	
 	addToList:function(value) {

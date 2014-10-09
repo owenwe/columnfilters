@@ -10,6 +10,26 @@
     <link rel="stylesheet" href="media/css/datepicker3.css" />
     <link rel="stylesheet" href="media/css/fuelux.min.css" />
     <style>
+	.cf-common-value-dropdown ul.dropdown-menu {
+		min-width:200px;
+		max-height: 200px;
+		overflow: hidden;
+		overflow-y: auto;
+	}
+	.cf-common-value-dropdown ul.dropdown-menu li button {
+		background-color:transparent !important;
+		border-style:none;
+	}
+	.cf-common-value-list-item-hover {
+		background-color:#f3f7f7;
+	}
+	.cf-common-value-list-item-hover button {
+		font-weight:bold;
+	}
+	.cf-common-value-dropdown ul.dropdown-menu li.disabled button {
+		color:#eee;
+	}
+	
 	.cf-data-filters-container {
 		min-height:50px;
 		max-height:150px;
@@ -61,6 +81,8 @@
 		padding-left:5px;
 	}
 	
+	#cfFilterSetSaveDescription { resize:none; }
+	
 	/* Additions to spinbox */
 	.fuelux .spinbox.digits-5 {
 		width:120px;
@@ -82,7 +104,10 @@
         <div class="page-header">
             <h2>Data Table Scratchpad</h2>
         </div>
-        
+    </div>
+    
+    <div class="container">
+    	<button id="testButton" class="btn btn-default btn-primary">Test</button>
     </div>
     
     <!-- javascript resources -->
@@ -98,10 +123,25 @@
     
     <!-- templates -->
     <script src="media/js/columnfilters/templates/baseTemplateClass.js"></script>
+    <script src="media/js/columnfilters/templates/commonValueController.html" type="text/template" id="commonValueController">
+    	<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">Select Columns <span class="caret"></span></button>
+		<ul class="dropdown-menu dropdown-menu-sm" role="menu">
+			<% for(var i in data.columns) { %>
+				<li class="cf-cvdd-active">
+					<button type="button" class="btn btn-block text-capitalize " data-name="<%= data.columns[i].name %>" data-type="<%= data.columns[i].type %>">
+						<span class="glyphicon glyphicon-ok pull-left hidden"></span> <%= data.columns[i].label %>
+					</button>
+				</li>
+			<% } %>
+		</ul>
+    </script>
+    <script src="media/js/columnfilters/templates/dataFiltersPanelContent.js"></script>
+    <script src="media/js/columnfilters/templates/filterOptionListItem.js"></script>
     <script src="media/js/columnfilters/templates/dataFiltersControlBody.js"></script>
     <script src="media/js/columnfilters/templates/dataFiltersControlFooter.js"></script>
     <script src="media/js/columnfilters/templates/filterCategoryMenu.js"></script>
     <script src="media/js/columnfilters/templates/filterCategorySaveItem.js"></script>
+    <script src="media/js/columnfilters/templates/saveFilterSetModalForm.js"></script>
     <script src="media/js/columnfilters/templates/datepickerType4.js"></script>
     <script src="media/js/columnfilters/templates/datepickerType3.js"></script>
     <script src="media/js/columnfilters/templates/dateBetweenFilterWidgetType.js"></script>
@@ -114,7 +154,7 @@
     <script src="media/js/columnfilters/baseClasses/CDataColumnFilters.js"></script>
     <script src="media/js/columnfilters/baseClasses/MDataFilter.js"></script>
     <script src="media/js/columnfilters/baseClasses/CDataFilters.js"></script>
-    <!---->
+    <!-- -->
     
     
     <!-- columnfilters base classes (Views) -->
@@ -122,6 +162,7 @@
     <script src="media/js/columnfilters/baseClasses/DataColumnFilterWidget.js"></script>
     <script src="media/js/columnfilters/baseClasses/DataFilterFactory.js"></script>
     <script src="media/js/columnfilters/baseClasses/DataFiltersContainer.js"></script>
+    <script src="media/js/columnfilters/baseClasses/CommonValueFilterControl.js"></script>
     <script src="media/js/columnfilters/baseClasses/DataFilters.js"></script>
     
     <!-- columnfilters widget types classes (Views) -->

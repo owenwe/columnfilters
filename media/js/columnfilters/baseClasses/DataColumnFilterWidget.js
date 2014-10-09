@@ -1,13 +1,15 @@
 // DataColumnFilterWidget Class
+// collection: a collection of VFilterWidgetType (extended to an instance)
 var VDataColumnFilterWidget = Backbone.View.extend({
 	type:'text',
-	test:function() {
-		return this.type;
-	},
 	visible:false,
 	active:false,
+	
 	activeType:function() {
 		return this.collection.findWhere({active:true});
+	},
+	getSubType:function(subType) {
+		return this.collection.findWhere({type:subType});
 	},
 	getFilterValue:function() {
 		var at = this.activeType();
@@ -17,9 +19,29 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 			return false;
 		}
 	},
+	setFilterValue:function(filterValue) {
+		var fwt = this.collection.findWhere({'type':filterValue.type});
+		if(fwt) {
+			fwt.attributes.setValue(filterValue);
+		}
+	},
 	setLabel:function(label) {
 		$('div.cf-widget-type-label',this.$el).html(label);
 	},
+	
+	changeSubType:function(subType) {
+		var at = this.activeType(),
+			selAt = this.collection.findWhere({'type':subType});
+		if(at && (subType!=at.attributes.type)){
+			//change filter widget type selector label
+			$('span.cf-widget-type-selector-btn-title', this.$el).html(subType);
+			//hide current widget type
+			at.attributes.hide();
+			//show selected widget type
+			selAt.attributes.show();
+		}
+	},
+	
 	show:function() {
 		this.visible = true;
 		this.active = true;
@@ -59,30 +81,18 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 			at.attributes.disable();
 		}
 	},
-	reset:function() {},
+	reset:function() {
+		this.collection.each(function(filterWidget) {
+			filterWidget.attributes.reset();
+		});
+	},
 	
 	tagName:'div',
 	className:'cf-filter-widget',
 	events:{
 		// triggered when the type dropdown item is clicked
 		'click ul.dropdown-menu li a':function(e) {
-			//this == view, e == event object
-			//find the visible filter widget
-			var at = this.activeType(),
-				selectedTypeStr = $(e.currentTarget).html(),
-				selAt = this.collection.findWhere({'type':selectedTypeStr});
-			if(at && (selectedTypeStr!=at.attributes.type)){
-				//change filter widget type selector label
-				$('span.cf-widget-type-selector-btn-title', this.$el).html(selectedTypeStr);
-				//hide current widget type
-				at.attributes.hide();
-				//show selected widget type
-				//selAt.attributes.render();
-				selAt.attributes.show();
-			} else {
-				console.log('no active type: '+at);
-				console.log('requested type: '+selectedTypeStr);
-			}
+			this.changeSubType($(e.currentTarget).html());
 		}
 	},
 	initialize:function(options) {

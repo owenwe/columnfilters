@@ -1,5 +1,6 @@
 // Filter Widget Type Implementation Class for Number (Equals)
 var VFilterWidgetTypeNumberEq = VFilterWidgetType.extend({
+	version:'1.0.2',
 	type:'equals',
 	sb:null,
 	sbOptions:{
@@ -40,11 +41,11 @@ var VFilterWidgetTypeNumberEq = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	setValue:function(data) {
-		this.sb.spinbox('value',data);
+	setValue:function(filterValue) {
+		this.sb.spinbox('value',filterValue.value);
 	},
 	reset:function() {
-		$('input',this.$el)[0].reset();
+		this.setValue(0);
 	},
 	
 	template:_.template(

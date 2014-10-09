@@ -1,5 +1,6 @@
 // Filter Widget Type Implementation Class for Date (Equals)
 var VFilterWidgetTypeDateCycle = VFilterWidgetType.extend({
+	version:'1.0.2',
 	type:'cycle',
 	
 	////////////////////////////////////////////////////////////////////
@@ -49,27 +50,27 @@ var VFilterWidgetTypeDateCycle = VFilterWidgetType.extend({
 		if(this.validate()) {
 			return {
 				'type':this.type,
-				monthYear:this.dp.datepicker('getDate'),
+				'monthYear':this.dp.datepicker('getDate'),
 				'cycle':$('div.btn-group label.active input',this.$el).val()*1,
 				'description':this.getValueDescription()
 			};
 		}
 		return false;
 	},
-	setValue:function(data) {
-		// data is expected to be: {date:<d>, cycle:<cycle>}
-		if(_.has(data,'date') && _.isDate(data.date)) {
-			this.dp.datepicker('setDate',data.date);
+	setValue:function(filterValue) {
+		if(_.has(filterValue,'monthYear') && _.isDate(filterValue.monthYear)) {
+			this.dp.datepicker('setDate',filterValue.monthYear);
 		} else {
 			this.dp.datepicker('setDate',null);
 		}
-		if(_.has(data,'cycle')) {
-			$('div.btn-group label').each(function(i,e){
+		if(_.has(filterValue,'cycle')) {
+			// here it is
+			$('div.btn-group label',this.$el).each(function(i,e){
 				var lbl = $(e),
 					inpt = $('input',$(e));
 				lbl.removeClass('active');
 				inpt.removeAttr('checked');
-				if((inpt.val()*1)==(data*1)){
+				if((inpt.val()*1)==filterValue.cycle){
 					lbl.addClass('active');
 					inpt.attr('checked','checked');
 				}

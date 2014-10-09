@@ -1,5 +1,6 @@
 // Filter Widget Type Implementation Class for Date (Equals)
 var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
+	version:'1.0.2',
 	type:'between',
 	dpFrom:null,
 	dpStartDate:null,
@@ -46,9 +47,13 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	setValue:function(dates) {
-		//dates should be a array of dates (max 2)
-		// TODO
+	setValue:function(filterValue) {
+		this.dpStartDate = filterValue.fromDate;
+		this.dpEndDate = filterValue.toDate;
+		this.dpFrom.datepicker('setDate', this.dpStartDate);
+		this.dpTo.datepicker('setDate', this.dpEndDate);
+		this.dpFrom.datepicker('setEndDate',this.dpEndDate);
+		this.dpTo.datepicker('setStartDate',this.dpStartDate);
 	},
 	reset:function() {
 		this.dpStartDate = null;

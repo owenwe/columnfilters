@@ -1,5 +1,6 @@
 // Filter Widget Type Implementation Class for Number (Select)
 var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
+	version:'1.0.2',
 	type:'select',
 	sb:null,
 	sbOptions:{min:-10, max:100, step:.25},
@@ -10,6 +11,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 	isValid:function() {
 		return this.valueList.length>0;
 	},
+	
 	validate:function() {
 		// TODO unset inputs/labels from danger status
 		if(this.isValid()) {
@@ -20,6 +22,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 		console.log('one or more numbers must be selected');
 		return false;
 	},
+	
 	getValueDescription:function() {
 		if(this.isValid()) {
 			return 'is one of these numbers: (' + this.valueList.join(',') + ')';
@@ -27,6 +30,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 			return false;
 		}
 	},
+	
 	getValue:function() {
 		if(this.validate()) {
 			return {
@@ -37,15 +41,19 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	setValue:function(data) {
+	
+	setValue:function(filterValue) {
 		//expecting array of numbers
-		this.valueList = data;
-		for(var i in data) {
-			addToList(data[i]);
+		this.valueList = filterValue.value;
+		for(var i in filterValue.value) {
+			addToList(filterValue.value[i]);
 		}
 	},
+	
 	reset:function() {
-		$('input',this.$el)[0].reset();
+		this.sb.spinbox('value',0);
+		this.listEl.empty();
+		this.valueList = [];
 	},
 	
 	addToList:function(value) {
@@ -84,6 +92,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 			}
 		}
 	},
+	
 	template:_.template(
 		'<div class="row">'+
 		'	<div class="col-md-5">'+CFTEMPLATES.numberSpinner1+'</div>'+
@@ -100,6 +109,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 		'<span class="help-block">filtering the results by column values in this list</span>',
 		{variable:'spinbox'}
 	),
+	
 	initialize:function(options) {
 		this.$el.addClass('fuelux');
 		this.$el.html(this.template({name:'sb'}));

@@ -1,19 +1,69 @@
 // DataFilters (the main shit)
 var VDataFilters = Backbone.View.extend({
+	
+	/*
+	Default: Column/Type-Based
+	these should translate to AND clauses being appended to WHERE
+	i.e. WHERE id>1 AND {column} {filter opperand} {filter value(s)}
+	[column filter dropdown] [filter factory]
+	
+	Common Value: Value/Type-Based
+	this should translate to a reverse IN clause being appended to WHERE for the columns given
+	(technically it translates to an OR clause)
+	i.e. WHERE id>1 AND (
+		{filter value} IN({column1},{column2},...)
+	)
+	[column filter multi select dropdown] [filter factory]
+	*/
+	FILTER_SELECTION_TYPES:{ 'DEFAULT':0, 'COMMON_VALUE':1 },
+	
+	// Enum of the different interactive modes this control can be put into
+	MODES:{ 'DEFAULT':0, 'CATEGORY_SETS':1 },
+	
 	defaultConfig:{
+		'mode':0,
 		'table':'undefined',
 		'showFirst':null,
+		'filterSelectionType':0,
 		'filters':false,
 		'filterCategories':[]
 	},
-	table:'undefined',
-	filters:null,//a collection of MDataFilter
-	filterCategories:[],//array of names
-	currentFilterCategory:null,//key for filtering models in the filters
+	mode:0,					// setting the mode to 1 enables the save/remove filter set and filter set groups
+	table:'undefined',		// the name of the database table or virtual source
+	filterSelectionType:0,  // the type of filter selection to display
+	filters:null,			// a collection of MDataFilter
+	filterCategories:[],	// array of names
+	
+	//key/value container for groups filter categories
+	// TODO JS Object, LocalStorage, Backbone.Collection with AJAX backend to a DB
+	// { <key = name>:{description:<string>, filters:[]} }
+	filterCategorySets:{},
+	
+	//the modal for add/edit filter sets
+	modal:null,
+	
+	// TODO turn categories into collections
+	
+	//key for filtering models in the filters
+	//categories end up being drop down lists in the dataFiltersControl nav bar
+	currentFilterCategory:null,
+	
+	//index to the filter set in this.filterCategorySets[currentFilterCategory].filters
+	currentWorkingFilterSet:null,
+	
+	//cid of the model in the filters collection during an edit
+	editFilterCid:null,
+	
+	//used to keep track of filters displayed in the dataFiltersContainer
 	currentColumnFilter:{'table':null,'type':null,'column':null,'label':null},
-	filterFactory:null,
-	dataFiltersContainer:null,//panel body view
-	dataFiltersControl:null,//panel footer, kind of
+	
+	//used to keep track of the filter control nav bar dropdowns
+	preEditFilterControlStates:[],
+	
+	commonValueControl:null,	//multi-column value filter control
+	filterFactory:null,			//all filter widgets
+	dataFiltersContainer:null,	//panel body view
+	dataFiltersControl:null,	//panel footer, kind of
 	
 	filterCategoryGlyphMapping:function(catName) {
 		var retVal = 'glyphicon-cloud-upload';
@@ -22,6 +72,81 @@ var VDataFilters = Backbone.View.extend({
 			case 'user':
 				retVal = 'glyphicon-user';
 				break;
+		}
+		return retVal;
+	},
+	
+	
+	//
+	filterSelectionTypeChange:function(newSelectionType) {
+		switch(newSelectionType) {
+			case this.FILTER_SELECTION_TYPES.DEFAULT:
+				this.filterSelectionType = this.FILTER_SELECTION_TYPES.DEFAULT;
+				$('.cf-add-change-filter-group-button button.dropdown-toggle',this.$el).removeAttr('disabled').removeClass('disabled');
+				this.commonValueControl.hide();
+				break;
+			case this.FILTER_SELECTION_TYPES.COMMON_VALUE:
+				this.filterSelectionType = this.FILTER_SELECTION_TYPES.COMMON_VALUE;
+				// disable change column dropdown
+				$('.cf-add-change-filter-group-button button.dropdown-toggle',this.$el).attr('disabled','disabled').addClass('disabled');
+				
+				// show common value control
+				this.commonValueControl.show();
+				break;
+		}
+	},
+	
+	// changes the filter factory widget to the given type
+	changeFilterFactoryType:function(type,column,label,subType) {
+		this.currentColumnFilter = {
+			'table':this.table,
+			'type':type,
+			'column':column,
+			'label':label
+		};
+		this.filterFactory.load(this.currentColumnFilter.type, this.currentColumnFilter.column, this.currentColumnFilter.label, subType);
+	},
+	
+	// show the save/cancel edit button group and disable everything but it and the filter factory
+	editFilterMode:function() {
+		// show cancel and save filter button
+		$('button.cf-edit-filter-button', this.$el).show();
+		$('button.cf-cancel-edit-filter-button', this.$el).show();
+		
+		//	hide add filter/change column button
+		$('.cf-add-change-filter-group-button button',this.$el).hide();
+		
+		//disable data filter type button group
+		$('.cf-data-filter-type-selection label').addClass('disabled');
+		$('.cf-data-filter-type-selection input').attr('disabled','disabled');
+		
+		//	disable filter container
+		this.dataFiltersContainer.disable()
+		
+		//	disable filters control (need to keep track of what was already disabled)
+		this.preEditFilterControlStates = [];
+		var pefcs = this.preEditFilterControlStates;
+		$('ul.nav li',this.dataFiltersControl).each(function(i,e) {
+			pefcs.push({'listItem':$(e), 'hasDisabledClass':$(e).hasClass('disabled')});
+			if(!$(e).hasClass('disabled')) {
+				$(e).addClass('disabled');
+			}
+		});
+	},
+	
+	// undo everything done in editFilterMode
+	cancelEditFilterMode:function() {
+		$('button.cf-edit-filter-button', this.$el).hide();
+		$('button.cf-cancel-edit-filter-button', this.$el).hide();
+		$('.cf-add-change-filter-group-button button',this.$el).show();
+		$('.cf-data-filter-type-selection label').removeClass('disabled');
+		$('.cf-data-filter-type-selection input').removeAttr('disabled');
+		this.dataFiltersContainer.enable();
+		for(var i in this.preEditFilterControlStates) {
+			var preFilterState = this.preEditFilterControlStates[i];
+			if(!preFilterState.hasDisabledClass) {
+				preFilterState.listItem.removeClass('disabled');
+			}
 		}
 	},
 	
@@ -59,44 +184,77 @@ var VDataFilters = Backbone.View.extend({
 		
 	},
 	
+	// returns filters as an object, or false if there aren't filters to return
+	getCurrentFilter:function() {
+		if(this.mode==this.MODES.DEFAULT) {
+			if(this.filters.length) {
+				return this.filters.toJSON();
+			} else {
+				return false;
+			}
+		} else {
+			// TODO look at currentWorkingFilterSet and currentFilterCategory and currentColumnFilter
+			console.log(this.currentColumnFilter);
+		}
+	},
+	
 	tagName:'div',
 	className:'panel panel-default',
 	
-	
 	events:{
-		// FILTER SUB-TYPE CHANGE
+		
+		// DATA FILTER TYPE CHANGE
+		// is to change the data filter type selection to the selected type
+		'change .btn-group.cf-data-filter-type-selection input':function(e) {
+			// do we know what the type is from the event?
+			var eVal = e.currentTarget.value*1;
+			this.filterSelectionTypeChange(eVal);
+		},
+		
+		
+		// COLUMN FILTER CHANGE
 		// is to load the data info from the clicked event into the filter factory
 		'click ul.cf-columns-select-dd li a':function(e) {
-			this.currentColumnFilter = {
-				'table':this.table,
-				'type':$(e.currentTarget).attr('data-type'),
-				'column':$(e.currentTarget).attr('data-name'),
-				'label':$(e.currentTarget).html()
-			};
-			this.filterFactory.load(this.currentColumnFilter.type, this.currentColumnFilter.column, this.currentColumnFilter.label);
+			this.changeFilterFactoryType($(e.currentTarget).data('type'),$(e.currentTarget).data('name'),$(e.currentTarget).html());
 		},
 		
 		// ADD FILTER CLICK
 		// should first call validate on the active filter type
 		'click button.cf-add-filter-button':function(e) {
-			// TODO call validate() on the filter widget
+			
 			//this.filterFactory.disable();
 			var af = this.filterFactory.activeFilter(),
 				fVal = af?this.filterFactory.getFilterValue():false;
 			if(fVal) {
-				//this.dataFiltersContainer.add(this.currentColumnFilter, fVal);
-				//add to the current category of filters
-				this.filters.add(new MDataFilter({
+				// enable save filter dropdown
+				if($('li.cf-save-filter-list', this.dataFiltersControl).hasClass('disabled')) {
+					$('li.cf-save-filter-list', this.dataFiltersControl).removeClass('disabled');
+				}
+				
+				// TODO handle each different this.filterSelectionType
+				
+				// create new data filter
+				var ndf = new MDataFilter({
 					'table':this.table,
 					'category':this.currentFilterCategory,
 					'type':this.currentColumnFilter.type,
 					'column':this.currentColumnFilter.column,
 					'label':this.currentColumnFilter.label,
 					'filterValue':fVal
-				}));
+				});
+				
+				// listen for change event on the model
+				ndf.on('change:filterValue', function(filter) {
+					//need to update filter tab content list item
+					this.dataFiltersContainer.updateFilter(filter);
+				}, this);
+				
+				//add to the current category of filters
+				this.filters.add(ndf);
 			}
 		},
 		
+		// SAVE FILTER CLICK
 		// triggered when the save filter item is clicked
 		'click nav.cf-datafilters-controller-footer ul.nav li.btn[title="save"] ul.dropdown-menu li':function(e) {
 			var cat = $(e.currentTarget).data('save-type'),
@@ -105,23 +263,83 @@ var VDataFilters = Backbone.View.extend({
 				catDdMenu = $('ul.dropdown-menu',catDdLi);
 			// TODO filter category dropup will be enabled and have a list item associated with the current filters
 			// TODO check if there is filter data to save
+			
+			//reset the modal and then show it
+			$('div.modal form', this.$el)[0].reset();
+			this.modal.modal('show');
+			
 			if(catDdLi.hasClass('disabled')) {
-				//this is the first filter being saved to this category
-				
+				//this is the first filter set being saved to this category
 				catDdLi.removeClass('disabled');
+				
+			} else {
+				//add another filter set to the existing category
+				
+			}
+		},
+		
+		// SAVE EDIT FILTER CLICK
+		'click button.cf-edit-filter-button':function(e) {
+			//get filter value from filterFactory and apply it to the filter in the collection
+			//this should update the dataFiltersContainer view
+			//if this.currentWorkingFilterSet is null then we don't have to trigger an update event on the collection model
+			if(this.filterFactory.getFilterValue()) {
+				this.cancelEditFilterMode();
+				this.filters.get(this.editFilterCid).set({'filterValue':this.filterFactory.getFilterValue()});
+			}
+		},
+		
+		// CANCEL EDIT FILTER CLICK
+		'click button.cf-cancel-edit-filter-button':function(e) {
+			this.cancelEditFilterMode();
+		},
+		
+		// MODAL ACTION BUTTON CLICK
+		'click div.modal div.modal-footer button:last-child':function(e) {
+			//for now this is only triggered for saving filter sets
+			// TODO validate form inputs
+			var fsName = $.trim($('input#cfFilterSetSaveName',this.modal).val());
+			if(fsName.length) {
+				var fsDesc = $.trim($('textarea#cfFilterSetSaveDescription',this.modal).val());
+				if(_.has(this.filterCategorySets, this.currentFilterCategory)) {
+					//add to the existing filter set
+					
+				} else {
+					//create new filter set
+					/*this.filterCategorySets[this.currentFilterCategory] = {
+						'table':this.table,
+						'name':fsName,
+						'description':fsDesc.length?fsDesc:null,
+						'filters':this.filters.where({'category':})
+					};*/
+				}
+				
+				//currentWorkingFilterSet
+				
 			}
 			
+			//use info from form inputs to create a list item in the category dropdown
+			
+			
+			//
 			
 		}
 	},
 	
 	
 	initialize:function(options) {
+		if(_.has(options,'mode') && _.isNumber(options.mode)) {
+			// TODO make sure passed in value exists in MODES
+			this.defaultConfig.mode = this.mode = options.mode;
+		}
 		if(_.has(options,'table') && _.isString(options.table)) {
 			this.table = options.table;
 		}
 		if(_.has(options,'showFirst') && _.isString(options.showFirst)) {
 			this.defaultConfig.showFirst = options.showFirst;
+		}
+		if(_.has(options,'filterSelectionType') && _.isNumber(options.filterSelectionType)) {
+			this.defaultConfig.filterSelectionType = this.filterSelectionType = options.filterSelectionType;
 		}
 		if(_.has(options,'filters')) {
 			// TODO populate
@@ -134,35 +352,33 @@ var VDataFilters = Backbone.View.extend({
 			this.defaultConfig.filterCategories = options.filterCategories;
 		}
 		
-		// filterOptions will populate the dropdown list of columns
-		var filterOptions = [];
-		if(options.hasOwnProperty('tableColumns') && _.isArray(options.tableColumns)) {
+		// validTableColumns will populate the dropdown list of columns and the common value control
+		var validTableColumns = [];
+		if(options.hasOwnProperty('tableColumns') && _.isArray(options.tableColumns) && options.tableColumns.length) {
 			//assert tableColumns is an array of objects: []{name:<the column name>, type:<data-type>, label:<string>}
 			for(var i in options.tableColumns) {
 				var tc = options.tableColumns[i];
 				if(_.isObject(tc) && (_.has(tc,'name') && _.has(tc,'type') && _.has(tc,'label'))) {
-					filterOptions.push(
-						$(document.createElement('li')).append(
-							$(document.createElement('a')).attr({'href':'#','data-type':tc.type,'data-name':tc.name}).html(tc.label)
-						)
-					);
+					// add extra properties for the common value control
+					validTableColumns.push(_.extend(tc,{'selected':false}));
 				}
 			}
 		}
 		
+		// Create and Populate the filter factory
 		this.filterFactory = new VDataFilterFactory({showOnInit:this.defaultConfig.showOnInit, collection:new Backbone.Collection(
 			[
-				new VDataColumnFilterWidget({type:'text',collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({type:'text', collection:new Backbone.Collection([
 					new VFilterWidgetTypeTextEq(),
 					new VFilterWidgetTypeTextSrch()
 				])}),
-				new VDataColumnFilterWidget({type:'number',collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({type:'number', collection:new Backbone.Collection([
 					new VFilterWidgetTypeNumberEq(),
 					new VFilterWidgetTypeNumberBtwn(),
 					new VFilterWidgetTypeNumberSel()
 					
 				])}),
-				new VDataColumnFilterWidget({type:'date',collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({type:'date', collection:new Backbone.Collection([
 					new VFilterWidgetTypeDateEq(),
 					new VFilterWidgetTypeDateBtwn(),
 					new VFilterWidgetTypeDateSel(),
@@ -172,71 +388,83 @@ var VDataFilters = Backbone.View.extend({
 			]
 		)});
 		
-		var panelHeading = $(document.createElement('div')).addClass('panel-heading well-sm').append(
-			$(document.createElement('div')).addClass('row').append(
-				$(document.createElement('div')).addClass('col-md-2 text-center').append(
-					$(document.createElement('strong')).addClass('h3').html('Data Filters')
-				),
-				$(document.createElement('div')).addClass('col-md-2').append(
-					$(document.createElement('div')).addClass('btn-group').append(
-						$(document.createElement('button')).attr({'type':'button'})
-														   .addClass('btn btn-default btn-xs cf-add-filter-button')
-														   .html('Add Filter'),
-						$(document.createElement('button')).attr({'type':'button','data-toggle':'dropdown'})
-														   .addClass('btn btn-default btn-xs dropdown-toggle')
-														   .append(
-							$(document.createElement('span')).addClass('caret'),
-							$(document.createElement('span')).addClass('sr-only').html('Toggle Dropdown')
-						),
-						$(document.createElement('ul')).attr({'role':'menu'}).addClass('dropdown-menu cf-columns-select-dd').append(filterOptions)
-					)
-				),
-				$(document.createElement('div')).addClass('col-md-8').append(
-					this.filterFactory.el
-				)
-			)
+		// There will always be a user (or default) filter
+		// should pull all table filters/column filters for this user + common and public
+		this.dataFiltersContainer = new VDataFiltersContainer();
+		
+		this.$el.append(
+			_.template(CFTEMPLATES.dataFiltersPanelContent,{variable:'panelheading'})({'filterColumns':validTableColumns}),
+			this.dataFiltersContainer.el,
+			_.template(CFTEMPLATES.dataFiltersControlFooter,{variable:'controller'})({'filterCategories':this.defaultConfig.filterCategories})
 		);
 		
+		//add UI components and set initial display states for UI
+		this.commonValueControl = new VCommonValueFilterControl({'columns':validTableColumns});
+		$('div.cf-common-value-controller-replace',this.$el).replaceWith(this.commonValueControl.$el);
+		$('.cf-filter-factory-container-row',this.$el).append(this.filterFactory.el);
+		$('button.cf-edit-filter-button', this.$el).hide();
+		$('button.cf-cancel-edit-filter-button', this.$el).hide();
+		
+		// set properties for view
+		this.dataFiltersControl = $('nav.cf-datafilters-controller-footer',this.$el);
+		
+		// re-usable modal
+		$('div.modal div.modal-body', this.$el).html(_.template(CFTEMPLATES.saveFilterSetModalForm)({}));
+		this.modal = $('div.modal',this.$el).modal({
+			'backdrop':'static',
+			'keyboard':false,
+			'show':false
+		});
+		
+		// EVENT HANDLERS
 		// event handler when a filter is added
 		this.filters.on('add', function(filter) {
 			this.dataFiltersContainer.add(filter);
 		}, this);
 		
+		this.filters.on('remove', function(filter) {
+			if(this.filters.length<1) {
+				// disable the save filter dropdown
+				$('li.cf-save-filter-list', this.dataFiltersControl).addClass('disabled');
+			}
+		}, this);
 		
-		// There will always be a user (or default) filter
-		// should pull all table filters/column filters for this user + common and public
-		this.dataFiltersContainer = new VDataFiltersContainer();
-		this.dataFiltersControl = _.template(CFTEMPLATES.dataFiltersControlFooter,{variable:'controller'})({'filterCategories':this.defaultConfig.filterCategories});
-		
-		this.$el.append(panelHeading,this.dataFiltersContainer.el,this.dataFiltersControl);
-		
-		
+		// 
 		this.listenTo(this.dataFiltersContainer,'removeClick', function(filterCid) {
-			console.log('handling filter container remove click: '+filterCid);
 			this.filters.remove(this.filters.get(filterCid));
 		});
+		
+		// upstream handler when a filter item edit click event
 		this.listenTo(this.dataFiltersContainer,'changeClick', function(filterCid) {
-			console.log('handling filter container change click: '+filterCid);
-			console.log(this.filters.get(filterCid).attributes);
+			this.editFilterCid = filterCid;
+			this.editFilterMode();
+			
+			var f = this.filters.get(this.editFilterCid).attributes;
+			this.changeFilterFactoryType(f.type,f.column,f.label,f.filterValue.type);
+			this.filterFactory.setFilterValue(f);
 		});
 		
-		
-		if(this.defaultConfig.filterCategories.length) {
+		// 
+		if(this.defaultConfig.mode && this.defaultConfig.filterCategories.length) {
 			for(var i in this.defaultConfig.filterCategories) {
 				this.addCategory(this.defaultConfig.filterCategories[i]);
 			}
 		}
 		
+		// handle when filterSelectionType is passed with a value other than FILTER_SELECTION_TYPES.DEFAULT
+		if(this.filterSelectionType != this.FILTER_SELECTION_TYPES.DEFAULT) {
+			//call function as if the click event was triggered
+			this.filterSelectionTypeChange(this.filterSelectionType);
+		} else {
+			// hide commonValueControl
+			this.commonValueControl.hide();
+		}
+		
+		// 
 		if(_.isString(this.defaultConfig.showFirst)) {
 			var dfDdLi = $('ul.cf-columns-select-dd li a[data-name="'+this.defaultConfig.showFirst+'"]',this.$el);
 			if(dfDdLi.length) {
-				this.currentColumnFilter = {
-					'table':this.table,
-					'type':dfDdLi.first().data('type'),
-					'column':dfDdLi.first().data('name'),
-					'label':dfDdLi.first().html()
-				};
-				this.filterFactory.load(this.currentColumnFilter.type, this.currentColumnFilter.column, this.currentColumnFilter.label);
+				this.changeFilterFactoryType(dfDdLi.first().data('type'),dfDdLi.first().data('name'),dfDdLi.first().html());
 			}
 		}
 		

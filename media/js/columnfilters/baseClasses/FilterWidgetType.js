@@ -1,4 +1,5 @@
 var VFilterWidgetType = Backbone.View.extend({
+	type:'equals',//abstract
 	visible:false,
 	active:false,
 	
@@ -18,7 +19,7 @@ var VFilterWidgetType = Backbone.View.extend({
 	getValue:function() {},
 	
 	// will set the inputs to the values given
-	setValue:function() {},
+	setValue:function(filterValue) {},
 	
 	//
 	//load:function(data) {},

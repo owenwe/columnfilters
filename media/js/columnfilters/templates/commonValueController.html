@@ -1,0 +1,7 @@
+<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">Select Columns <span class="caret"></span></button>
+<ul class="dropdown-menu" role="menu">
+	<% for(var i in data.columns) { %>
+    	<li><a href="#"><%= data.columns[i].label %></a></li>
+    <% } %>
+</ul>
+

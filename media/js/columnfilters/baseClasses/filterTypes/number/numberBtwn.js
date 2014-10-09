@@ -1,5 +1,6 @@
 // Filter Widget Type Implementation Class for Number (Between)
 var VFilterWidgetTypeNumberBtwn = VFilterWidgetType.extend({
+	version:'1.0.2',
 	type:'between',
 	sbFrom:null,
 	sbTo:null,
@@ -52,17 +53,18 @@ var VFilterWidgetTypeNumberBtwn = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	setValue:function(data) {
+	setValue:function(filterValue) {
+		console.log(filterValue);
 		//data is expected to be an object with from/to keys
-		if(_.has(data,'from') && _.isNumber(data.from)) {
-			this.sbFrom.spinbox('value',data.from);
+		if(_.has(filterValue,'from') && _.isNumber(filterValue.from)) {
+			this.sbFrom.spinbox('value',filterValue.from);
 		}
-		if(_.has(data,'to') && _.isNumber(data.to)) {
-			this.sbFrom.spinbox('value',data.to);
+		if(_.has(filterValue,'to') && _.isNumber(filterValue.to)) {
+			this.sbTo.spinbox('value',filterValue.to);
 		}
 	},
 	reset:function() {
-		//$('input',this.$el)[0].reset();
+		this.setValue({'from':0,'to':0});
 	},
 	
 	

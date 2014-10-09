@@ -1,5 +1,6 @@
 // Filter Widget Type Implementation Class for Text (Search)
 var VFilterWidgetTypeTextSrch = VFilterWidgetType.extend({
+	version:'1.0.2',
 	type:'search',
 	
 	
@@ -33,8 +34,8 @@ var VFilterWidgetTypeTextSrch = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	setValue:function(data) {
-		$('input',this.$el).val(data);
+	setValue:function(filterValue) {
+		$('input',this.$el).val(filterValue.value);
 	},
 	reset:function() {
 		$('input',this.$el)[0].reset();

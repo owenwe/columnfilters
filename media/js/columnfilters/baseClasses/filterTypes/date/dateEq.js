@@ -1,5 +1,6 @@
 // Filter Widget Type Implementation Class for Date (Equals)
 var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
+	version:'1.0.2',
 	type:'equals',
 	dp:null,
 	dpConfig:{
@@ -38,16 +39,17 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	setValue:function(date) {
+	setValue:function(filterValue) {
 		// date should be a date
-		if(_.isDate(date)) {
-			this.dp.datepicker('setDate',date);
+		if(_.isDate(filterValue.value)) {
+			this.dp.datepicker('setDate',filterValue.value);
 		}
 	},
 	reset:function() {
 		this.dp.datepicker('setDate',null);
-		this.dp.datepicker('setEndDate',null);
-		this.dp.datepicker('setStartDate',null);
+		
+		//this.dp.datepicker('setEndDate',null);
+		//this.dp.datepicker('setStartDate',null);
 	},
 	
 	

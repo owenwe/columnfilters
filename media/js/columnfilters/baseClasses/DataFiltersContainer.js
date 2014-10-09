@@ -1,11 +1,49 @@
 // Data Filters Container Controller
 var VDataFiltersContainer = Backbone.View.extend({
 	
+	preDisableTabStates:[],
+	
 	/*
 	this is only the view for the current filter group, it should NOT control
-	the interaction of filter groups, only add/edit/remove of the view elements
+	the interaction of filter groups, only add/edit/remove/interaction of the view elements
 	*/
+	filterItemMouseover:function(e){
+		$('button.close',$(e.currentTarget)).show();
+		$('span.cf-filter-edit-button',$(e.currentTarget)).show();
+	},
+	filterItemMouseleave:function(e){
+		$('button.close',$(e.currentTarget)).hide();
+		$('span.cf-filter-edit-button',$(e.currentTarget)).hide();
+	},
 	
+	enable:function() {
+		$('ul.nav li',this.$el).removeClass('disabled');
+		for(var i in this.preDisableTabStates) {
+			var pdts = this.preDisableTabStates[i];
+			pdts.tabLink.attr({'href':pdts.href,'data-toggle':pdts.dataToggle});
+		}
+		var dfc = this;
+		$('div.tab-content div.tab-pane.active a.list-group-item',this.$el).each(function(i,e) {
+			$(e).attr('href','#').removeClass('disabled');
+			$(e).on({'mouseover':dfc.filterItemMouseover, 'mouseleave':dfc.filterItemMouseleave});
+		});
+	},
+	disable:function() {
+		this.preDisableTabStates = [];
+		var pdts = this.preDisableTabStates;
+		$('ul.nav li',this.$el).addClass('disabled');
+		$('ul.nav li a.list-group-item',this.$el).each(function(i,e) {
+			var a = $(e);
+			pdts.push({'tabLink':a, 'href':a.attr('href'), 'dataToggle':a.attr('data-toggle')});
+			a.removeAttr('href');
+			a.removeAttr('data-toggle');
+		});
+		
+		$('div.tab-content div.tab-pane.active a.list-group-item',this.$el).each(function(i,e) {
+			$(e).removeAttr('href').off('mouseover mouseleave').addClass('disabled');
+			$('button.close, span.cf-filter-edit-button',$(e)).hide();
+		});
+	},
 	
 	add:function(filterData) {
 		// add filter to current filter group
@@ -18,13 +56,7 @@ var VDataFiltersContainer = Backbone.View.extend({
 		// the filter list item
 		var flit = $(this.filterListItemTemplate(mAtt));
 		//show/hide action button functionality
-		flit.mouseover(function(e){
-			$('button.close',$(e.currentTarget)).show();
-			$('span.cf-filter-edit-button',$(e.currentTarget)).show();
-		}).mouseleave(function(e){
-			$('button.close',$(e.currentTarget)).hide();
-			$('span.cf-filter-edit-button',$(e.currentTarget)).hide();
-		});
+		flit.on({'mouseover':this.filterItemMouseover, 'mouseleave':this.filterItemMouseleave});
 		$('h4.list-group-item-heading button.close',flit).hide();
 		$('h4.list-group-item-heading span.cf-filter-edit-button',flit).hide();
 		
@@ -57,13 +89,11 @@ var VDataFiltersContainer = Backbone.View.extend({
 			e.data.dfc.trigger('changeClick',e.data.cid);
 		});
 		
-		
 		//first look for an existing li (tab) in <ul class="dropdown-menu" role="menu">
 		var existingPill = $(['ul.nav-pills li a[href="#',mAtt.column,'"]'].join(''), this.$el);
 		if(existingPill.length) {
 			var columnTabContent = $(['div#',mAtt.column, ' div.list-group'].join(''), this.$el),
 				columnFilterCount = $('span.badge', existingPill).html()*1;
-			console.log(columnFilterCount);
 			$('span.badge', existingPill).html(++columnFilterCount);
 			
 			columnTabContent.append(flit);
@@ -89,6 +119,14 @@ var VDataFiltersContainer = Backbone.View.extend({
 				//console.log($('ul.nav-pills li', this.$el));
 				$('ul.nav-pills li a', this.$el).first().tab('show');
 			}
+		}
+	},
+	
+	updateFilter:function(filter) {
+		var fALink = $('div.tab-content div.list-group a.list-group-item[data-filter-cid="'+filter.cid+'"]', this.$el);
+		if(fALink.length) {
+			$('h4.list-group-item-heading strong',fALink).html([filter.attributes.label,filter.attributes.filterValue.type].join(' : '));
+			$('p.list-group-item-text span',fALink).html(filter.attributes.filterValue.description);
 		}
 	},
 	
@@ -123,8 +161,8 @@ var VDataFiltersContainer = Backbone.View.extend({
 	// this is an item in the tab content list
 	filterListItemTemplate:_.template(
 		[
-			'<a href="#" class="list-group-item">',
-				'<h4 class="list-group-item-heading"><%= filterData.label %> : <%= filterData.filterValue.type %>',
+			'<a href="#" class="list-group-item" data-filter-cid="<%= filterData.cid %>">',
+				'<h4 class="list-group-item-heading"><strong><%= filterData.label %> : <%= filterData.filterValue.type %></strong>',
 					'<button class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>',
 					'<span class="btn pull-right cf-filter-edit-button"><span class="glyphicon glyphicon-cog"></span></span>',
 				'</h4>',
@@ -145,6 +183,7 @@ var VDataFiltersContainer = Backbone.View.extend({
 		*/
 		
 		this.$el.append(this.template({}));
+		
 	},
 	render:function() {
 		return this;
