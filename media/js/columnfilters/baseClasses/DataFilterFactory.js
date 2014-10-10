@@ -5,8 +5,8 @@ var VDataFilterFactory = Backbone.View.extend({
 	activeColumn:null,
 	
 	activeFilter:function(){
-		//return any visible filter widgets (should only be 1)
-		var af = this.collection.findWhere({active:true});
+		//return any active && visible filter widgets (should only be 1)
+		var af = this.collection.findWhere({'active':true,'visible':true});
 		return af?af.attributes:false;
 	},
 	
@@ -15,12 +15,37 @@ var VDataFilterFactory = Backbone.View.extend({
 	},
 	
 	setFilterValue:function(filter) {
-		//first we have to find
+		//first we have to find the current filter widget
 		var fw = this.collection.findWhere({'type':filter.type});
 		if(fw) {
 			fw.attributes.reset();
 			fw.attributes.setFilterValue(filter.filterValue);
 		}
+		return this;
+	},
+	
+	updateFilterLabel:function(newLabel) {
+		if(_.isString(newLabel)) {
+			var af = this.activeFilter();
+			if(af) {
+				af.setLabel(newLabel);
+			}
+		}
+	},
+	
+	show:function() {
+		var af = this.activeFilter();
+		if(af){
+			af.show();
+		}
+		return this;
+	},
+	hide:function() {
+		var af = this.activeFilter();
+		if(af){
+			af.hide();
+		}
+		return this;
 	},
 	
 	enable:function() {
@@ -29,6 +54,7 @@ var VDataFilterFactory = Backbone.View.extend({
 		if(af){
 			af.enable();
 		}
+		return this;
 	},
 	disable:function() {
 		//disable the active filter
@@ -36,10 +62,24 @@ var VDataFilterFactory = Backbone.View.extend({
 		if(af) {
 			af.disable();
 		}
+		return this;
 	},
 	
-	// displays the requested filter widget type
-	load:function(dataType,dataCol,dataLabel,subType) {
+	reset:function(resetAll) {
+		if(resetAll) {
+			
+		} else {
+			var af = this.activeFilter();
+			if(af) {
+				af.reset();
+				af.setLabel('');
+			}
+		}
+		return this;
+	},
+	
+	// displays the requested filter widget type (took out dataCol)
+	load:function(dataType, dataLabel, subType) {
 		//find it in the collection
 		var reqfw = this.collection.findWhere({'type':dataType}),
 			curfw = this.activeFilter();
@@ -48,8 +88,8 @@ var VDataFilterFactory = Backbone.View.extend({
 			if(curfw && (curfw.cid!=reqfw.cid)) {
 				curfw.hide();
 			}
-			//set the active column value
-			this.activeColumn = dataCol;
+			//set the active column value -- does this get used?
+			//this.activeColumn = dataCol;
 			
 			//set the data label for the widget
 			reqfw.attributes.setLabel(dataLabel);
@@ -61,6 +101,7 @@ var VDataFilterFactory = Backbone.View.extend({
 				reqfw.attributes.changeSubType(subType);
 			}
 		}
+		return this;
 	},
 	
 	

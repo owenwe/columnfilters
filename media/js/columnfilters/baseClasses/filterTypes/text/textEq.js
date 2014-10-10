@@ -38,7 +38,7 @@ var VFilterWidgetTypeTextEq = VFilterWidgetType.extend({
 		$('input',this.$el).val(filterValue.value);
 	},
 	reset:function() {
-		$('input',this.$el)[0].reset();
+		$('input',this.$el).val(null);
 	},
 	
 	

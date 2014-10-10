@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="media/css/datepicker3.css" />
     <link rel="stylesheet" href="media/css/fuelux.min.css" />
     <style>
+	.cf-data-filter-type-selection, .cf-common-value-dropdown {
+		margin-right:4px;
+	}
 	.cf-common-value-dropdown ul.dropdown-menu {
 		min-width:200px;
 		max-height: 200px;
@@ -123,18 +126,8 @@
     
     <!-- templates -->
     <script src="media/js/columnfilters/templates/baseTemplateClass.js"></script>
-    <script src="media/js/columnfilters/templates/commonValueController.html" type="text/template" id="commonValueController">
-    	<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">Select Columns <span class="caret"></span></button>
-		<ul class="dropdown-menu dropdown-menu-sm" role="menu">
-			<% for(var i in data.columns) { %>
-				<li class="cf-cvdd-active">
-					<button type="button" class="btn btn-block text-capitalize " data-name="<%= data.columns[i].name %>" data-type="<%= data.columns[i].type %>">
-						<span class="glyphicon glyphicon-ok pull-left hidden"></span> <%= data.columns[i].label %>
-					</button>
-				</li>
-			<% } %>
-		</ul>
-    </script>
+   	<!-- src="media/js/columnfilters/templates/commonValueController.js" -->
+	<script src="media/js/columnfilters/templates/commonValueController.js"></script>
     <script src="media/js/columnfilters/templates/dataFiltersPanelContent.js"></script>
     <script src="media/js/columnfilters/templates/filterOptionListItem.js"></script>
     <script src="media/js/columnfilters/templates/dataFiltersControlBody.js"></script>

@@ -20,4 +20,6 @@ var CFTEMPLATES = {
 		'FRIDAY':5,
 		'SATURDAY':6
 	}
+	
+	//[[SCRIPT_INSERT]]//
 };

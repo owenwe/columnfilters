@@ -52,6 +52,8 @@ var VDataFiltersContainer = Backbone.View.extend({
 		//console.log(filterData.attributes);
 		var mAtt = _.clone(filterData.attributes);
 		mAtt.cid = filterData.cid;
+		mAtt.columnId = _.isArray(mAtt.column) ? mAtt.column.join('') : mAtt.column;
+		console.log(mAtt);
 		
 		// the filter list item
 		var flit = $(this.filterListItemTemplate(mAtt));
@@ -60,8 +62,8 @@ var VDataFiltersContainer = Backbone.View.extend({
 		$('h4.list-group-item-heading button.close',flit).hide();
 		$('h4.list-group-item-heading span.cf-filter-edit-button',flit).hide();
 		
-		//click event handlers for the action buttons
-		$('h4.list-group-item-heading button.close', flit).click({dfc:this, 'filter':mAtt},function(e) {
+		//click event handler for the remove filter icon button
+		$('h4.list-group-item-heading button.close', flit).click({'dfc':this, 'filter':mAtt},function(e) {
 			// do what we need to do in this view then trigger removeClick so the DataFilters
 			// View can handle what it needs to do
 			var dfc = e.data.dfc,
@@ -71,44 +73,47 @@ var VDataFiltersContainer = Backbone.View.extend({
 			$(e.currentTarget).parent().parent().remove();
 			
 			// if there are no more list items in the tab content, delete the tab content and the tab
-			var remainingFiltersCount = $('div.tab-pane#'+fData.column+' div.list-group a.list-group-item', dfc.$el).length;
+			var remainingFiltersCount = $('div.tab-pane#'+fData.columnId+' div.list-group a.list-group-item', dfc.$el).length;
 			if(remainingFiltersCount) {
 				//filters remain, just update the filter count for this column set
-				$('a.list-group-item[href="#'+fData.column+'"] span.badge', dfc.$el).html(remainingFiltersCount);
+				$('a.list-group-item[href="#'+fData.columnId+'"] span.badge', dfc.$el).html(remainingFiltersCount);
 			} else {
 				//no more filters remain for this column set, remove tab panel and tab
-				$('div.tab-pane#'+fData.column, dfc.$el).remove();
-				$('a.list-group-item[href="#'+fData.column+'"]', dfc.$el).parent().remove();
+				$('div.tab-pane#'+fData.columnId, dfc.$el).remove();
+				$('a.list-group-item[href="#'+fData.columnId+'"]', dfc.$el).parent().remove();
 			}
 			
 			//dispatch event up the chain, pass cid so the model can be remove from the collection
 			dfc.trigger('removeClick',fData.cid);
 		});
+		
+		//click event for the edit filter icon button
 		$('h4.list-group-item-heading span.cf-filter-edit-button', flit).click({dfc:this, 'cid':mAtt.cid},function(e) {
 			//just send the filter cid up the chain
 			e.data.dfc.trigger('changeClick',e.data.cid);
 		});
 		
+		
 		//first look for an existing li (tab) in <ul class="dropdown-menu" role="menu">
-		var existingPill = $(['ul.nav-pills li a[href="#',mAtt.column,'"]'].join(''), this.$el);
+		var existingPill = $(['ul.nav-pills li a[href="#', mAtt.columnId ,'"]'].join(''), this.$el);
 		if(existingPill.length) {
-			var columnTabContent = $(['div#',mAtt.column, ' div.list-group'].join(''), this.$el),
+			var columnTabContent = $(['div#', mAtt.columnId , ' div.list-group'].join(''), this.$el),
 				columnFilterCount = $('span.badge', existingPill).html()*1;
 			$('span.badge', existingPill).html(++columnFilterCount);
 			
 			columnTabContent.append(flit);
 			
-		} else {
+		} else {//tab doesn't exist for this type, create new one
 			var currentTabsCount = $('ul.nav-pills li a',this.$el).length;
 			//add column pill to tab set
 			$('ul.nav',this.$el).append(this.filterColumnTemplate(mAtt));
 			
 			//add tab content if needed, or create one
-			var columnTabContent = $(['div#',mAtt.column].join(''),this.$el);
+			var columnTabContent = $(['div#',mAtt.columnId].join(''),this.$el);
 			if(columnTabContent.length<1) {
 				// need to create a new tab content container
-				$('div.tab-content',this.$el).append(this.filterColumnTabTemplate({'column':mAtt.column,'cid':mAtt.cid}));
-				columnTabContent = $(['div#',mAtt.column,' div.list-group'].join(''),this.$el);
+				$('div.tab-content',this.$el).append(this.filterColumnTabTemplate({'column':mAtt.columnId,'cid':mAtt.cid}));
+				columnTabContent = $(['div#',mAtt.columnId,' div.list-group'].join(''),this.$el);
 			}
 			//add it to the current tab content and update counts
 			// label, type, table, category, column, filterValue:{type, }
@@ -140,14 +145,14 @@ var VDataFiltersContainer = Backbone.View.extend({
 	
 	template:_.template(CFTEMPLATES.dataFiltersControlBody,{variable:'container'}),
 	
-	// this is the tab
+	// this is the tab, it represents filters for a particular column (identified by )
 	filterColumnTemplate:_.template(
 		['<li>',
-			'<a href="#<%= dataColumn.column %>" role="pill" data-toggle="pill" class="list-group-item">',
-				'<%= dataColumn.column %> <span class="badge pull-right">1</span>',
+			'<a href="#<%= columnData.columnId %>" role="pill" data-toggle="pill" class="list-group-item">',
+				'<%= _.isArray(columnData.column) ? columnData.label : (columnData.label[0].toUpperCase()+columnData.label.substring(1)) %> <span class="badge pull-right">1</span>',
 			'</a>',
 		'</li>'].join(''),
-		{variable:'dataColumn'}
+		{variable:'columnData'}
 	),
 	
 	// this is the content for the tab
@@ -162,12 +167,14 @@ var VDataFiltersContainer = Backbone.View.extend({
 	filterListItemTemplate:_.template(
 		[
 			'<a href="#" class="list-group-item" data-filter-cid="<%= filterData.cid %>">',
-				'<h4 class="list-group-item-heading"><strong><%= filterData.label %> : <%= filterData.filterValue.type %></strong>',
+				'<h4 class="list-group-item-heading"><strong><%= filterData.filterValue.type %></strong>',
 					'<button class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>',
+					'<% if(!_.isArray(filterData.column)) { %>'+
 					'<span class="btn pull-right cf-filter-edit-button"><span class="glyphicon glyphicon-cog"></span></span>',
+					'<% } %>'+
 				'</h4>',
 				'<p class="list-group-item-text">',
-					'<span><%= filterData.filterValue.description %></span>',
+					'<span><%= filterData.table %><%= _.isArray(filterData.column)?(" ("+filterData.column.join(",")+")"):("."+filterData.column) %> <%= filterData.filterValue.description %></span>',
 				'</p>',
 			'</a>'
 		].join(''),

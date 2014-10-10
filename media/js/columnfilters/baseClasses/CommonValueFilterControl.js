@@ -1,12 +1,24 @@
 // View for the Common Value Filter Selection Control
 var VCommonValueFilterControl = Backbone.View.extend({
 	
+	selectedColumns:[],
+	selectedCount:0,
+	
 	hide:function() {
 		this.$el.hide();
 	},
 	show:function() {
 		this.$el.show();
 	},
+	
+	getSelectedColumnData:function() {
+		return this.selectedCount ? {
+			'label':_.map(this.selectedColumns, function(c) { return c.attributes.label[0].toUpperCase()+c.attributes.label.substring(1); }).join(','), 
+			'type':this.selectedColumns[0].attributes.type, 
+			'name':_.map(this.selectedColumns, function(c) { return c.attributes.name; })  
+		} : false;
+	},
+	
 	
 	tagName:'div',
 	className:'btn-group cf-common-value-dropdown',
@@ -28,8 +40,12 @@ var VCommonValueFilterControl = Backbone.View.extend({
 				//enables = this.collection.where({'type':col.get('type')}),
 				disables = this.collection.difference(this.collection.where({'type':col.get('type')}));
 			col.set('selected',newSelectedStatus);
-			$('span',$(e.currentTarget)).toggleClass('hidden', !newSelectedStatus);
 			
+			this.selectedColumns = this.collection.where({'type':col.get('type'),'selected':true});
+			this.selectedCount = this.selectedColumns.length;
+			
+			// toggle check visibility
+			$('span',$(e.currentTarget)).toggleClass('hidden', !newSelectedStatus);
 			
 			if(newSelectedStatus) {//was not selected, now is
 				
@@ -41,8 +57,8 @@ var VCommonValueFilterControl = Backbone.View.extend({
 				}
 			} else {//de-selecting
 				//de-select and remove from display list (trigger event for parent to handle)
-				var remainingSelected = this.collection.where({'type':col.get('type'),'selected':true});
-				if(remainingSelected.length<1) {
+				
+				if(this.selectedCount<1) {
 					//nothing selected, need to enable the other columns
 					for(var i in disables) {
 						var elToEnable = $('ul.dropdown-menu li button[data-name="'+disables[i].get('name')+'"]',this.$el);
@@ -52,15 +68,28 @@ var VCommonValueFilterControl = Backbone.View.extend({
 				}
 				
 			}
+			
+			this.trigger('columnClick', {
+				'label':_.map(this.selectedColumns, function(c) { return c.attributes.label[0].toUpperCase()+c.attributes.label.substring(1); }).join(','), 
+				'type':col.attributes.type, 
+				'name':_.map(this.selectedColumns, function(c) { return c.attributes.name; })  
+			});
 			return false;
 		}
 	},
 	
-	template:_.template($('#commonValueController').html(),{variable:'data'}),
+	template:_.template(CFTEMPLATES.commonValueController,{variable:'data'}),
 	
 	initialize:function(options) {
-		this.collection = new Backbone.Collection(options.columns);
-		this.$el.append(this.template({'columns':options.columns}));
+		/*
+		 * columns is required in the options
+		 * parse the columns array and pull out any columns that are the only one of its type
+		*/
+		var colTypes = _.countBy(options.columns, function(c) {return c.type;}),
+			nonUniques = _.filter(options.columns, function(c) { return colTypes[c.type]>1; });
+		
+		this.collection = new Backbone.Collection( nonUniques );
+		this.$el.append(this.template({'columns':nonUniques}));
 	},
 	render:function() {
 		return this;

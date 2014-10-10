@@ -77,12 +77,17 @@ var VDataFilters = Backbone.View.extend({
 	},
 	
 	
-	//
+	// called from the event when the filter selection type radio set is changed
 	filterSelectionTypeChange:function(newSelectionType) {
 		switch(newSelectionType) {
 			case this.FILTER_SELECTION_TYPES.DEFAULT:
 				this.filterSelectionType = this.FILTER_SELECTION_TYPES.DEFAULT;
 				$('.cf-add-change-filter-group-button button.dropdown-toggle',this.$el).removeAttr('disabled').removeClass('disabled');
+				
+				// TODO check filter factory
+				// reset filter factory
+				this.filterFactory.reset().hide();
+				
 				this.commonValueControl.hide();
 				break;
 			case this.FILTER_SELECTION_TYPES.COMMON_VALUE:
@@ -90,13 +95,51 @@ var VDataFilters = Backbone.View.extend({
 				// disable change column dropdown
 				$('.cf-add-change-filter-group-button button.dropdown-toggle',this.$el).attr('disabled','disabled').addClass('disabled');
 				
+				// check if columns are selected in the drop down
+				// change to/show filter factory type if there is a selection
+				// hide filter factory type if no selection
+				if(this.commonValueControl.selectedCount) {
+					var selColData = this.commonValueControl.getSelectedColumnData();
+					this.changeFilterFactoryType(selColData.type,selColData.name,selColData.label);
+					//this.commonValueColumnSelectionChange(this.commonValueControl.selectedColumns[0].attributes);
+				} else {
+					var af = this.filterFactory.activeFilter();
+					if(af) {
+						af.hide();
+					}
+				}
+				
 				// show common value control
 				this.commonValueControl.show();
 				break;
 		}
 	},
 	
+	// when a common value column item in the drop down list is changed
+	// columnData: {label: string, name: could be a string or an array, type: string }
+	// 
+	commonValueColumnSelectionChange:function(columnData) {
+		if(this.commonValueControl.selectedCount) {// columns are selected
+			//tell the filter factory to show this data type (if it isn't already)
+			if(this.filterFactory.activeFilter().type !== columnData.type) {
+				this.changeFilterFactoryType(columnData.type,columnData.name,columnData.label);
+			} else {
+				// type is the same, so just update the column
+				this.currentColumnFilter.label = columnData.label;
+				this.currentColumnFilter.column =_.map(this.commonValueControl.selectedColumns, function(c) { return c.attributes.name; })
+				//this.filterFactory.updateFilterLabel(this.currentColumnFilter.label);
+			}
+		} else {//no more columns are selected
+			//tell filter factorty to hide the active filter (if one is visible)
+			var af = this.filterFactory.activeFilter();
+			if(af) {
+				af.hide();
+			}
+		}
+	},
+	
 	// changes the filter factory widget to the given type
+	// column could be a string or an array
 	changeFilterFactoryType:function(type,column,label,subType) {
 		this.currentColumnFilter = {
 			'table':this.table,
@@ -104,7 +147,7 @@ var VDataFilters = Backbone.View.extend({
 			'column':column,
 			'label':label
 		};
-		this.filterFactory.load(this.currentColumnFilter.type, this.currentColumnFilter.column, this.currentColumnFilter.label, subType);
+		this.filterFactory.load(this.currentColumnFilter.type, _.isArray(column)?'multi-column':this.currentColumnFilter.label, subType);
 	},
 	
 	// show the save/cancel edit button group and disable everything but it and the filter factory
@@ -206,7 +249,6 @@ var VDataFilters = Backbone.View.extend({
 		// DATA FILTER TYPE CHANGE
 		// is to change the data filter type selection to the selected type
 		'change .btn-group.cf-data-filter-type-selection input':function(e) {
-			// do we know what the type is from the event?
 			var eVal = e.currentTarget.value*1;
 			this.filterSelectionTypeChange(eVal);
 		},
@@ -225,13 +267,19 @@ var VDataFilters = Backbone.View.extend({
 			//this.filterFactory.disable();
 			var af = this.filterFactory.activeFilter(),
 				fVal = af?this.filterFactory.getFilterValue():false;
+			
+			// TODO check if we are in COMMON_VALUE mode
+			//		if it is, then check if more than 1 column has been selected
+			if(this.filterSelectionType && this.currentColumnFilter.column.length<2) {
+				alert('Multiple columns are required for a common value, otherwise just use a regular data filter.');
+				return false;
+			}
+			
 			if(fVal) {
 				// enable save filter dropdown
 				if($('li.cf-save-filter-list', this.dataFiltersControl).hasClass('disabled')) {
 					$('li.cf-save-filter-list', this.dataFiltersControl).removeClass('disabled');
 				}
-				
-				// TODO handle each different this.filterSelectionType
 				
 				// create new data filter
 				var ndf = new MDataFilter({
@@ -429,7 +477,7 @@ var VDataFilters = Backbone.View.extend({
 			}
 		}, this);
 		
-		// 
+		// when the remove button from a filter in the filter container view is clicked
 		this.listenTo(this.dataFiltersContainer,'removeClick', function(filterCid) {
 			this.filters.remove(this.filters.get(filterCid));
 		});
@@ -444,7 +492,11 @@ var VDataFilters = Backbone.View.extend({
 			this.filterFactory.setFilterValue(f);
 		});
 		
-		// 
+		// upstream handler when a common value column is clicked
+		this.listenTo(this.commonValueControl, 'columnClick', this.commonValueColumnSelectionChange);
+		
+		
+		// check if the save filter and filter category controls should be visible
 		if(this.defaultConfig.mode && this.defaultConfig.filterCategories.length) {
 			for(var i in this.defaultConfig.filterCategories) {
 				this.addCategory(this.defaultConfig.filterCategories[i]);
@@ -460,7 +512,7 @@ var VDataFilters = Backbone.View.extend({
 			this.commonValueControl.hide();
 		}
 		
-		// 
+		// TODO also check if filter selection type is DEFAULT
 		if(_.isString(this.defaultConfig.showFirst)) {
 			var dfDdLi = $('ul.cf-columns-select-dd li a[data-name="'+this.defaultConfig.showFirst+'"]',this.$el);
 			if(dfDdLi.length) {

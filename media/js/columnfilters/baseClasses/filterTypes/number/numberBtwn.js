@@ -54,7 +54,6 @@ var VFilterWidgetTypeNumberBtwn = VFilterWidgetType.extend({
 		return false;
 	},
 	setValue:function(filterValue) {
-		console.log(filterValue);
 		//data is expected to be an object with from/to keys
 		if(_.has(filterValue,'from') && _.isNumber(filterValue.from)) {
 			this.sbFrom.spinbox('value',filterValue.from);
