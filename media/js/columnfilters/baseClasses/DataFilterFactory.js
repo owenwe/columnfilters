@@ -78,7 +78,7 @@ var VDataFilterFactory = Backbone.View.extend({
 		return this;
 	},
 	
-	// displays the requested filter widget type (took out dataCol)
+	// displays the requested filter widget type
 	load:function(dataType, dataLabel, subType) {
 		//find it in the collection
 		var reqfw = this.collection.findWhere({'type':dataType}),
@@ -88,8 +88,6 @@ var VDataFilterFactory = Backbone.View.extend({
 			if(curfw && (curfw.cid!=reqfw.cid)) {
 				curfw.hide();
 			}
-			//set the active column value -- does this get used?
-			//this.activeColumn = dataCol;
 			
 			//set the data label for the widget
 			reqfw.attributes.setLabel(dataLabel);

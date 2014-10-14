@@ -227,14 +227,11 @@ var VDataFilters = Backbone.View.extend({
 		
 	},
 	
+	// PUBLIC Functions
 	// returns filters as an object, or false if there aren't filters to return
 	getCurrentFilter:function() {
 		if(this.mode==this.MODES.DEFAULT) {
-			if(this.filters.length) {
-				return this.filters.toJSON();
-			} else {
-				return false;
-			}
+			return this.filters.length ? this.filters.toJSON() : false ;
 		} else {
 			// TODO look at currentWorkingFilterSet and currentFilterCategory and currentColumnFilter
 			console.log(this.currentColumnFilter);
@@ -416,22 +413,26 @@ var VDataFilters = Backbone.View.extend({
 		// Create and Populate the filter factory
 		this.filterFactory = new VDataFilterFactory({showOnInit:this.defaultConfig.showOnInit, collection:new Backbone.Collection(
 			[
-				new VDataColumnFilterWidget({type:'text', collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({'type':'text', collection:new Backbone.Collection([
 					new VFilterWidgetTypeTextEq(),
 					new VFilterWidgetTypeTextSrch()
 				])}),
-				new VDataColumnFilterWidget({type:'number', collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({'type':'number', collection:new Backbone.Collection([
 					new VFilterWidgetTypeNumberEq(),
 					new VFilterWidgetTypeNumberBtwn(),
 					new VFilterWidgetTypeNumberSel()
 					
 				])}),
-				new VDataColumnFilterWidget({type:'date', collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({'type':'date', collection:new Backbone.Collection([
 					new VFilterWidgetTypeDateEq(),
 					new VFilterWidgetTypeDateBtwn(),
 					new VFilterWidgetTypeDateSel(),
 					new VFilterWidgetTypeDateCycle()
 					
+				])}),
+				new VDataColumnFilterWidget({'type':'boolean', collection:new Backbone.Collection(
+				[
+					new VFilterWidgetTypeBoolEq()
 				])})
 			]
 		)});

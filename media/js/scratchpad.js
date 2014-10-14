@@ -9,10 +9,14 @@
 	number:(equality) n [=,<,>,<=,>=] [number stepper] -number type
 		   (between) [number stepper1] [<,<=] n [>,>=] [number stepper2]
 		   (select) [dropdown input list] :: translates to {column} IN(...)
+		   (less-than) [<,<=] [number stepper]
+		   (greater-than) [>,>=] [number stepper]
 	
 	date:(equality) d [=,<,>,<=,>=] [date input]
 		 (between) [date input1] [<,<=] d [>,>=] [date input2]
 		 (select) [date dropdown input list]
+		 (before) [<,<=] [date input]
+		 (after) [>,>=] [date input]
 		 (billing cycle) [option:1-15, 16-eom] [month select] [year select]
 		 (year) [year list] -min year
 		 (month) [month list]
@@ -35,7 +39,7 @@ var tc,df;
 var eMeta = [
 	{data:'fname', name:'fname', title:'first name', type:'string', cftype:'text', searchable:true, orderable:true},
 	{data:'lname', name:'lname', title:'last name', type:'string', cftype:'text', searchable:true, orderable:true},
-	{data:'status', name:'status', title:'status', type:'num', cftype:'number', searchable:true, orderable:true},
+	{data:'status', name:'status', title:'status', type:'num', cftype:'boolean', searchable:true, orderable:true},
 	{data:'hired', name:'hired', title:'hired', type:'date', cftype:'date', searchable:true, orderable:true},
 	{data:'supervisor', name:'supervisor', title:'supervisor', type:'string', cftype:'text', searchable:true, orderable:true},
 	{data:'area.name', name:'area', title:'area', type:'string', cftype:'text', searchable:true, orderable:true},
@@ -63,7 +67,17 @@ $(document).ready(function(e) {
 		{'name':'text-column', 'type':'text', 'label':'Text'},
 		{'name':'number-column', 'type':'number', 'label':'Number'},
 		{'name':'date-column', 'type':'date', 'label':'Date'},
-		{'name':'bool-column', 'type':'boolean', 'label':'Boolean'},
+		{
+			'name':'bool-column',
+			'type':'boolean',
+			'label':'Boolean',
+			'render':function (data, type, full, meta) {
+				console.log(type);
+				console.log(data);
+				console.log(meta);
+				return data;
+			}
+		},
 		{'name':'enum-column', 'type':'enum', 'label':'Enum'},
 		{'name':'list-column', 'type':'big-list', 'label':'Big List'},
 		{'name':'fk-column', 'type':'foreign-key', 'label':'Foreign Key'}

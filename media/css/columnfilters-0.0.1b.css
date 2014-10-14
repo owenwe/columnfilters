@@ -4,6 +4,29 @@ Version: 0.0.1b
 License is free for everyone, no restrictions, you just can't claim it is 
 yours and then try to restrict others from using it.
 */
+.cf-data-filter-type-selection, .cf-common-value-dropdown {
+	margin-right:4px;
+}
+.cf-common-value-dropdown ul.dropdown-menu {
+	min-width:200px;
+	max-height: 200px;
+	overflow: hidden;
+	overflow-y: auto;
+}
+.cf-common-value-dropdown ul.dropdown-menu li button {
+	background-color:transparent !important;
+	border-style:none;
+}
+.cf-common-value-list-item-hover {
+	background-color:#f3f7f7;
+}
+.cf-common-value-list-item-hover button {
+	font-weight:bold;
+}
+.cf-common-value-dropdown ul.dropdown-menu li.disabled button {
+	color:#eee;
+}
+
 .cf-data-filters-container {
 	min-height:50px;
 	max-height:150px;

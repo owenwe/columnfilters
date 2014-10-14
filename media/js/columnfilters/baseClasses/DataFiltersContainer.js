@@ -53,7 +53,6 @@ var VDataFiltersContainer = Backbone.View.extend({
 		var mAtt = _.clone(filterData.attributes);
 		mAtt.cid = filterData.cid;
 		mAtt.columnId = _.isArray(mAtt.column) ? mAtt.column.join('') : mAtt.column;
-		console.log(mAtt);
 		
 		// the filter list item
 		var flit = $(this.filterListItemTemplate(mAtt));
@@ -128,10 +127,19 @@ var VDataFiltersContainer = Backbone.View.extend({
 	},
 	
 	updateFilter:function(filter) {
-		var fALink = $('div.tab-content div.list-group a.list-group-item[data-filter-cid="'+filter.cid+'"]', this.$el);
+		console.log(filter);
+		var fALink = $('div.tab-content div.list-group a.list-group-item[data-filter-cid="'+filter.cid+'"]', this.$el),
+			fa = filter.attributes,
+			fv = filter.attributes.filterValue;
 		if(fALink.length) {
-			$('h4.list-group-item-heading strong',fALink).html([filter.attributes.label,filter.attributes.filterValue.type].join(' : '));
-			$('p.list-group-item-text span',fALink).html(filter.attributes.filterValue.description);
+			$('h4.list-group-item-heading strong',fALink).html([fa.label,fv.type].join(' : '));
+			$('p.list-group-item-text span',fALink).html(
+				[
+					fa.table,
+					_.isArray(fa.column)?(" ("+fa.column.join(",")+") "):("."+fa.column+" "),
+					fv.description
+				].join('')
+			);
 		}
 	},
 	
