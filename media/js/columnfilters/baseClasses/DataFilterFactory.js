@@ -4,6 +4,36 @@ var VDataFilterFactory = Backbone.View.extend({
 	types:[],
 	activeColumn:null,
 	
+	savedState:null,
+	saveState:function() {
+		var af = this.activeFilter();
+		if(af) {
+			var fw = af.activeType();
+			//console.log(af);
+			//console.log(fw);
+			this.savedState = {
+				'dataCol':fw.attributes.currentColumn,
+				'type':af.type,
+				'label':af.getLabel(),
+				'subtype':fw.attributes.type
+			};
+		} else {
+			this.savedState = null;
+		}
+	},
+	restoreState:function() {
+		if(this.savedState) {
+			//console.log(this.savedState);
+			this.load(this.savedState.dataCol,this.savedState.type,this.savedState.label,this.savedState.subtype);
+		} else {
+			//check if there is an active filter; hide it if so
+			var af = this.activeFilter();
+			if(af) {
+				af.hide();
+			}
+		}
+	},
+	
 	activeFilter:function(){
 		//return any active && visible filter widgets (should only be 1)
 		var af = this.collection.findWhere({'active':true,'visible':true});
@@ -79,7 +109,7 @@ var VDataFilterFactory = Backbone.View.extend({
 	},
 	
 	// displays the requested filter widget type
-	load:function(dataType, dataLabel, subType) {
+	load:function(dataCol, dataType, dataLabel, subType) {
 		//find it in the collection
 		var reqfw = this.collection.findWhere({'type':dataType}),
 			curfw = this.activeFilter();
@@ -91,6 +121,14 @@ var VDataFilterFactory = Backbone.View.extend({
 			
 			//set the data label for the widget
 			reqfw.attributes.setLabel(dataLabel);
+			
+			//perform any extra tasks before showing filter widget
+			//for enum types
+			if(reqfw.attributes.type==='enum') {
+				//tell the widget to set up for dataCol
+				reqfw.attributes.getSubType('in').attributes.config(dataCol);
+			}
+			
 			
 			//show the requested filter widget
 			reqfw.attributes.show();

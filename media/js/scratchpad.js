@@ -3,90 +3,154 @@
 	option: AND/OR
 	checkbox: NOT
 	
-	text:(equality) [text input] -limit to [a-zA-z0-9] -no wildcards
-		 (search) [text input] -limit to [a-zA-z0-9] -wildcards
+	- An input for a column that is some type of string, text or varchar
+	text:[*] (equality) [text input] -limit to [a-zA-z0-9] -no wildcards
+		 [*] (search) [text input] -limit to [a-zA-z0-9] -wildcards
 	
-	number:(equality) n [=,<,>,<=,>=] [number stepper] -number type
-		   (between) [number stepper1] [<,<=] n [>,>=] [number stepper2]
-		   (select) [dropdown input list] :: translates to {column} IN(...)
-		   (less-than) [<,<=] [number stepper]
-		   (greater-than) [>,>=] [number stepper]
+	- An input for a column that is some type of number
+	number:[*] (equality) n [=,<,>,<=,>=] [number stepper] -number type
+		   [*] (between) [number stepper1] [<,<=] n [>,>=] [number stepper2]
+		   [*] (select) [dropdown input list] :: translates to {column} IN(...)
+		   [ ] (less-than) [<,<=] [number stepper]
+		   [ ] (greater-than) [>,>=] [number stepper]
 	
-	date:(equality) d [=,<,>,<=,>=] [date input]
-		 (between) [date input1] [<,<=] d [>,>=] [date input2]
-		 (select) [date dropdown input list]
-		 (before) [<,<=] [date input]
-		 (after) [>,>=] [date input]
-		 (billing cycle) [option:1-15, 16-eom] [month select] [year select]
-		 (year) [year list] -min year
-		 (month) [month list]
-		 (month day) [month list] [day list]
-		 (day) [1-31 dropdown]
-		 (weekday) [week day list]
+	- An input for a column that is a date or timestamp value
+	date:[*] (equality) d [=,<,>,<=,>=] [date input]
+		 [*] (between) [date input1] [<,<=] d [>,>=] [date input2]
+		 [*] (select) [date dropdown input list]
+		 [ ] (before) [<,<=] [date input]
+		 [ ] (after) [>,>=] [date input]
+		 [-] (billing cycle) [option:1-15, 16-eom] [month select] [year select]
+		 [ ] (year) [year list] -min year
+		 [ ] (month) [month list]
+		 [ ] (month day) [month list] [day list]
+		 [ ] (day) [1-31 dropdown]
+		 [ ] (weekday) [week day list]
+		 [ ] (relative) [day/week/month/year] []
 	
-	boolean: [radio set] -true label -false label
+	- An input for a column that is some type of boolean value
+	boolean: [*] [radio set] -true label -false label
 	
-	enum: [dropdown list (options have a checkbox)]
+	- An input for a column that has a relatively small set of values
+	enum: [*] [dropdown list (options have a checkbox)]
 	
-	biglist: [typeahead] -scrollable -custom templates 1)local, 2)prefetch 3)remote
+	- An input for a column with a very large set of (known) values (too many to put into the page)
+	  the primary input is a typeahead
+	biglist: [ ] (equals) [typeahead] -scrollable -custom templates 1)local, 2)prefetch 3)remote
+	         [ ] (list) [typeahead, add button, dropdown list]
 	
+	TODO later
+	- An input for a column that is a foreign key
 	foreignkeyfilter: TODO --all the above search controls, but for the referenced table
 	
 */
 
 var tc,df;
-
-var eMeta = [
-	{data:'fname', name:'fname', title:'first name', type:'string', cftype:'text', searchable:true, orderable:true},
-	{data:'lname', name:'lname', title:'last name', type:'string', cftype:'text', searchable:true, orderable:true},
-	{data:'status', name:'status', title:'status', type:'num', cftype:'boolean', searchable:true, orderable:true},
-	{data:'hired', name:'hired', title:'hired', type:'date', cftype:'date', searchable:true, orderable:true},
-	{data:'supervisor', name:'supervisor', title:'supervisor', type:'string', cftype:'text', searchable:true, orderable:true},
-	{data:'area.name', name:'area', title:'area', type:'string', cftype:'text', searchable:true, orderable:true},
-	{data:'programId', name:'programId', title:'program', type:'num', cftype:'number', searchable:true, orderable:true},
-	{data:'notes', name:'notes', title:'notes', type:'string', cftype:'text', searchable:true, orderable:true}
+var areas = [//required
+	{'code':1, 'name':'No Area Designated', 'description':null},
+	{'code':2, 'name':'Redding', 'description':null},
+	{'code':3, 'name':'Chico', 'description':null}
+], programs = [
+	{'code':'1', 'typeId':'--', 'description':'No Program Assigned', 'amount':null},
+	{'code':'2', 'typeId':'AD', 'description':'Administration', 'amount':null},
+	{'code':'3', 'typeId':'AS', 'description':'Autism Support Program', 'amount':72.00},
+	{'code':'4', 'typeId':'DV', 'description':'Developmental', 'amount':72.00},
+	{'code':'5', 'typeId':'EX', 'description':'Extended', 'amount':72.00},
+	{'code':'6', 'typeId':'EV', 'description':'Evaluation', 'amount':72.00},
+	{'code':'7', 'typeId':'TR', 'description':'Training', 'amount':null},
+	{'code':'8', 'typeId':'EP', 'description':'Play Group Under 3', 'amount':72.00},
+	{'code':'9', 'typeId':'AP', 'description':'Play Group Over 3', 'amount':72.00},
+	{'code':'10', 'typeId':'PG', 'description':'Play Group', 'amount':null},
+	{'code':'11', 'typeId':'C', 'description':'Cleaning', 'amount':null},
+	{'code':'12', 'typeId':'PH', 'description':'Planning Hours', 'amount':null},
+	{'code':'13', 'typeId':'R', 'description':'Reports', 'amount':null},
+	{'code':'14', 'typeId':'A1', 'description':'ABAS', 'amount':100.00},
+	{'code':'15', 'typeId':'B1', 'description':'Bayley', 'amount':500.00},
+	{'code':'16', 'typeId':'BA', 'description':'Bayley/Abas', 'amount':600.00},
+	{'code':'17', 'typeId':'H1', 'description':'Help', 'amount':400.00},
+	{'code':'32', 'typeId':'O', 'description':'Other', 'amount':null}
 ];
 
-// TODO need a type convert function to map DataTable's column types to our types
-var eMetaClone = $.map(eMeta, function(c,i) { return {'label':c.title, 'type':c.cftype, 'name':c.data}; } );
+var eMeta = [
+	{
+		'data':null, 
+		'name':'editor', 
+		'title':'', 
+		'cfexclude':true,
+		'className':'action-column',
+		'render':function(data,type,full,meta){
+			return [
+				'<div class="btn-group center-block">',
+					'<button type="button" class="btn btn-default btn-info btn-xs emp-edit-btn" data-row-id="',full.id,'">',
+						'<span class="glyphicon glyphicon-cog"></span>',
+					'</button>',
+					'<button type="button" class="btn btn-default btn-danger btn-xs emp-del-btn">',
+						'<span class="glyphicon glyphicon-remove"></span>',
+					'</button>',
+				'</div>'
+			].join('');
+		}
+	},
+	{'data':'fname', 'name':'fname', 'title':'First Name', 'type':'string', 'cftype':'text'},
+	{'data':'lname', 'name':'lname', 'title':'Last Name', 'type':'string', 'cftype':'text'},
+	{
+		'data':'status', 
+		'name':'status', 
+		'title':'Status', 
+		'type':'num', 
+		'cftype':'boolean',
+		'render':function (data, type, full, meta) {
+			return data?'Active':'Inactive';
+		}
+	},
+	{'data':'hired', 'name':'hired', 'title':'hired', 'type':'date', 'cftype':'date'},
+	{'data':'hiredUX', 'name':'hiredUX', 'title':'', 'type':'number', 'visible':false, 'cfexclude':true},
+	{'data':'supervisor', 'name':'supervisor', 'title':'supervisor', 'type':'string', 'cftype':'text'},
+	{
+		'data':'area.id', 
+		'name':'area_id', 
+		'title':'Area', 
+		'type':'num', 
+		'visible':false,
+		'cftype':'enum',
+		'cfenumsource':areas,
+		'cfenumlabelkey':'name'
+	},
+	{'data':'area.name', 'name':'area', 'title':'area', 'type':'string', 'cfexclude':true},
+	{
+		'data':'program.id', 
+		'name':'program_id', 
+		'title':'Program', 
+		'type':'num', 
+		'visible':false,
+		'cftype':'enum',
+		'cfenumsource':programs,
+		'cfenumlabelkey':'typeId'
+	},
+	{'data':'program.typeId', 'name':'program_typeId', 'title':'Program', 'type':'string', 'cfexclude':true},
+	{
+		'data':'notes', 
+		'name':'notes', 
+		'title':'Notes', 
+		'type':'string', 
+		'className':'notes-column', 
+		'visible':false,
+		'cftype':'text'
+	}
+];
 
 $(document).ready(function(e) {
 	
-	/* these will come from the data table
-	 * name = the column name used in the query (name)
-	 * label = descriptve text for the column (title)
-	 * type = the data type (sType)
-	 * 		string - 
-	 * 		num - 
-	 * 		num-fmt -
-	 * 		date - 
-	 * 		 
-	*/
-	
-	tc = [
-		{'name':'text-column', 'type':'text', 'label':'Text'},
-		{'name':'number-column', 'type':'number', 'label':'Number'},
-		{'name':'date-column', 'type':'date', 'label':'Date'},
-		{
-			'name':'bool-column',
-			'type':'boolean',
-			'label':'Boolean',
-			'render':function (data, type, full, meta) {
-				console.log(type);
-				console.log(data);
-				console.log(meta);
-				return data;
-			}
-		},
-		{'name':'enum-column', 'type':'enum', 'label':'Enum'},
-		{'name':'list-column', 'type':'big-list', 'label':'Big List'},
-		{'name':'fk-column', 'type':'foreign-key', 'label':'Foreign Key'}
-	];
-	
 	//df = new VDataFilters({table:'employees', tableColumns:tc, showFirst:'date-column', filterCategories:['user','public']});
-	df = new VDataFilters({table:'employees', tableColumns:eMetaClone});
+	df = new VDataFilters({table:'employees', tableColumns:eMeta});
 	
 	$('div.container-fluid').append(df.el);
+	
+	$('#hired',this.modalForm).datepicker({
+		autoclose:true,
+		'name':'edit-emp-hired-dp',
+		'format':'mm/dd/yyyy'
+	});
 	
 	$('#testButton').on('click', function(e) {
 		//get filter data from columnfilters object (df)

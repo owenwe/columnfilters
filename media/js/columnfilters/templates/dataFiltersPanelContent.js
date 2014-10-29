@@ -25,10 +25,17 @@ CFTEMPLATES.dataFiltersPanelContent = '<div class="panel-heading well-sm">'+
 					'<span class="caret"></span>'+
 					'<span class="sr-only">Toggle Dropdown</span>'+
 				'</button>'+
-				'<ul role="menu" class="dropdown-menu cf-columns-select-dd"><%= $.map(panelheading.filterColumns, function(c,i) { return _.template(CFTEMPLATES.filterOptionListItem,{variable:\'columnData\'})(c); }).join("") %></ul>'+
+				'<ul role="menu" class="dropdown-menu cf-columns-select-dd">'+
+				'<% for(var i in panelheading.filterColumns) { %>'+
+					'<% if(!panelheading.filterColumns[i].cfexclude) { %>'+
+						'<%= _.template(CFTEMPLATES.filterOptionListItem,{variable:\'columnData\'})(panelheading.filterColumns[i]) %>'+
+					'<% } %>'+
+				'<% } %>'+
+				'</ul>'+
 			'</div>'+
 			
 		'</div>'+
 		'<div class="col-lg-7 col-md-6 col-sm-5 cf-filter-factory-container-row"></div>'+
 	'</div>'+
 '</div>';
+//'<%= $.map(panelheading.filterColumns, function(c,i) { return _.template(CFTEMPLATES.filterOptionListItem,{variable:\'columnData\'})(c); }).join("") %>'+

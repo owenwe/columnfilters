@@ -40,17 +40,6 @@ yours and then try to restrict others from using it.
 .cf-filter-edit-button:hover {
 	opacity:0.5;
 }
-/*.cf-data-filters-container > div.row > div {
-	max-height:150px;
-	overflow:auto;
-}
-.cf-data-filters-container .list-group {
-	margin-bottom:0;
-}
-.cf-data-filters-container .list-group .list-group-item {
-	
-	border-radius:0;
-}*/
 
 .cf-datafilters-controller-footer {
 	margin-bottom:0;
@@ -71,6 +60,7 @@ yours and then try to restrict others from using it.
 	padding:1px;
 }
 .cf-widget-type-label {
+	min-width:75px;
 	font-weight:bold;
 	padding-right:10px;
 }
@@ -93,4 +83,15 @@ yours and then try to restrict others from using it.
 .cf-list-item {
 	padding:2px;
 	margin-right:5px;
+}
+
+.cf-enum-dropdown-list {
+	min-width:150px;
+	/*max-width:300px;*/
+	max-height: 200px;
+	overflow: hidden;
+	overflow-y: auto;
+}
+.cf-enum-dropdown-list li {
+	padding-left:8px;
 }

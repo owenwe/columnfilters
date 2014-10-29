@@ -10,6 +10,12 @@ var VCommonValueFilterControl = Backbone.View.extend({
 	show:function() {
 		this.$el.show();
 	},
+	disable:function() {
+		$('button.dropdown-toggle',this.$el).addClass('disabled');
+	},
+	enable:function() {
+		$('button.dropdown-toggle',this.$el).removeClass('disabled');
+	},
 	
 	getSelectedColumnData:function() {
 		return this.selectedCount ? {
@@ -40,6 +46,7 @@ var VCommonValueFilterControl = Backbone.View.extend({
 				//enables = this.collection.where({'type':col.get('type')}),
 				disables = this.collection.difference(this.collection.where({'type':col.get('type')}));
 			col.set('selected',newSelectedStatus);
+			console.log(col);//wondering if enum type should be excluded if their enum values are different
 			
 			this.selectedColumns = this.collection.where({'type':col.get('type'),'selected':true});
 			this.selectedCount = this.selectedColumns.length;
@@ -83,10 +90,13 @@ var VCommonValueFilterControl = Backbone.View.extend({
 	initialize:function(options) {
 		/*
 		 * columns is required in the options
-		 * parse the columns array and pull out any columns that are the only one of its type
+		 * parse the columns array and pull out any columns that are:
+		 *   - the only one of its type
+		 *   - a single-value filter type
 		*/
+		console.log(options);
 		var colTypes = _.countBy(options.columns, function(c) {return c.type;}),
-			nonUniques = _.filter(options.columns, function(c) { return colTypes[c.type]>1; });
+			nonUniques = _.filter(options.columns, function(c) { return ( colTypes[c.type]>1 && c.type!='enum'); });
 		
 		this.collection = new Backbone.Collection( nonUniques );
 		this.$el.append(this.template({'columns':nonUniques}));

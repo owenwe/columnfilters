@@ -52,10 +52,11 @@ var VDataFiltersContainer = Backbone.View.extend({
 		//console.log(filterData.attributes);
 		var mAtt = _.clone(filterData.attributes);
 		mAtt.cid = filterData.cid;
-		mAtt.columnId = _.isArray(mAtt.column) ? mAtt.column.join('') : mAtt.column;
+		mAtt.columnId = _.isArray(mAtt.column) ? mAtt.column.join('') : mAtt.column.replace(".","_");
 		
 		// the filter list item
 		var flit = $(this.filterListItemTemplate(mAtt));
+		
 		//show/hide action button functionality
 		flit.on({'mouseover':this.filterItemMouseover, 'mouseleave':this.filterItemMouseleave});
 		$('h4.list-group-item-heading button.close',flit).hide();
@@ -114,6 +115,7 @@ var VDataFiltersContainer = Backbone.View.extend({
 				$('div.tab-content',this.$el).append(this.filterColumnTabTemplate({'column':mAtt.columnId,'cid':mAtt.cid}));
 				columnTabContent = $(['div#',mAtt.columnId,' div.list-group'].join(''),this.$el);
 			}
+			
 			//add it to the current tab content and update counts
 			// label, type, table, category, column, filterValue:{type, }
 			columnTabContent.append(flit);
@@ -132,14 +134,8 @@ var VDataFiltersContainer = Backbone.View.extend({
 			fa = filter.attributes,
 			fv = filter.attributes.filterValue;
 		if(fALink.length) {
-			$('h4.list-group-item-heading strong',fALink).html([fa.label,fv.type].join(' : '));
-			$('p.list-group-item-text span',fALink).html(
-				[
-					fa.table,
-					_.isArray(fa.column)?(" ("+fa.column.join(",")+") "):("."+fa.column+" "),
-					fv.description
-				].join('')
-			);
+			$('h4.list-group-item-heading strong',fALink).html(fv.type);
+			$('p.list-group-item-text span',fALink).html([fa.table, ("."+fa.column+" "), fv.description].join(''));
 		}
 	},
 	

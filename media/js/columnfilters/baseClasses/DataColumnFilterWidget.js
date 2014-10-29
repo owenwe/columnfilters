@@ -9,7 +9,7 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 		return this.collection.findWhere({active:true});
 	},
 	getSubType:function(subType) {
-		return this.collection.findWhere({type:subType});
+		return this.collection.findWhere({'type':subType});
 	},
 	getFilterValue:function() {
 		var at = this.activeType();
@@ -24,6 +24,9 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 		if(fwt) {
 			fwt.attributes.setValue(filterValue);
 		}
+	},
+	getLabel:function() {
+		return $('div.cf-widget-type-label',this.$el).html();
 	},
 	setLabel:function(label) {
 		$('div.cf-widget-type-label',this.$el).html(label);

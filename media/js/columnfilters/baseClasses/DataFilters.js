@@ -57,6 +57,9 @@ var VDataFilters = Backbone.View.extend({
 	//used to keep track of filters displayed in the dataFiltersContainer
 	currentColumnFilter:{'table':null,'type':null,'column':null,'label':null},
 	
+	//used to restore after a save/cancel
+	previousColumnFilter:{'type':null, 'column':null, 'label':null},
+	
 	//used to keep track of the filter control nav bar dropdowns
 	preEditFilterControlStates:[],
 	
@@ -119,6 +122,8 @@ var VDataFilters = Backbone.View.extend({
 	// columnData: {label: string, name: could be a string or an array, type: string }
 	// 
 	commonValueColumnSelectionChange:function(columnData) {
+		console.log(columnData);
+		console.log(this.commonValueControl.selectedCount);
 		if(this.commonValueControl.selectedCount) {// columns are selected
 			//tell the filter factory to show this data type (if it isn't already)
 			if(this.filterFactory.activeFilter().type !== columnData.type) {
@@ -134,6 +139,9 @@ var VDataFilters = Backbone.View.extend({
 			var af = this.filterFactory.activeFilter();
 			if(af) {
 				af.hide();
+				this.currentColumnFilter.type = null;
+				this.currentColumnFilter.column = [];
+				this.currentColumnFilter.label = null;
 			}
 		}
 	},
@@ -147,7 +155,7 @@ var VDataFilters = Backbone.View.extend({
 			'column':column,
 			'label':label
 		};
-		this.filterFactory.load(this.currentColumnFilter.type, _.isArray(column)?'multi-column':this.currentColumnFilter.label, subType);
+		this.filterFactory.load(this.currentColumnFilter.column, this.currentColumnFilter.type, _.isArray(column)?'multi-column':this.currentColumnFilter.label, subType);
 	},
 	
 	// show the save/cancel edit button group and disable everything but it and the filter factory
@@ -162,6 +170,15 @@ var VDataFilters = Backbone.View.extend({
 		//disable data filter type button group
 		$('.cf-data-filter-type-selection label').addClass('disabled');
 		$('.cf-data-filter-type-selection input').attr('disabled','disabled');
+		
+		//disable the common value control
+		this.commonValueControl.disable();
+		
+		//save the filter factory state
+		this.filterFactory.saveState();
+		this.previousColumnFilter.type = this.currentColumnFilter.type;
+		this.previousColumnFilter.column = this.currentColumnFilter.column;
+		this.previousColumnFilter.label = this.currentColumnFilter.label;
 		
 		//	disable filter container
 		this.dataFiltersContainer.disable()
@@ -184,6 +201,16 @@ var VDataFilters = Backbone.View.extend({
 		$('.cf-add-change-filter-group-button button',this.$el).show();
 		$('.cf-data-filter-type-selection label').removeClass('disabled');
 		$('.cf-data-filter-type-selection input').removeAttr('disabled');
+		//enable common value control
+		this.commonValueControl.enable();
+		
+		this.filterFactory.restoreState();
+		if(this.previousColumnFilter) {
+			this.currentColumnFilter.type = this.previousColumnFilter.type;
+			this.currentColumnFilter.column = this.previousColumnFilter.column;
+			this.currentColumnFilter.label = this.previousColumnFilter.label;
+		}
+		
 		this.dataFiltersContainer.enable();
 		for(var i in this.preEditFilterControlStates) {
 			var preFilterState = this.preEditFilterControlStates[i];
@@ -265,8 +292,8 @@ var VDataFilters = Backbone.View.extend({
 			var af = this.filterFactory.activeFilter(),
 				fVal = af?this.filterFactory.getFilterValue():false;
 			
-			// TODO check if we are in COMMON_VALUE mode
-			//		if it is, then check if more than 1 column has been selected
+			// check if we are in COMMON_VALUE mode
+			// if it is, then check if more than 1 column has been selected
 			if(this.filterSelectionType && this.currentColumnFilter.column.length<2) {
 				alert('Multiple columns are required for a common value, otherwise just use a regular data filter.');
 				return false;
@@ -328,9 +355,11 @@ var VDataFilters = Backbone.View.extend({
 			//get filter value from filterFactory and apply it to the filter in the collection
 			//this should update the dataFiltersContainer view
 			//if this.currentWorkingFilterSet is null then we don't have to trigger an update event on the collection model
-			if(this.filterFactory.getFilterValue()) {
+			var fVal = this.filterFactory.getFilterValue();
+			if(fVal) {
 				this.cancelEditFilterMode();
-				this.filters.get(this.editFilterCid).set({'filterValue':this.filterFactory.getFilterValue()});
+				var f = this.filters.get(this.editFilterCid);
+				this.filters.get(this.editFilterCid).set({'filterValue':fVal});
 			}
 		},
 		
@@ -397,15 +426,49 @@ var VDataFilters = Backbone.View.extend({
 			this.defaultConfig.filterCategories = options.filterCategories;
 		}
 		
+		
 		// validTableColumns will populate the dropdown list of columns and the common value control
 		var validTableColumns = [];
 		if(options.hasOwnProperty('tableColumns') && _.isArray(options.tableColumns) && options.tableColumns.length) {
-			//assert tableColumns is an array of objects: []{name:<the column name>, type:<data-type>, label:<string>}
+			/*assert tableColumns is an array of objects:
+			'data':string, 
+			'name':string, 
+			'title':string, 
+			'type':string, 
+			'visible':boolean,
+			'render':function,
+			'cfexclude':boolean,
+			'cftype':string,
+			'cfenumsource':array,
+			'cfenumlabelkey':string
+			*/
 			for(var i in options.tableColumns) {
 				var tc = options.tableColumns[i];
-				if(_.isObject(tc) && (_.has(tc,'name') && _.has(tc,'type') && _.has(tc,'label'))) {
-					// add extra properties for the common value control
-					validTableColumns.push(_.extend(tc,{'selected':false}));
+				if(_.isObject(tc) && (_.has(tc,'name') && _.has(tc,'type') && _.has(tc,'title'))) {
+					// look for excluded data
+					var excluded = false;
+					if(_.has(tc,'cfexclude') && _.isBoolean(tc.cfexclude)) {
+						excluded = tc.cfexclude;
+					}
+					if(!excluded) {
+						// add extra properties for the common value control
+						var mappedCol = {
+							'label':tc.title,
+							'type':tc.cftype,
+							'name':tc.data
+						};
+						if(tc.cftype==='enum') {
+							_.extend(mappedCol, {'cfenumsource':tc.cfenumsource});
+						}
+						if(_.has(tc,'cfexclude')) {
+							_.extend(mappedCol, {'cfexclude':tc.cfexclude});
+						}
+						if(_.has(tc,'cfenumlabelkey')) {
+							_.extend(mappedCol, {'cfenumlabelkey':tc.cfenumlabelkey});
+						}
+						_.extend(mappedCol,{'selected':false});
+						validTableColumns.push(mappedCol);
+					}
 				}
 			}
 		}
@@ -430,9 +493,11 @@ var VDataFilters = Backbone.View.extend({
 					new VFilterWidgetTypeDateCycle()
 					
 				])}),
-				new VDataColumnFilterWidget({'type':'boolean', collection:new Backbone.Collection(
-				[
+				new VDataColumnFilterWidget({'type':'boolean', collection:new Backbone.Collection([
 					new VFilterWidgetTypeBoolEq()
+				])}),
+				new VDataColumnFilterWidget({'type':'enum', collection:new Backbone.Collection([
+					new VFilterWidgetTypeEnumIn({'enums':_.where(validTableColumns, {'type':'enum'})})
 				])})
 			]
 		)});
@@ -523,7 +588,6 @@ var VDataFilters = Backbone.View.extend({
 		
 	},
 	render:function() {
-		
 		return this;
 	}
 });
