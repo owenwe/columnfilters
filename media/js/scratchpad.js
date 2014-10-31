@@ -47,28 +47,28 @@
 
 var tc,df;
 var areas = [//required
-	{'code':1, 'name':'No Area Designated', 'description':null},
-	{'code':2, 'name':'Redding', 'description':null},
-	{'code':3, 'name':'Chico', 'description':null}
+	{'id':1, 'name':'No Area Designated', 'description':null},
+	{'id':2, 'name':'Redding', 'description':null},
+	{'id':3, 'name':'Chico', 'description':null}
 ], programs = [
-	{'code':'1', 'typeId':'--', 'description':'No Program Assigned', 'amount':null},
-	{'code':'2', 'typeId':'AD', 'description':'Administration', 'amount':null},
-	{'code':'3', 'typeId':'AS', 'description':'Autism Support Program', 'amount':72.00},
-	{'code':'4', 'typeId':'DV', 'description':'Developmental', 'amount':72.00},
-	{'code':'5', 'typeId':'EX', 'description':'Extended', 'amount':72.00},
-	{'code':'6', 'typeId':'EV', 'description':'Evaluation', 'amount':72.00},
-	{'code':'7', 'typeId':'TR', 'description':'Training', 'amount':null},
-	{'code':'8', 'typeId':'EP', 'description':'Play Group Under 3', 'amount':72.00},
-	{'code':'9', 'typeId':'AP', 'description':'Play Group Over 3', 'amount':72.00},
-	{'code':'10', 'typeId':'PG', 'description':'Play Group', 'amount':null},
-	{'code':'11', 'typeId':'C', 'description':'Cleaning', 'amount':null},
-	{'code':'12', 'typeId':'PH', 'description':'Planning Hours', 'amount':null},
-	{'code':'13', 'typeId':'R', 'description':'Reports', 'amount':null},
-	{'code':'14', 'typeId':'A1', 'description':'ABAS', 'amount':100.00},
-	{'code':'15', 'typeId':'B1', 'description':'Bayley', 'amount':500.00},
-	{'code':'16', 'typeId':'BA', 'description':'Bayley/Abas', 'amount':600.00},
-	{'code':'17', 'typeId':'H1', 'description':'Help', 'amount':400.00},
-	{'code':'32', 'typeId':'O', 'description':'Other', 'amount':null}
+	{'id':'1', 'typeId':'--', 'description':'No Program Assigned', 'amount':null},
+	{'id':'2', 'typeId':'AD', 'description':'Administration', 'amount':null},
+	{'id':'3', 'typeId':'AS', 'description':'Autism Support Program', 'amount':72.00},
+	{'id':'4', 'typeId':'DV', 'description':'Developmental', 'amount':72.00},
+	{'id':'5', 'typeId':'EX', 'description':'Extended', 'amount':72.00},
+	{'id':'6', 'typeId':'EV', 'description':'Evaluation', 'amount':72.00},
+	{'id':'7', 'typeId':'TR', 'description':'Training', 'amount':null},
+	{'id':'8', 'typeId':'EP', 'description':'Play Group Under 3', 'amount':72.00},
+	{'id':'9', 'typeId':'AP', 'description':'Play Group Over 3', 'amount':72.00},
+	{'id':'10', 'typeId':'PG', 'description':'Play Group', 'amount':null},
+	{'id':'11', 'typeId':'C', 'description':'Cleaning', 'amount':null},
+	{'id':'12', 'typeId':'PH', 'description':'Planning Hours', 'amount':null},
+	{'id':'13', 'typeId':'R', 'description':'Reports', 'amount':null},
+	{'id':'14', 'typeId':'A1', 'description':'ABAS', 'amount':100.00},
+	{'id':'15', 'typeId':'B1', 'description':'Bayley', 'amount':500.00},
+	{'id':'16', 'typeId':'BA', 'description':'Bayley/Abas', 'amount':600.00},
+	{'id':'17', 'typeId':'H1', 'description':'Help', 'amount':400.00},
+	{'id':'32', 'typeId':'O', 'description':'Other', 'amount':null}
 ];
 
 var eMeta = [

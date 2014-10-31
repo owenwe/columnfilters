@@ -94,7 +94,6 @@ var VCommonValueFilterControl = Backbone.View.extend({
 		 *   - the only one of its type
 		 *   - a single-value filter type
 		*/
-		console.log(options);
 		var colTypes = _.countBy(options.columns, function(c) {return c.type;}),
 			nonUniques = _.filter(options.columns, function(c) { return ( colTypes[c.type]>1 && c.type!='enum'); });
 		

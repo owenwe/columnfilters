@@ -106,7 +106,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 					'<li>',
 						'<div class="checkbox">',
 							'<label>',
-								'<input type="checkbox" value="<%= data.enums[i].code %>" data-column="<%= data.column %>" />',
+								'<input type="checkbox" value="<%= data.enums[i].id %>" data-column="<%= data.column %>" />',
 								'<span class="text-capialize"><%= data.enums[i][data.labelKey] %></span>',
 							'</label>',
 						'</div>',
@@ -118,9 +118,13 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 	].join(''),{variable:'data'}),
 	initialize:function(options) {
 		//split enums into groups by options.enums[i].name
+		// check options.enums array of keys named 'id', a mapped copy of the array will 
+		// need to be made where the 'id' keys are renamed to 'code'
+		var enumData;
+		
 		this.collection = new Backbone.Collection(
 			$.map(options.enums, function(e,i){
-				return {'column':e.name, 'enums':e.cfenumsource, 'labelKey':e.cfenumlabelkey};
+				return { 'column':e.name, 'enums':e.cfenumsource, 'labelKey':e.cfenumlabelkey };
 			})
 		);
 		this.currentColumn = this.collection.at(0).attributes.column;

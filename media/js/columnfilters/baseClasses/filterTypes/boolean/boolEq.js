@@ -1,10 +1,10 @@
 // Filter Widget Type Implementation Class for Number (Select)
 var VFilterWidgetTypeBoolEq = VFilterWidgetType.extend({
 	version:'1.0.2',
-	type:'boolean',
+	type:'equals',
 	
 	defaultConfig:{
-		'value':1,
+		'value':true,
 		'trueLabel':'Active',
 		'falseLabel':'Inactive'
 	},
@@ -18,6 +18,9 @@ var VFilterWidgetTypeBoolEq = VFilterWidgetType.extend({
 		return true;
 	},
 	getValueDescription:function() {
+		console.log(this.model.get('value'));
+		console.log(this.model.get('trueLabel'));
+		console.log(this.model.get('falseLabel'));
 		return ('is '+(this.model.get('value')?this.model.get('trueLabel'):this.model.get('falseLabel')));
 	},
 	getValue:function() {
@@ -67,7 +70,7 @@ var VFilterWidgetTypeBoolEq = VFilterWidgetType.extend({
 		
 		this.$el.html(this.template(this.defaultConfig));
 		
-		this.model.set('',(_.has(options,'value') && _.isBoolean(options.value) && !options.value)?false:this.defaultConfig.value);
+		this.model.set('value',(_.has(options,'value') && _.isBoolean(options.value) && !options.value)?false:this.defaultConfig.value);
 	},
 	render:function() {
 		return this;
