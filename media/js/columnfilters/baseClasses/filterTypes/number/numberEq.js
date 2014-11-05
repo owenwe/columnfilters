@@ -55,7 +55,7 @@ var VFilterWidgetTypeNumberEq = VFilterWidgetType.extend({
 	),
 	initialize:function(options) {
 		this.$el.addClass('fuelux');
-		// TODO make this a spinner (FuelUX, JQueryUI)
+		// make this a spinner (FuelUX, JQueryUI)
 		this.$el.html(this.template({}));
 		$('.spinbox',this.$el).spinbox(this.sbOptions);
 		this.sb = $('.spinbox',this.$el);

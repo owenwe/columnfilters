@@ -121,14 +121,17 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 		// check options.enums array of keys named 'id', a mapped copy of the array will 
 		// need to be made where the 'id' keys are renamed to 'code'
 		var enumData;
-		
-		this.collection = new Backbone.Collection(
-			$.map(options.enums, function(e,i){
-				return { 'column':e.name, 'enums':e.cfenumsource, 'labelKey':e.cfenumlabelkey };
-			})
-		);
-		this.currentColumn = this.collection.at(0).attributes.column;
-		this.$el.html(this.template(this.collection.at(0).attributes));
+		if(_.has(options,'enums') && _.isArray(options.enums) && options.enums.length) {
+			this.collection = new Backbone.Collection(
+				$.map(options.enums, function(e,i){
+					return { 'column':e.name, 'enums':e.cfenumsource, 'labelKey':e.cfenumlabelkey };
+				})
+			);
+			this.currentColumn = this.collection.at(0).attributes.column;
+			this.$el.html(this.template(this.collection.at(0).attributes));
+		} else {
+			this.$el.html(this.template({'enums':[]}));
+		}
 	},
 	render:function() {
 		return this;

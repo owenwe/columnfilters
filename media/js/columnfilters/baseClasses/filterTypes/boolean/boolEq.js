@@ -18,9 +18,6 @@ var VFilterWidgetTypeBoolEq = VFilterWidgetType.extend({
 		return true;
 	},
 	getValueDescription:function() {
-		console.log(this.model.get('value'));
-		console.log(this.model.get('trueLabel'));
-		console.log(this.model.get('falseLabel'));
 		return ('is '+(this.model.get('value')?this.model.get('trueLabel'):this.model.get('falseLabel')));
 	},
 	getValue:function() {
