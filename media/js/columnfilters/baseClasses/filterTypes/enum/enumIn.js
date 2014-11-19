@@ -50,7 +50,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 	},
 	setValue:function(filterValue) {
 		//TODO check if we need to set the enum group
-		console.log(filterValue);
+		//console.log(filterValue);
 		
 		
 		//set the checkboxes to the values in valueList
@@ -124,7 +124,11 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 		if(_.has(options,'enums') && _.isArray(options.enums) && options.enums.length) {
 			this.collection = new Backbone.Collection(
 				$.map(options.enums, function(e,i){
-					return { 'column':e.name, 'enums':e.cfenumsource, 'labelKey':e.cfenumlabelkey };
+					return {
+						'column':e.name,
+						'enums':e.cfenumsource,
+						'labelKey':e.cfenumlabelkey
+					};
 				})
 			);
 			this.currentColumn = this.collection.at(0).attributes.column;

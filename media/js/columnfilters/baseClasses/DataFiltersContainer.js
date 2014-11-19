@@ -129,7 +129,7 @@ var VDataFiltersContainer = Backbone.View.extend({
 	},
 	
 	updateFilter:function(filter) {
-		console.log(filter);
+		//console.log(filter);
 		var fALink = $('div.tab-content div.list-group a.list-group-item[data-filter-cid="'+filter.cid+'"]', this.$el),
 			fa = filter.attributes,
 			fv = filter.attributes.filterValue;

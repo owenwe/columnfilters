@@ -26,13 +26,15 @@ var VDataFilters = Backbone.View.extend({
 		'showFirst':null,
 		'filterSelectionType':0,
 		'filters':false,
-		'filterCategories':[]
+		'filterCategories':[],
+		'convertBooleanToNumeric':true
 	},
 	mode:0,					// setting the mode to 1 enables the save/remove filter set and filter set groups
 	table:'undefined',		// the name of the database table or virtual source
 	filterSelectionType:0,  // the type of filter selection to display
 	filters:null,			// a collection of MDataFilter
 	filterCategories:[],	// array of names
+	convertBooleanToNumeric:true,
 	
 	//key/value container for groups filter categories
 	// TODO JS Object, LocalStorage, Backbone.Collection with AJAX backend to a DB
@@ -122,8 +124,8 @@ var VDataFilters = Backbone.View.extend({
 	// columnData: {label: string, name: could be a string or an array, type: string }
 	// 
 	commonValueColumnSelectionChange:function(columnData) {
-		console.log(columnData);
-		console.log(this.commonValueControl.selectedCount);
+		//console.log(columnData);
+		//console.log(this.commonValueControl.selectedCount);
 		if(this.commonValueControl.selectedCount) {// columns are selected
 			//tell the filter factory to show this data type (if it isn't already)
 			if(this.filterFactory.activeFilter().type !== columnData.type) {
@@ -261,7 +263,7 @@ var VDataFilters = Backbone.View.extend({
 			return this.filters.length ? this.filters.toJSON() : false ;
 		} else {
 			// TODO look at currentWorkingFilterSet and currentFilterCategory and currentColumnFilter
-			console.log(this.currentColumnFilter);
+			//console.log(this.currentColumnFilter);
 		}
 	},
 	
@@ -425,21 +427,29 @@ var VDataFilters = Backbone.View.extend({
 		if(_.has(options,'filterCategories') && _.isArray(options.filterCategories)) {
 			this.defaultConfig.filterCategories = options.filterCategories;
 		}
+		// for the boolean filter widget
+		if(_.has(options, 'convertBooleanToNumeric') && !options.convertBooleanToNumeric) {
+			this.convertBooleanToNumeric = false;
+		}
 		
 		
 		// validTableColumns will populate the dropdown list of columns and the common value control
 		var validTableColumns = [];
 		if(options.hasOwnProperty('tableColumns') && _.isArray(options.tableColumns) && options.tableColumns.length) {
 			/*assert tableColumns is an array of objects:
+			--- DataTables properties ---
 			'data':string, 
 			'name':string, 
 			'title':string, 
 			'type':string, 
 			'visible':boolean,
 			'render':function,
+			
+			--- ColumnFilters properties ---
 			'cfexclude':boolean,
 			'cftype':string,
 			'cfenumsource':array,
+			'cfenumvaluekey':string // TODO implement
 			'cfenumlabelkey':string
 			*/
 			for(var i in options.tableColumns) {
@@ -455,7 +465,7 @@ var VDataFilters = Backbone.View.extend({
 						var mappedCol = {
 							'label':tc.title,
 							'type':tc.cftype,
-							'name':tc.data
+							'name':tc.name // for enum: area.id, why was this set to name instead of data?
 						};
 						if(tc.cftype==='enum') {
 							_.extend(mappedCol, {'cfenumsource':tc.cfenumsource});
@@ -494,7 +504,7 @@ var VDataFilters = Backbone.View.extend({
 					
 				])}),
 				new VDataColumnFilterWidget({'type':'boolean', collection:new Backbone.Collection([
-					new VFilterWidgetTypeBoolEq()
+					new VFilterWidgetTypeBoolEq({'convertNumeric':this.convertBooleanToNumeric})
 				])}),
 				new VDataColumnFilterWidget({'type':'enum', collection:new Backbone.Collection([
 					new VFilterWidgetTypeEnumIn({'enums':_.where(validTableColumns, {'type':'enum'})})

@@ -46,7 +46,7 @@ var VCommonValueFilterControl = Backbone.View.extend({
 				//enables = this.collection.where({'type':col.get('type')}),
 				disables = this.collection.difference(this.collection.where({'type':col.get('type')}));
 			col.set('selected',newSelectedStatus);
-			console.log(col);//wondering if enum type should be excluded if their enum values are different
+			//console.log(col);//wondering if enum type should be excluded if their enum values are different
 			
 			this.selectedColumns = this.collection.where({'type':col.get('type'),'selected':true});
 			this.selectedCount = this.selectedColumns.length;
