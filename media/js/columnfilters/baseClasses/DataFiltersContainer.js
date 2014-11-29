@@ -1,22 +1,65 @@
 // Data Filters Container Controller
 var VDataFiltersContainer = Backbone.View.extend({
 	
-	preDisableTabStates:[],
+	'preDisableTabStates':[],
+	
+	// this is the main view template
+	'dataFiltersControlBody':_.template([
+		'<div class="row">',
+			'<div class="col-xs-4">',
+				'<ul class="nav nav-pills nav-stacked" role="tablist"></ul>',
+			'</div>',
+			'<div class="col-xs-8">',
+				'<div class="tab-content"></div>',
+			'</div>',
+		'</div>'
+	].join(''), {'variable':'container'}),
+	
+	// this is the tab, it represents filters for a particular column (identified by )
+	'filterColumnTemplate':_.template(
+		['<li>',
+			'<a href="#<%= columnData.columnId %>" role="pill" data-toggle="pill" class="list-group-item">',
+				'<%= _.isArray(columnData.column) ? columnData.label : (columnData.label[0].toUpperCase()+columnData.label.substring(1)) %> <span class="badge pull-right">1</span>',
+			'</a>',
+		'</li>'].join(''), {'variable':'columnData'}),
+	
+	// this is the content for the tab
+	'filterColumnTabTemplate':_.template(
+		['<div class="tab-pane" id="<%= columnData.column %>">',
+			'<div class="list-group"></div>',
+		'</div>'].join(''), {'variable':'columnData'}),
+	
+	// this is an item in the tab content list
+	'filterListItemTemplate':_.template(
+		[
+			'<a href="#" class="list-group-item" data-filter-cid="<%= filterData.cid %>">',
+				'<h4 class="list-group-item-heading"><strong><%= filterData.filterValue.type %></strong>',
+					'<button class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>',
+					'<% if(!_.isArray(filterData.column)) { %>'+
+					'<span class="btn pull-right cf-filter-edit-button"><span class="glyphicon glyphicon-cog"></span></span>',
+					'<% } %>'+
+				'</h4>',
+				'<p class="list-group-item-text">',
+					'<span><%= filterData.table %><%= _.isArray(filterData.column)?(" ("+filterData.column.join(",")+")"):("."+filterData.column) %> <%= filterData.filterValue.description %></span>',
+				'</p>',
+			'</a>'
+		].join(''), {'variable':'filterData'}),
 	
 	/*
 	this is only the view for the current filter group, it should NOT control
 	the interaction of filter groups, only add/edit/remove/interaction of the view elements
 	*/
-	filterItemMouseover:function(e){
+	'filterItemMouseover':function(e){
 		$('button.close',$(e.currentTarget)).show();
 		$('span.cf-filter-edit-button',$(e.currentTarget)).show();
 	},
-	filterItemMouseleave:function(e){
+	
+	'filterItemMouseleave':function(e){
 		$('button.close',$(e.currentTarget)).hide();
 		$('span.cf-filter-edit-button',$(e.currentTarget)).hide();
 	},
 	
-	enable:function() {
+	'enable':function() {
 		$('ul.nav li',this.$el).removeClass('disabled');
 		for(var i in this.preDisableTabStates) {
 			var pdts = this.preDisableTabStates[i];
@@ -28,7 +71,8 @@ var VDataFiltersContainer = Backbone.View.extend({
 			$(e).on({'mouseover':dfc.filterItemMouseover, 'mouseleave':dfc.filterItemMouseleave});
 		});
 	},
-	disable:function() {
+	
+	'disable':function() {
 		this.preDisableTabStates = [];
 		var pdts = this.preDisableTabStates;
 		$('ul.nav li',this.$el).addClass('disabled');
@@ -45,13 +89,14 @@ var VDataFiltersContainer = Backbone.View.extend({
 		});
 	},
 	
-	add:function(filterData) {
-		// add filter to current filter group
-		// ASSERTION: filterData will be valid
-		// filterData: {table, category, column, type, label, filterValue:{type, ...}}
-		//console.log(filterData.attributes);
-		var mAtt = _.clone(filterData.attributes);
-		mAtt.cid = filterData.cid;
+	// add filter to current filter group
+	'add':function(filter) {
+		// ASSERTION: filter will be a valid attribute object from a filter model
+		// filter = filter.attributes: {table, category, column, type, label, filterValue:{type, ...}}
+		// TODO move element events into the 'events' object
+		var mAtt = _.clone(filter.attributes);
+		mAtt.cid = filter.cid;
+		console.log('adding filter with cid: '+mAtt.cid);
 		mAtt.columnId = _.isArray(mAtt.column) ? mAtt.column.join('') : mAtt.column.replace(".","_");
 		
 		// the filter list item
@@ -83,12 +128,12 @@ var VDataFiltersContainer = Backbone.View.extend({
 				$('a.list-group-item[href="#'+fData.columnId+'"]', dfc.$el).parent().remove();
 			}
 			
-			//dispatch event up the chain, pass cid so the model can be remove from the collection
+			//dispatch event up the chain, pass cid so the model can be removed from the collection
 			dfc.trigger('removeClick',fData.cid);
 		});
 		
 		//click event for the edit filter icon button
-		$('h4.list-group-item-heading span.cf-filter-edit-button', flit).click({dfc:this, 'cid':mAtt.cid},function(e) {
+		$('h4.list-group-item-heading span.cf-filter-edit-button', flit).click({'dfc':this, 'cid':mAtt.cid},function(e) {
 			//just send the filter cid up the chain
 			e.data.dfc.trigger('changeClick',e.data.cid);
 		});
@@ -128,7 +173,7 @@ var VDataFiltersContainer = Backbone.View.extend({
 		}
 	},
 	
-	updateFilter:function(filter) {
+	'updateFilter':function(filter) {
 		//console.log(filter);
 		var fALink = $('div.tab-content div.list-group a.list-group-item[data-filter-cid="'+filter.cid+'"]', this.$el),
 			fa = filter.attributes,
@@ -139,64 +184,38 @@ var VDataFiltersContainer = Backbone.View.extend({
 		}
 	},
 	
-	remove:function() {
-		
+	// uses the filters argument to add filter tabs/tab content to the view
+	'load':function(filters) {
+		// filters is actually a collection of filters
+		for(var i in filters.models) {
+			this.add(filters.models[i]);
+		}
 	},
 	
-	tagName:'div',
-	className:'panel-body cf-data-filters-container',
-	events:{},
-	
-	template:_.template(CFTEMPLATES.dataFiltersControlBody,{variable:'container'}),
-	
-	// this is the tab, it represents filters for a particular column (identified by )
-	filterColumnTemplate:_.template(
-		['<li>',
-			'<a href="#<%= columnData.columnId %>" role="pill" data-toggle="pill" class="list-group-item">',
-				'<%= _.isArray(columnData.column) ? columnData.label : (columnData.label[0].toUpperCase()+columnData.label.substring(1)) %> <span class="badge pull-right">1</span>',
-			'</a>',
-		'</li>'].join(''),
-		{variable:'columnData'}
-	),
-	
-	// this is the content for the tab
-	filterColumnTabTemplate:_.template(
-		['<div class="tab-pane" id="<%= columnData.column %>">',
-			'<div class="list-group"></div>',
-		'</div>'].join(''),
-		{variable:'columnData'}
-	),
-	
-	// this is an item in the tab content list
-	filterListItemTemplate:_.template(
-		[
-			'<a href="#" class="list-group-item" data-filter-cid="<%= filterData.cid %>">',
-				'<h4 class="list-group-item-heading"><strong><%= filterData.filterValue.type %></strong>',
-					'<button class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>',
-					'<% if(!_.isArray(filterData.column)) { %>'+
-					'<span class="btn pull-right cf-filter-edit-button"><span class="glyphicon glyphicon-cog"></span></span>',
-					'<% } %>'+
-				'</h4>',
-				'<p class="list-group-item-text">',
-					'<span><%= filterData.table %><%= _.isArray(filterData.column)?(" ("+filterData.column.join(",")+")"):("."+filterData.column) %> <%= filterData.filterValue.description %></span>',
-				'</p>',
-			'</a>'
-		].join(''),
-		{variable:'filterData'}
-	),
-	
-	initialize:function(options) {
-		/*
-		.nav : add > <li><a href="#column1" role="pill" data-toggle="pill">Column 1 <span class="badge pull-right">99</span></a></li>
-		.tab-content : add > <div class="tab-pane" id="column1">
-								<div class="list-group">
-									<a href="#" class="list-group-item">Cras justo odio</a> ...
-		*/
-		
-		this.$el.append(this.template({}));
-		
+	// removes all filter tabs/tab content from the view 
+	'clear':function() {
+		$('ul[role="tablist"] li', this.$el).remove();
+		$('div.tab-content', this.$el).empty();
 	},
-	render:function() {
-		return this;
-	}
+	
+	
+	'events':{},// TODO move click events into here
+	
+	'tagName':'div',
+	'className':'panel-body cf-data-filters-container',
+	
+	'initialize':function(options) {
+		// ASSERTION: these will always be passed
+		// filtersController
+		this.filtersController = options.filtersController;
+		
+		this.$el.append(this.dataFiltersControlBody({}));
+		
+		this.listenTo(this.filtersController.filters, 'reset', function(newFilters) {
+			// newFilters should be a collection of filters
+			this.clear();
+			this.load(newFilters);
+		});
+	},
+	'render':function() { return this; }
 });

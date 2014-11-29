@@ -18,6 +18,7 @@ var VDataFilters = Backbone.View.extend({
 	FILTER_SELECTION_TYPES:{ 'DEFAULT':0, 'COMMON_VALUE':1 },
 	
 	// Enum of the different interactive modes this control can be put into
+	// the dataFiltersControl (DataFiltersControlBar/VDataFiltersControlBar) has a copy of this
 	MODES:{ 'DEFAULT':0, 'CATEGORY_SETS':1 },
 	
 	defaultConfig:{
@@ -29,28 +30,24 @@ var VDataFilters = Backbone.View.extend({
 		'filterCategories':[],
 		'convertBooleanToNumeric':true
 	},
-	mode:0,					// setting the mode to 1 enables the save/remove filter set and filter set groups
+	mode:0,					// setting the mode to 1 enables the saving filter sets and filter set groups
 	table:'undefined',		// the name of the database table or virtual source
 	filterSelectionType:0,  // the type of filter selection to display
 	filters:null,			// a collection of MDataFilter
 	filterCategories:[],	// array of names
 	convertBooleanToNumeric:true,
 	
-	//key/value container for groups filter categories
-	// TODO JS Object, LocalStorage, Backbone.Collection with AJAX backend to a DB
-	// { <key = name>:{description:<string>, filters:[]} }
-	filterCategorySets:{},
-	
 	//the modal for add/edit filter sets
+	// TODO this should be moved to VDataFiltersControlBar
 	modal:null,
 	
 	// TODO turn categories into collections
 	
 	//key for filtering models in the filters
 	//categories end up being drop down lists in the dataFiltersControl nav bar
-	currentFilterCategory:null,
-	
 	//index to the filter set in this.filterCategorySets[currentFilterCategory].filters
+	// TODO handle these through the dataFiltersControl View
+	currentFilterCategory:null,
 	currentWorkingFilterSet:null,
 	
 	//cid of the model in the filters collection during an edit
@@ -59,7 +56,7 @@ var VDataFilters = Backbone.View.extend({
 	//used to keep track of filters displayed in the dataFiltersContainer
 	currentColumnFilter:{'table':null,'type':null,'column':null,'label':null},
 	
-	//used to restore after a save/cancel
+	//used to restore after a save/cancel (filter edit)
 	previousColumnFilter:{'type':null, 'column':null, 'label':null},
 	
 	//used to keep track of the filter control nav bar dropdowns
@@ -68,18 +65,7 @@ var VDataFilters = Backbone.View.extend({
 	commonValueControl:null,	//multi-column value filter control
 	filterFactory:null,			//all filter widgets
 	dataFiltersContainer:null,	//panel body view
-	dataFiltersControl:null,	//panel footer, kind of
-	
-	filterCategoryGlyphMapping:function(catName) {
-		var retVal = 'glyphicon-cloud-upload';
-		switch(catName) {
-			case 'User':
-			case 'user':
-				retVal = 'glyphicon-user';
-				break;
-		}
-		return retVal;
-	},
+	dataFiltersControl:null,	//panel footer
 	
 	
 	// called from the event when the filter selection type radio set is changed
@@ -183,7 +169,10 @@ var VDataFilters = Backbone.View.extend({
 		this.previousColumnFilter.label = this.currentColumnFilter.label;
 		
 		//	disable filter container
-		this.dataFiltersContainer.disable()
+		this.dataFiltersContainer.disable();
+		
+		//disable the filter control nav bar
+		this.dataFiltersControl.disable();
 		
 		//	disable filters control (need to keep track of what was already disabled)
 		this.preEditFilterControlStates = [];
@@ -220,50 +209,20 @@ var VDataFilters = Backbone.View.extend({
 				preFilterState.listItem.removeClass('disabled');
 			}
 		}
-	},
-	
-	// makes sure there are no duplicates and then adds a menu dropup to the footer control
-	// and a dropup link to 
-	addCategory:function(name, filters) {
-		if($.inArray(name,this.filterCategories)<0) {
-			this.filterCategories.push(name);
-			
-			// add a menu dropup to the footer control nav bar
-			$('nav.cf-datafilters-controller-footer div.navbar-collapse',this.$el).append(
-				_.template(CFTEMPLATES.filterCategoryMenu,{variable:'filterCategory'})({'name':name})
-			);
-			
-			// add list item to the save menu dropup
-			var saveUl = $('nav.cf-datafilters-controller-footer ul.navbar-right li.cf-save-filter-list ul.dropdown-menu',this.$el);
-			saveUl.append(
-				_.template(
-					CFTEMPLATES.filterCategorySaveItem,
-					{variable:'filterCategory'}
-				)({'name':name, 'glyph':this.filterCategoryGlyphMapping(name)})
-			);
-			
-			// if there are more categories to add after this one, add a divider (for style)
-			if(this.filterCategories.length < this.defaultConfig.filterCategories.length) {
-				saveUl.append( $(document.createElement('li')).addClass('divider') );
-			}
-			
-			// set the current filter category to the first category added
-			if(this.filterCategories.length===1) {
-				this.currentFilterCategory = this.filterCategories[0];
-			}
-		}
-		// TODO handle filters arg (used when filters are pulled from existing data): 
 		
+		//disable the filter control nav bar
+		this.dataFiltersControl.enable();
 	},
 	
 	// PUBLIC Functions
 	// returns filters as an object, or false if there aren't filters to return
 	getCurrentFilter:function() {
-		if(this.mode==this.MODES.DEFAULT) {
+		if( (this.mode == this.MODES.DEFAULT) || ((this.mode!=this.MODES.DEFAULT) ) ) {
 			return this.filters.length ? this.filters.toJSON() : false ;
 		} else {
 			// TODO look at currentWorkingFilterSet and currentFilterCategory and currentColumnFilter
-			//console.log(this.currentColumnFilter);
+			console.log(this.currentColumnFilter);
+			return this.filters.length ? this.filters.toJSON() : false ;
 		}
 	},
 	
@@ -273,7 +232,7 @@ var VDataFilters = Backbone.View.extend({
 	events:{
 		
 		// DATA FILTER TYPE CHANGE
-		// is to change the data filter type selection to the selected type
+		// triggered when the filter type (default/common value) is changed
 		'change .btn-group.cf-data-filter-type-selection input':function(e) {
 			var eVal = e.currentTarget.value*1;
 			this.filterSelectionTypeChange(eVal);
@@ -281,16 +240,16 @@ var VDataFilters = Backbone.View.extend({
 		
 		
 		// COLUMN FILTER CHANGE
+		// triggered when a column list item is clicked in the columns dropdown menu
 		// is to load the data info from the clicked event into the filter factory
 		'click ul.cf-columns-select-dd li a':function(e) {
 			this.changeFilterFactoryType($(e.currentTarget).data('type'),$(e.currentTarget).data('name'),$(e.currentTarget).html());
 		},
 		
 		// ADD FILTER CLICK
+		// triggered when the 'add filter' button is clicked
 		// should first call validate on the active filter type
 		'click button.cf-add-filter-button':function(e) {
-			
-			//this.filterFactory.disable();
 			var af = this.filterFactory.activeFilter(),
 				fVal = af?this.filterFactory.getFilterValue():false;
 			
@@ -302,15 +261,21 @@ var VDataFilters = Backbone.View.extend({
 			}
 			
 			if(fVal) {
+				
 				// enable save filter dropdown
-				if($('li.cf-save-filter-list', this.dataFiltersControl).hasClass('disabled')) {
-					$('li.cf-save-filter-list', this.dataFiltersControl).removeClass('disabled');
+				if(this.mode === this.MODES.CATEGORY_SETS) {
+					if($('li.cf-save-filter-list', this.dataFiltersControl).hasClass('disabled')) {
+						$('li.cf-save-filter-list', this.dataFiltersControl).removeClass('disabled');
+					}
 				}
 				
 				// create new data filter
 				var ndf = new MDataFilter({
 					'table':this.table,
+					
+					// TODO maybe we need to set this in dataFiltersControl when saving to a filter set
 					'category':this.currentFilterCategory,
+					
 					'type':this.currentColumnFilter.type,
 					'column':this.currentColumnFilter.column,
 					'label':this.currentColumnFilter.label,
@@ -328,77 +293,23 @@ var VDataFilters = Backbone.View.extend({
 			}
 		},
 		
-		// SAVE FILTER CLICK
-		// triggered when the save filter item is clicked
-		'click nav.cf-datafilters-controller-footer ul.nav li.btn[title="save"] ul.dropdown-menu li':function(e) {
-			var cat = $(e.currentTarget).data('save-type'),
-				catDd = $('nav.cf-datafilters-controller-footer div.navbar-collapse ul[data-category-name="'+cat+'"]',this.$el),
-				catDdLi = $('li.dropup', catDd),
-				catDdMenu = $('ul.dropdown-menu',catDdLi);
-			// TODO filter category dropup will be enabled and have a list item associated with the current filters
-			// TODO check if there is filter data to save
-			
-			//reset the modal and then show it
-			$('div.modal form', this.$el)[0].reset();
-			this.modal.modal('show');
-			
-			if(catDdLi.hasClass('disabled')) {
-				//this is the first filter set being saved to this category
-				catDdLi.removeClass('disabled');
-				
-			} else {
-				//add another filter set to the existing category
-				
-			}
-		},
-		
 		// SAVE EDIT FILTER CLICK
+		// triggered when a filter is in edit mode and the 'save' button is clicked
 		'click button.cf-edit-filter-button':function(e) {
 			//get filter value from filterFactory and apply it to the filter in the collection
 			//this should update the dataFiltersContainer view
-			//if this.currentWorkingFilterSet is null then we don't have to trigger an update event on the collection model
 			var fVal = this.filterFactory.getFilterValue();
 			if(fVal) {
 				this.cancelEditFilterMode();
 				var f = this.filters.get(this.editFilterCid);
-				this.filters.get(this.editFilterCid).set({'filterValue':fVal});
+				f.set({'filterValue':fVal});
 			}
 		},
 		
 		// CANCEL EDIT FILTER CLICK
+		// triggered when the cancel button has been clicked (when editing a filter)
 		'click button.cf-cancel-edit-filter-button':function(e) {
 			this.cancelEditFilterMode();
-		},
-		
-		// MODAL ACTION BUTTON CLICK
-		'click div.modal div.modal-footer button:last-child':function(e) {
-			//for now this is only triggered for saving filter sets
-			// TODO validate form inputs
-			var fsName = $.trim($('input#cfFilterSetSaveName',this.modal).val());
-			if(fsName.length) {
-				var fsDesc = $.trim($('textarea#cfFilterSetSaveDescription',this.modal).val());
-				if(_.has(this.filterCategorySets, this.currentFilterCategory)) {
-					//add to the existing filter set
-					
-				} else {
-					//create new filter set
-					/*this.filterCategorySets[this.currentFilterCategory] = {
-						'table':this.table,
-						'name':fsName,
-						'description':fsDesc.length?fsDesc:null,
-						'filters':this.filters.where({'category':})
-					};*/
-				}
-				
-				//currentWorkingFilterSet
-				
-			}
-			
-			//use info from form inputs to create a list item in the category dropdown
-			
-			
-			//
-			
 		}
 	},
 	
@@ -418,7 +329,7 @@ var VDataFilters = Backbone.View.extend({
 			this.defaultConfig.filterSelectionType = this.filterSelectionType = options.filterSelectionType;
 		}
 		if(_.has(options,'filters')) {
-			// TODO populate
+			// TODO populate 
 			this.defaultConfig.filters = options.filters;
 		} else {
 			this.filters = new CDataFilters();
@@ -465,10 +376,19 @@ var VDataFilters = Backbone.View.extend({
 						var mappedCol = {
 							'label':tc.title,
 							'type':tc.cftype,
-							'name':tc.name // for enum: area.id, why was this set to name instead of data?
+							'name':tc.name
 						};
 						if(tc.cftype==='enum') {
 							_.extend(mappedCol, {'cfenumsource':tc.cfenumsource});
+						}
+						if(tc.cftype==='biglist') {
+							// then datasource, displayKey, valueKey MUST exists
+							_.extend(mappedCol, {
+								'dataColumn':tc.data,
+								'datasource':tc.datasource,
+								'displayKey':tc.displayKey,
+								'valueKey':tc.valueKey
+							});
 						}
 						if(_.has(tc,'cfexclude')) {
 							_.extend(mappedCol, {'cfexclude':tc.cfexclude});
@@ -508,18 +428,32 @@ var VDataFilters = Backbone.View.extend({
 				])}),
 				new VDataColumnFilterWidget({'type':'enum', collection:new Backbone.Collection([
 					new VFilterWidgetTypeEnumIn({'enums':_.where(validTableColumns, {'type':'enum'})})
+				])}),
+				new VDataColumnFilterWidget({'type':'biglist', collection:new Backbone.Collection([
+					new VFilterWidgetTypeBiglistEq({'datasets':_.where(validTableColumns, {'type':'biglist'})})
 				])})
 			]
 		)});
 		
 		// There will always be a user (or default) filter
 		// should pull all table filters/column filters for this user + common and public
-		this.dataFiltersContainer = new VDataFiltersContainer();
+		this.dataFiltersContainer = new VDataFiltersContainer({'filtersController':this});
 		
+		// filters control; toolbar for saving groups of filters
+		this.dataFiltersControl = new VDataFiltersControlBar({
+			'filtersController':this,
+			'mode':this.defaultConfig.mode,
+			'filterCategories':this.defaultConfig.filterCategories,
+			'table':this.table,
+			'user_id':181
+		});
+		
+		// constructing the View elements (Heading:Filter Tools, Body:Filters, Footer:Save Controls)
 		this.$el.append(
 			_.template(CFTEMPLATES.dataFiltersPanelContent,{variable:'panelheading'})({'filterColumns':validTableColumns}),
 			this.dataFiltersContainer.el,
-			_.template(CFTEMPLATES.dataFiltersControlFooter,{variable:'controller'})({'filterCategories':this.defaultConfig.filterCategories})
+			this.dataFiltersControl.el
+			//
 		);
 		
 		//add UI components and set initial display states for UI
@@ -529,28 +463,20 @@ var VDataFilters = Backbone.View.extend({
 		$('button.cf-edit-filter-button', this.$el).hide();
 		$('button.cf-cancel-edit-filter-button', this.$el).hide();
 		
-		// set properties for view
-		this.dataFiltersControl = $('nav.cf-datafilters-controller-footer',this.$el);
-		
-		// re-usable modal
-		$('div.modal div.modal-body', this.$el).html(_.template(CFTEMPLATES.saveFilterSetModalForm)({}));
-		this.modal = $('div.modal',this.$el).modal({
-			'backdrop':'static',
-			'keyboard':false,
-			'show':false
-		});
 		
 		// EVENT HANDLERS
 		// event handler when a filter is added
 		this.filters.on('add', function(filter) {
 			this.dataFiltersContainer.add(filter);
+			this.dataFiltersControl.refreshClearFiltersButton();
 		}, this);
 		
 		this.filters.on('remove', function(filter) {
 			if(this.filters.length<1) {
-				// disable the save filter dropdown
+				// disable the add filter dropdown
 				$('li.cf-save-filter-list', this.dataFiltersControl).addClass('disabled');
 			}
+			this.dataFiltersControl.refreshClearFiltersButton();
 		}, this);
 		
 		// when the remove button from a filter in the filter container view is clicked
@@ -559,6 +485,7 @@ var VDataFilters = Backbone.View.extend({
 		});
 		
 		// upstream handler when a filter item edit click event
+		// puts the sets the filter factory to the correct filter type and initializes with filter value
 		this.listenTo(this.dataFiltersContainer,'changeClick', function(filterCid) {
 			this.editFilterCid = filterCid;
 			this.editFilterMode();
@@ -571,20 +498,44 @@ var VDataFilters = Backbone.View.extend({
 		// upstream handler when a common value column is clicked
 		this.listenTo(this.commonValueControl, 'columnClick', this.commonValueColumnSelectionChange);
 		
-		
-		// check if the save filter and filter category controls should be visible
-		if(this.defaultConfig.mode && this.defaultConfig.filterCategories.length) {
-			for(var i in this.defaultConfig.filterCategories) {
-				this.addCategory(this.defaultConfig.filterCategories[i]);
+		// upstream handler when a clear filters event is triggered
+		// newSet is either empty or a filterSet clone
+		this.listenTo(this.dataFiltersControl, 'resetFilters', function(newSet) {
+			if(newSet) {
+				var newFiltersArray = [];
+				for(var i in newSet.attributes.filters) {
+					var newFilters = newSet.attributes.filters[i];
+					var f = new MDataFilter({
+						'table':newFilters.attributes.table,
+						'category':newFilters.attributes.category,
+						'type':newFilters.attributes.type,
+						'column':newFilters.attributes.column,
+						'label':newFilters.attributes.label,
+						'filterValue':$.extend(true, {}, newFilters.attributes.filterValue)
+					});
+					
+					// listen for change event on the model
+					f.on('change:filterValue', function(filter) {
+						//need to update filter tab content list item
+						this.dataFiltersContainer.updateFilter(filter);
+					}, this);
+					
+					newFiltersArray.push(f);
+				}
+				this.filters.reset(newFiltersArray);
+			} else {
+				this.filters.reset();
 			}
-		}
+			
+			//this.filters.reset(newSet);
+		});
 		
 		// handle when filterSelectionType is passed with a value other than FILTER_SELECTION_TYPES.DEFAULT
 		if(this.filterSelectionType != this.FILTER_SELECTION_TYPES.DEFAULT) {
 			//call function as if the click event was triggered
 			this.filterSelectionTypeChange(this.filterSelectionType);
 		} else {
-			// hide commonValueControl
+			// default to single filter type, hide commonValueControl
 			this.commonValueControl.hide();
 		}
 		

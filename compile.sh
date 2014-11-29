@@ -50,3 +50,5 @@ cat media/js/columnfilters/baseClasses/filterTypes/date/dateCycle.js >> columnfi
 cat media/js/columnfilters/baseClasses/filterTypes/boolean/boolEq.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 
 cat media/js/columnfilters/baseClasses/filterTypes/enum/enumIn.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
+
+cat media/js/columnfilters/baseClasses/filterTypes/biglist/biglistEq.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js

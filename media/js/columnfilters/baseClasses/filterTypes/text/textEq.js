@@ -1,13 +1,13 @@
 // Filter Widget Type Implementation Class for Text (Equals)
 var VFilterWidgetTypeTextEq = VFilterWidgetType.extend({
-	version:'1.0.2',
-	type:'equals',
+	'version':'1.0.2',
+	'type':'equals',
 	
 	
-	isValid:function() {
+	'isValid':function() {
 		return $.trim($('input',this.$el).val()).length>0;
 	},
-	validate:function() {
+	'validate':function() {
 		// TODO unset inputs/labels from danger status
 		if(this.isValid()) {
 			// TODO set inputs/labels to danger status
@@ -17,14 +17,14 @@ var VFilterWidgetTypeTextEq = VFilterWidgetType.extend({
 		console.log('text cannot be empty');
 		return false;
 	},
-	getValueDescription:function() {
+	'getValueDescription':function() {
 		if(this.isValid()) {
 			return 'is equal to ' + $.trim($('input',this.$el).val());
 		} else {
 			return false;
 		}
 	},
-	getValue:function() {
+	'getValue':function() {
 		if(this.validate()) {
 			return {
 				'type':this.type,
@@ -34,21 +34,23 @@ var VFilterWidgetTypeTextEq = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	setValue:function(filterValue) {
+	'setValue':function(filterValue) {
 		$('input',this.$el).val(filterValue.value);
 	},
-	reset:function() {
+	'reset':function() {
 		$('input',this.$el).val(null);
 	},
 	
+	'className':'row',
+	'template':_.template([
+		'<div class="col-xs-12">',
+			'<input type="text" placeholder="equals" class="form-control" autocomplete="off" value="" />',
+			'<span class="help-block">filtering the results by column values equal to this</span>',
+		'</div>',
+	].join('')),
 	
-	initialize:function(options) {
-		this.$el.html(
-			'<input type="text" placeholder="equals" size="32" maxlength="45" autocomplete="off" value="" />'+
-			'<span class="help-block">filtering the results by column values equal to this</span>'
-		);
-	},
-	render:function() {
-		return this;
+	'initialize':function(options) {
+		// TODO attributes for text input
+		this.$el.html(this.template());
 	}
 });

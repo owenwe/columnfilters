@@ -1,17 +1,17 @@
 // DataColumnFilterWidget Class
 // collection: a collection of VFilterWidgetType (extended to an instance)
 var VDataColumnFilterWidget = Backbone.View.extend({
-	type:'text',
-	visible:false,
-	active:false,
+	'type':'text',
+	'visible':false,
+	'active':false,
 	
-	activeType:function() {
+	'activeType':function() {
 		return this.collection.findWhere({active:true});
 	},
-	getSubType:function(subType) {
+	'getSubType':function(subType) {
 		return this.collection.findWhere({'type':subType});
 	},
-	getFilterValue:function() {
+	'getFilterValue':function() {
 		var at = this.activeType();
 		if(at) {
 			return at.getValue();
@@ -19,20 +19,20 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 			return false;
 		}
 	},
-	setFilterValue:function(filterValue) {
+	'setFilterValue':function(filterValue) {
 		var fwt = this.collection.findWhere({'type':filterValue.type});
 		if(fwt) {
 			fwt.attributes.setValue(filterValue);
 		}
 	},
-	getLabel:function() {
+	'getLabel':function() {
 		return $('div.cf-widget-type-label',this.$el).html();
 	},
-	setLabel:function(label) {
+	'setLabel':function(label) {
 		$('div.cf-widget-type-label',this.$el).html(label);
 	},
 	
-	changeSubType:function(subType) {
+	'changeSubType':function(subType) {
 		var at = this.activeType(),
 			selAt = this.collection.findWhere({'type':subType});
 		if(at && (subType!=at.attributes.type)){
@@ -45,7 +45,7 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 		}
 	},
 	
-	show:function() {
+	'show':function() {
 		this.visible = true;
 		this.active = true;
 		this.$el.show();
@@ -56,12 +56,12 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 			at.attributes.show();
 		}
 	},
-	hide:function() {
+	'hide':function() {
 		this.visible = false;
 		this.active = false;
 		this.$el.hide();
 	},
-	enable:function() {
+	'enable':function() {
 		var ddbtn = $('button.dropdown-toggle',this.$el);
 		if(ddbtn) {
 			ddbtn[0].disabled = false;
@@ -71,7 +71,7 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 			at.attributes.enable();
 		}
 	},
-	disable:function() {
+	'disable':function() {
 		//disable the drop down
 		var ddbtn = $('button.dropdown-toggle',this.$el);
 		if(ddbtn) {
@@ -84,21 +84,21 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 			at.attributes.disable();
 		}
 	},
-	reset:function() {
+	'reset':function() {
 		this.collection.each(function(filterWidget) {
 			filterWidget.attributes.reset();
 		});
 	},
 	
-	tagName:'div',
-	className:'cf-filter-widget',
-	events:{
+	'tagName':'div',
+	'className':'cf-filter-widget row',
+	'events':{
 		// triggered when the type dropdown item is clicked
 		'click ul.dropdown-menu li a':function(e) {
 			this.changeSubType($(e.currentTarget).html());
 		}
 	},
-	initialize:function(options) {
+	'initialize':function(options) {
 		if(options.hasOwnProperty('type')) {
 			this.type = options.type;
 		}
@@ -106,15 +106,15 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 		this.$el.addClass('cf-filter-widget-'+this.type);
 		
 		//build selector drop down
-		var typeSelectorDropdown = $(document.createElement('ul')).attr({'role':'menu'}).addClass('dropdown-menu'),
-			typeSelector = $(document.createElement('div')).addClass('cf-widget-type-selector btn-group pull-left').append(
-				$(document.createElement('div')).addClass('cf-widget-type-label pull-left'),
+		var typeSelectorDropdown = $(document.createElement('ul')).attr({'role':'menu'}).addClass('dropdown-menu pull-right'),
+			typeSelector = $(document.createElement('div')).addClass('cf-widget-type-selector col-lg-4 col-md-4 col-sm-6 col-xs-4 row btn-group').append(
+				$(document.createElement('div')).addClass('cf-widget-type-label text-right text-nowrap col-lg-8 col-md-7 col-sm-7 col-xs-12'),
 				$(document.createElement('button')).attr({'type':'button','data-toggle':'dropdown'})
-												   .addClass('btn btn-default btn-xs dropdown-toggle')
+												   .addClass('btn btn-default btn-xs dropdown-toggle col-lg-3 col-md-4 col-sm-4 col-xs-12')
 												   .append('<span class="cf-widget-type-selector-btn-title"></span> <span class="caret"></span>'),
 				typeSelectorDropdown
 		),
-			typesContainer = $(document.createElement('div')).addClass('cf-widget-types-container pull-left');
+			typesContainer = $(document.createElement('div')).addClass('cf-widget-types-container col-lg-8 col-md-8 col-sm-6 col-xs-8');
 		if(options.hasOwnProperty('collection')) {
 			$('span.cf-widget-type-selector-btn-title',typeSelector).html(options.collection.at(0).attributes.type);
 			var dsp = this.dispatcher;
@@ -131,5 +131,5 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 		}
 		this.$el.append([typeSelector,typesContainer]);
 	},
-	render:function() { return this; }
+	'render':function() { return this; }
 });

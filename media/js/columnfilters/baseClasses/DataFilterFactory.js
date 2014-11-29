@@ -1,11 +1,11 @@
 // DataFilterFactory Class
 // collection: a collection of VDataColumnFilterWidget objects
 var VDataFilterFactory = Backbone.View.extend({
-	types:[],
-	activeColumn:null,
+	'types':[],
+	'activeColumn':null,
 	
-	savedState:null,
-	saveState:function() {
+	'savedState':null,
+	'saveState':function() {
 		var af = this.activeFilter();
 		if(af) {
 			var fw = af.activeType();
@@ -21,7 +21,7 @@ var VDataFilterFactory = Backbone.View.extend({
 			this.savedState = null;
 		}
 	},
-	restoreState:function() {
+	'restoreState':function() {
 		if(this.savedState) {
 			//console.log(this.savedState);
 			this.load(this.savedState.dataCol,this.savedState.type,this.savedState.label,this.savedState.subtype);
@@ -34,17 +34,17 @@ var VDataFilterFactory = Backbone.View.extend({
 		}
 	},
 	
-	activeFilter:function(){
+	'activeFilter':function(){
 		//return any active && visible filter widgets (should only be 1)
 		var af = this.collection.findWhere({'active':true,'visible':true});
 		return af?af.attributes:false;
 	},
 	
-	getFilterValue:function() {
+	'getFilterValue':function() {
 		return this.activeFilter().activeType().attributes.getValue();
 	},
 	
-	setFilterValue:function(filter) {
+	'setFilterValue':function(filter) {
 		//first we have to find the current filter widget
 		var fw = this.collection.findWhere({'type':filter.type});
 		if(fw) {
@@ -54,7 +54,7 @@ var VDataFilterFactory = Backbone.View.extend({
 		return this;
 	},
 	
-	updateFilterLabel:function(newLabel) {
+	'updateFilterLabel':function(newLabel) {
 		if(_.isString(newLabel)) {
 			var af = this.activeFilter();
 			if(af) {
@@ -63,14 +63,14 @@ var VDataFilterFactory = Backbone.View.extend({
 		}
 	},
 	
-	show:function() {
+	'show':function() {
 		var af = this.activeFilter();
 		if(af){
 			af.show();
 		}
 		return this;
 	},
-	hide:function() {
+	'hide':function() {
 		var af = this.activeFilter();
 		if(af){
 			af.hide();
@@ -78,7 +78,7 @@ var VDataFilterFactory = Backbone.View.extend({
 		return this;
 	},
 	
-	enable:function() {
+	'enable':function() {
 		//enable the active filter
 		var af = this.activeFilter();
 		if(af){
@@ -86,7 +86,7 @@ var VDataFilterFactory = Backbone.View.extend({
 		}
 		return this;
 	},
-	disable:function() {
+	'disable':function() {
 		//disable the active filter
 		var af = this.activeFilter();
 		if(af) {
@@ -95,7 +95,7 @@ var VDataFilterFactory = Backbone.View.extend({
 		return this;
 	},
 	
-	reset:function(resetAll) {
+	'reset':function(resetAll) {
 		if(resetAll) {
 			
 		} else {
@@ -109,7 +109,7 @@ var VDataFilterFactory = Backbone.View.extend({
 	},
 	
 	// displays the requested filter widget type
-	load:function(dataCol, dataType, dataLabel, subType) {
+	'load':function(dataCol, dataType, dataLabel, subType) {
 		//find it in the collection
 		var reqfw = this.collection.findWhere({'type':dataType}),
 			curfw = this.activeFilter();
@@ -141,9 +141,9 @@ var VDataFilterFactory = Backbone.View.extend({
 	},
 	
 	
-	tagName:'div',
-	className:'cf-filter-factory',
-	initialize:function(options) {
+	'tagName':'div',
+	'className':'cf-filter-factory',
+	'initialize':function(options) {
 		
 		if(options.hasOwnProperty('collection')) {
 			var ffEl = this.$el,
@@ -159,7 +159,7 @@ var VDataFilterFactory = Backbone.View.extend({
 			}
 		}
 	},
-	render:function() {
+	'render':function() {
 		return this;
 	}
 });

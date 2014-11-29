@@ -93,6 +93,7 @@ var eMeta = [
 	},
 	{'data':'fname', 'name':'fname', 'title':'First Name', 'type':'string', 'cftype':'text'},
 	{'data':'lname', 'name':'lname', 'title':'Last Name', 'type':'string', 'cftype':'text'},
+	{'data':'dataNumber', 'name':'dataNumber', 'title':'Number', 'type':'num', 'cftype':'number'},
 	{
 		'data':'status', 
 		'name':'status', 
@@ -103,9 +104,8 @@ var eMeta = [
 			return data?'Active':'Inactive';
 		}
 	},
-	{'data':'hired', 'name':'hired', 'title':'hired', 'type':'date', 'cftype':'date'},
-	{'data':'hiredUX', 'name':'hiredUX', 'title':'', 'type':'number', 'visible':false, 'cfexclude':true},
-	{'data':'supervisor', 'name':'supervisor', 'title':'supervisor', 'type':'string', 'cftype':'text'},
+	{'data':'hired', 'name':'hired', 'title':'Hired', 'type':'date', 'cftype':'date'},
+	{'data':'supervisor', 'name':'supervisor', 'title':'Supervisor', 'type':'string', 'cftype':'text'},
 	{
 		'data':'area', 
 		'name':'area.id', 
@@ -130,6 +130,16 @@ var eMeta = [
 		'cfenumlabelkey':'typeId'
 	},
 	{'data':'program.typeId', 'name':'program_typeId', 'title':'Program', 'type':'string', 'cfexclude':true},
+	/*{
+		'data':'specialist',
+		'name':'specialist.id',
+		'title':'Specialist',
+		'type':'object',
+		'cftype':'biglist',
+		'datasource':employees,
+		'displayKey':employeeDTDisplayFunc,
+		'valueKey':'id'
+	},*/
 	{
 		'data':'notes', 
 		'name':'notes', 
@@ -141,21 +151,43 @@ var eMeta = [
 	}
 ];
 
+var filterSet1, filterSet2;
+
 $(document).ready(function(e) {
 	
 	//df = new VDataFilters({table:'employees', tableColumns:tc, showFirst:'date-column', filterCategories:['user','public']});
-	df = new VDataFilters({table:'employees', tableColumns:eMeta});
-	
-	$('div.container-fluid').append(df.el);
-	
-	$('#hired',this.modalForm).datepicker({
-		autoclose:true,
-		'name':'edit-emp-hired-dp',
-		'format':'mm/dd/yyyy'
+	df = new VDataFilters({
+		'mode':1,
+		'filterCategories':['Users','Department'],
+		'table':'employees',
+		'tableColumns':eMeta
 	});
+	$('div.container-fluid').append(df.el);
 	
 	$('#testButton').on('click', function(e) {
 		//get filter data from columnfilters object (df)
 		console.log(df.getCurrentFilter());
 	});
+	
+	/*
+	// testing jquery merge
+	filterSet1 = {
+		'category':'foo',
+		'table':'clients',
+		'user':'wes',
+		'name':'Test1',
+		'description':null,
+		'filters':[
+			{'category':'foo', 'column':'fname', 'label':'First Name', 'table':'clients', 'type':'text', 'filterValue':{'type':'equals', 'description':'is equal to', 'value':'orange'}},
+			{'category':'foo', 'column':'lname', 'label':'Last Name', 'table':'clients', 'type':'text', 'filterValue':{'type':'similar', 'description':'is like', 'value':'banana'}},
+			{'category':'foo', 'column':'status', 'label':'Status', 'table':'clients', 'type':'boolean', 'filterValue':{'type':'equals', 'description':'is Active', 'value':1}}
+		]
+	};
+	filterSet2 = $.extend(true,{},filterSet1);
+	for(var i in filterSet2.filters) {
+		filterSet2.filters[i].filterValue.value = 'changed';
+	}
+	console.log(filterSet2);
+	console.log(filterSet1);
+	*/
 });

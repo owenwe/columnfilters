@@ -1,18 +1,18 @@
 // Filter Widget Type Implementation Class for Number (Select)
 var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
-	version:'1.0.2',
-	type:'select',
-	sb:null,
-	sbOptions:{min:-10, max:100, step:.25},
-	valueList:[],
-	listEl:null,
+	'version':'1.0.2',
+	'type':'select',
+	'sb':null,
+	'sbOptions':{min:-10, max:100, step:.25},
+	'valueList':[],
+	'listEl':null,
 	
 	
-	isValid:function() {
+	'isValid':function() {
 		return this.valueList.length>0;
 	},
 	
-	validate:function() {
+	'validate':function() {
 		// TODO unset inputs/labels from danger status
 		if(this.isValid()) {
 			// TODO set inputs/labels to danger status
@@ -23,7 +23,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 		return false;
 	},
 	
-	getValueDescription:function() {
+	'getValueDescription':function() {
 		if(this.isValid()) {
 			return 'is one of these numbers: (' + this.valueList.join(',') + ')';
 		} else {
@@ -31,7 +31,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 		}
 	},
 	
-	getValue:function() {
+	'getValue':function() {
 		if(this.validate()) {
 			return {
 				'type':this.type,
@@ -42,7 +42,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 		return false;
 	},
 	
-	setValue:function(filterValue) {
+	'setValue':function(filterValue) {
 		//expecting array of numbers
 		this.valueList = filterValue.value;
 		for(var i in filterValue.value) {
@@ -50,13 +50,13 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 		}
 	},
 	
-	reset:function() {
+	'reset':function() {
 		this.sb.spinbox('value',0);
 		this.listEl.empty();
 		this.valueList = [];
 	},
 	
-	addToList:function(value) {
+	'addToList':function(value) {
 		/*
 		<div class="cf-list-item">
 			<span>x.x</span>
@@ -83,7 +83,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 		);
 	},
 	
-	events:{
+	'events':{
 		'click button.sbadd':function(e) {
 			// TODO make sure it's not a duplicate
 			var num = this.sb.spinbox('value')*1;
@@ -93,31 +93,35 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 		}
 	},
 	
-	template:_.template(
-		'<div class="row">'+
-		'	<div class="col-md-5">'+CFTEMPLATES.numberSpinner1+'</div>'+
-		'	<div class="col-md-2">'+
-		'		<div class="pull-left"><button class="btn btn-default sbadd"><span class="glyphicon glyphicon-plus"></span></button></div>'+
-		'	</div>'+
-		'	<div class="col-md-5">'+
-		'		<div class="panel panel-default">'+
-		'			<div class="panel-heading">List of Values</div>'+
-		'			<div class="panel-body"><div class="cf-list"></div>'+
-		'		</div>'+
-		'	</div>'+
-		'</div>'+
-		'<span class="help-block">filtering the results by column values in this list</span>',
+	'className':'fuelux',
+	
+	'template':_.template([
+		'<div class="row">',
+			'<div class="col-lg-4 col-md-5 col-sm-10 col-xs-8">',CFTEMPLATES.numberSpinner1,'</div>',
+			'<div class="col-lg-1 col-md-1 col-sm-1 col-xs-1">',
+				'<div class="pull-left"><button class="btn btn-xs btn-default sbadd"><span class="glyphicon glyphicon-plus"></span></button></div>',
+			'</div>',
+			'<div class="col-lg-4 col-md-5 col-sm-12 col-xs-8">',
+				'<div class="panel panel-default">',
+					'<div class="panel-heading">List of Values</div>',
+					'<div class="panel-body"><div class="cf-list"></div>',
+				'</div>',
+			'</div>',
+		'</div>',
+		'<div class="row">',
+			'<div class="col-xs-12">',
+				'<span class="help-block">filtering the results by column values in this list</span>',
+			'</div>',
+		'</div>'
+		].join(''),
 		{variable:'spinbox'}
 	),
 	
-	initialize:function(options) {
-		this.$el.addClass('fuelux');
+	'initialize':function(options) {
+		//this.$el.addClass('fuelux');
 		this.$el.html(this.template({name:'sb'}));
 		$('.spinbox',this.$el).spinbox(this.sbOptions);
 		this.sb = $('.spinbox.sb',this.$el);
 		this.listEl = $('.cf-list',this.$el);
-	},
-	render:function() {
-		return this;
 	}
 });

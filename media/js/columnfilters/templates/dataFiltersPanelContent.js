@@ -1,7 +1,7 @@
 // variable { panelheading.filterFactory (View.el), panelheading.filterColumns (Array) }
 CFTEMPLATES.dataFiltersPanelContent = '<div class="panel-heading well-sm">'+
 	'<div class="row">'+
-		'<div class="col-lg-5 col-md-6 col-sm-7 col-xs-8 text-nowrap">'+
+		'<div class="col-lg-5 col-md-5 col-sm-7 col-xs-8 text-nowrap">'+
 			
 			// FILTER SELECTION TYPE
 			'<div class="btn-group cf-data-filter-type-selection" data-toggle="buttons">'+
@@ -35,7 +35,7 @@ CFTEMPLATES.dataFiltersPanelContent = '<div class="panel-heading well-sm">'+
 			'</div>'+
 			
 		'</div>'+
-		'<div class="col-lg-7 col-md-6 col-sm-5 cf-filter-factory-container-row"></div>'+
+		'<div class="col-lg-7 col-md-7 col-sm-5 col-xs-12 cf-filter-factory-container-row"></div>'+
 	'</div>'+
 '</div>';
 //'<%= $.map(panelheading.filterColumns, function(c,i) { return _.template(CFTEMPLATES.filterOptionListItem,{variable:\'columnData\'})(c); }).join("") %>'+
