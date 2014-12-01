@@ -221,7 +221,9 @@ var VDataFilters = Backbone.View.extend({
 		this.dataFiltersContainer.disable();
 		
 		//disable the filter control nav bar
-		this.dataFiltersControl.disable();
+		if(this.mode === this.MODES.CATEGORY_SETS) {
+			this.dataFiltersControl.disable();
+		}
 		
 		//	disable filters control (need to keep track of what was already disabled)
 		this.preEditFilterControlStates = [];
@@ -260,7 +262,9 @@ var VDataFilters = Backbone.View.extend({
 		}
 		
 		//disable the filter control nav bar
-		this.dataFiltersControl.enable();
+		if(this.mode === this.MODES.CATEGORY_SETS) {
+			this.dataFiltersControl.enable();
+		}
 	},
 	
 	// PUBLIC Functions
@@ -514,7 +518,9 @@ var VDataFilters = Backbone.View.extend({
 		// event handler when a filter is added
 		this.filters.on('add', function(filter) {
 			this.dataFiltersContainer.add(filter);
-			this.dataFiltersControl.refreshClearFiltersButton();
+			if(this.mode===this.MODES.CATEGORY_SETS) {
+				this.dataFiltersControl.refreshClearFiltersButton();
+			}
 		}, this);
 		
 		this.filters.on('remove', function(filter) {
@@ -522,7 +528,9 @@ var VDataFilters = Backbone.View.extend({
 				// disable the add filter dropdown
 				$('li.cf-save-filter-list', this.dataFiltersControl).addClass('disabled');
 			}
-			this.dataFiltersControl.refreshClearFiltersButton();
+			if(this.mode===this.MODES.CATEGORY_SETS) {
+				this.dataFiltersControl.refreshClearFiltersButton();
+			}
 		}, this);
 		
 		// when the remove button from a filter in the filter container view is clicked

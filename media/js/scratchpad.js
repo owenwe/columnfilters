@@ -155,7 +155,7 @@ $(document).ready(function(e) {
 	
 	//df = new VDataFilters({table:'employees', tableColumns:tc, showFirst:'date-column', filterCategories:['user','public']});
 	df = new VDataFilters({
-		'mode':1,
+		'mode':0,
 		'filterCategories':['Users','Department'],
 		'table':'employees',
 		'tableColumns':eMeta
