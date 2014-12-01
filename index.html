@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" charset="utf-8" content="text/html; charset=UTF-8" />
+    <title>columnfilters implementation page</title>
+    <link rel="stylesheet" href="media/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="media/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="media/css/dataTables.bootstrap.css" />
+    <link rel="stylesheet" href="media/css/datepicker.css" />
+    <link rel="stylesheet" href="media/css/datepicker3.css" />
+    <link rel="stylesheet" href="media/css/fuelux.min.css" />
+    <link rel="stylesheet" href="media/css/columnfilters-0.0.1b.css" />
+    <style>
+
+
+	</style>
+</head>
+<body>
+	<div class="container-fluid">
+        <div class="page-header">
+            <h2>Data Table Scratchpad</h2>
+        </div>
+    </div>
+    
+    <div class="container">
+    	<button id="testButton" class="btn btn-default btn-primary">Test</button>
+    </div>
+    
+    <!-- javascript resources -->
+    <script src="media/js/jquery-2.1.1.min.js"></script>
+	<script src="media/js/underscore-min.js"></script>
+    <script src="media/js/backbone-min.js"></script>
+    <script src="media/js/bootstrap.min.js"></script>
+    <script src="media/js/typeahead.bundle.js"></script>
+    <script src="media/js/jquery.dataTables.min.js"></script>
+    <script src="media/js/dataTables.bootstrap.js"></script>
+    <script src="media/js/bootstrap-datepicker.js"></script>
+    <script src="media/js/spinbox.js"></script>
+    
+    <!-- templates -->
+    <script src="media/js/columnfilters/templates/baseTemplateClass.js"></script>
+	<script src="media/js/columnfilters/templates/commonValueController.js"></script>
+    <script src="media/js/columnfilters/templates/dataFiltersPanelContent.js"></script>
+    <script src="media/js/columnfilters/templates/filterOptionListItem.js"></script>
+    <script src="media/js/columnfilters/templates/dataFiltersControlFooter.js"></script>
+    <script src="media/js/columnfilters/templates/saveFilterSetModalForm.js"></script>
+    <script src="media/js/columnfilters/templates/datepickerType4.js"></script>
+    <script src="media/js/columnfilters/templates/datepickerType3.js"></script>
+    <script src="media/js/columnfilters/templates/dateBetweenFilterWidgetType.js"></script>
+    <script src="media/js/columnfilters/templates/numberSpinner1.js"></script>
+    <script id="testTemplate" type="type/template">
+		
+	</script>
+    
+    <!-- columnfilters base classes (Collection/Model) -->
+    <script src="media/js/columnfilters/baseClasses/MColumnFilter.js"></script>
+    <script src="media/js/columnfilters/baseClasses/CColumnFilters.js"></script>
+    <script src="media/js/columnfilters/baseClasses/MDataColumnFilter.js"></script>
+    <script src="media/js/columnfilters/baseClasses/CDataColumnFilters.js"></script>
+    <script src="media/js/columnfilters/baseClasses/MDataFilter.js"></script>
+    <script src="media/js/columnfilters/baseClasses/CDataFilters.js"></script>
+    <script src="media/js/columnfilters/baseClasses/MFilterSet.js"></script>
+    <script src="media/js/columnfilters/baseClasses/CDataFilterSets.js"></script>
+    
+    <!-- columnfilters base classes (Views) -->
+	<script src="media/js/columnfilters/baseClasses/FilterWidgetType.js"></script>
+    <script src="media/js/columnfilters/baseClasses/DataColumnFilterWidget.js"></script>
+    <script src="media/js/columnfilters/baseClasses/DataFilterFactory.js"></script>
+    <script src="media/js/columnfilters/baseClasses/DataFiltersContainer.js"></script>
+    <script src="media/js/columnfilters/baseClasses/CommonValueFilterControl.js"></script>
+    <script src="media/js/columnfilters/baseClasses/DataFilters.js"></script>
+    <script src="media/js/columnfilters/baseClasses/DataFiltersControlBar.js"></script>
+    
+    <!-- columnfilters widget types classes (Views) -->
+    <script src="media/js/columnfilters/baseClasses/filterTypes/text/textEq.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/text/textSrch.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/number/numberEq.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/number/numberBtwn.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/number/numberSel.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateEq.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateBtwn.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateSel.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateCycle.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/boolean/boolEq.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/enum/enumIn.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/biglist/biglistEq.js"></script>
+    
+    <script src="media/js/scratchpad.js"></script>
+</body>
+</html>
