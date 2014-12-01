@@ -8,9 +8,7 @@ cat media/js/columnfilters/templates/baseTemplateClass.js >> columnfilters-0.0.1
 cat media/js/columnfilters/templates/commonValueController.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/templates/dataFiltersPanelContent.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/templates/filterOptionListItem.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
-cat media/js/columnfilters/templates/dataFiltersControlBody.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/templates/dataFiltersControlFooter.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
-cat media/js/columnfilters/templates/saveFilterSetModalForm.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/templates/datepickerType4.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/templates/datepickerType3.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/templates/dateBetweenFilterWidgetType.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
