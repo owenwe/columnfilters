@@ -96,7 +96,6 @@ var VDataFiltersContainer = Backbone.View.extend({
 		// TODO move element events into the 'events' object
 		var mAtt = _.clone(filter.attributes);
 		mAtt.cid = filter.cid;
-		console.log('adding filter with cid: '+mAtt.cid);
 		mAtt.columnId = _.isArray(mAtt.column) ? mAtt.column.join('') : mAtt.column.replace(".","_");
 		
 		// the filter list item

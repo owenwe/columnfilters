@@ -4,6 +4,17 @@ Version: 0.0.1b
 License is free for everyone, no restrictions, you just can't claim it is 
 yours and then try to restrict others from using it.
 */
+.cf-notification {
+	position:fixed !important;
+	margin-top:-10px !important;
+	z-index:99999 !important;
+	max-height:100px !important;
+}
+.cf-notification p {
+	max-height:3em;
+	overflow:auto;
+}
+
 .cf-data-filter-type-selection, .cf-common-value-dropdown {
 	margin-right:4px;
 }
@@ -28,7 +39,7 @@ yours and then try to restrict others from using it.
 }
 
 .cf-data-filters-container {
-	min-height:50px;
+	min-height:100px;
 	max-height:150px;
 	overflow:auto;
 }

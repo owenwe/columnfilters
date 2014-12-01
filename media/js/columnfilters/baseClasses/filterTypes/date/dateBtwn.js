@@ -21,7 +21,7 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 			return true;
 		}
 		
-		console.log('a to and from date must be selected');
+		this.trigger('notify', 'danger', 'Date Filter ('+this.type+') Error', 'A to and from date must be selected.');
 		return false;
 	},
 	getValueDescription:function() {

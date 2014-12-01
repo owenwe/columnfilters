@@ -15,13 +15,13 @@ var VDataFilters = Backbone.View.extend({
 	)
 	[column filter multi select dropdown] [filter factory]
 	*/
-	FILTER_SELECTION_TYPES:{ 'DEFAULT':0, 'COMMON_VALUE':1 },
+	'FILTER_SELECTION_TYPES':{ 'DEFAULT':0, 'COMMON_VALUE':1 },
 	
 	// Enum of the different interactive modes this control can be put into
 	// the dataFiltersControl (DataFiltersControlBar/VDataFiltersControlBar) has a copy of this
-	MODES:{ 'DEFAULT':0, 'CATEGORY_SETS':1 },
+	'MODES':{ 'DEFAULT':0, 'CATEGORY_SETS':1 },
 	
-	defaultConfig:{
+	'defaultConfig':{
 		'mode':0,
 		'table':'undefined',
 		'showFirst':null,
@@ -30,46 +30,95 @@ var VDataFilters = Backbone.View.extend({
 		'filterCategories':[],
 		'convertBooleanToNumeric':true
 	},
-	mode:0,					// setting the mode to 1 enables the saving filter sets and filter set groups
-	table:'undefined',		// the name of the database table or virtual source
-	filterSelectionType:0,  // the type of filter selection to display
-	filters:null,			// a collection of MDataFilter
-	filterCategories:[],	// array of names
-	convertBooleanToNumeric:true,
+	'mode':0,					// setting the mode to 1 enables the saving filter sets and filter set groups
+	'table':'undefined',		// the name of the database table or virtual source
+	'filterSelectionType':0,	// the type of filter selection to display
+	'filters':null,				// a collection of MDataFilter
+	'filterCategories':[],		// array of names
+	'convertBooleanToNumeric':true,
 	
 	//the modal for add/edit filter sets
 	// TODO this should be moved to VDataFiltersControlBar
-	modal:null,
-	
-	// TODO turn categories into collections
-	
-	//key for filtering models in the filters
-	//categories end up being drop down lists in the dataFiltersControl nav bar
-	//index to the filter set in this.filterCategorySets[currentFilterCategory].filters
-	// TODO handle these through the dataFiltersControl View
-	currentFilterCategory:null,
-	currentWorkingFilterSet:null,
+	'modal':null,
 	
 	//cid of the model in the filters collection during an edit
-	editFilterCid:null,
+	'editFilterCid':null,
 	
 	//used to keep track of filters displayed in the dataFiltersContainer
-	currentColumnFilter:{'table':null,'type':null,'column':null,'label':null},
+	'currentColumnFilter':{'table':null,'type':null,'column':null,'label':null},
 	
 	//used to restore after a save/cancel (filter edit)
-	previousColumnFilter:{'type':null, 'column':null, 'label':null},
+	'previousColumnFilter':{'type':null, 'column':null, 'label':null},
 	
 	//used to keep track of the filter control nav bar dropdowns
-	preEditFilterControlStates:[],
+	'preEditFilterControlStates':[],
 	
-	commonValueControl:null,	//multi-column value filter control
-	filterFactory:null,			//all filter widgets
-	dataFiltersContainer:null,	//panel body view
-	dataFiltersControl:null,	//panel footer
+	'commonValueControl':null,		//multi-column value filter control
+	'filterFactory':null,			//all filter widgets
+	'dataFiltersContainer':null,	//panel body view
+	'dataFiltersControl':null,		//panel footer
 	
+	// Notification system:
+	// Will be a warning or danger alert overlay in the filters container. The alert will fade out after about
+	// 1 second unless the user hovers over (TODO implement touch system method)
+	// the user will have to mouse out of the alert div in order to start the hide timer again.
+	'notification':{
+		'timeoutID':null,
+		'displayDelay':1777,//1777
+		'templates':{
+			'warning':_.template([
+				'<div class="alert alert-warning alert-dismissable cf-notification fade in" role="alert">',
+					'<button type="button" class="close" data-dismiss="alert">',
+						'<span aria-hidden="true">&times;</span>',
+						'<span class="sr-only">Close</span>',
+					'</button>',
+					'<h4><%= notification.title %></h4>',
+					'<p><%= notification.message %></p>',
+				'</div>'
+			].join(''), {'variable':'notification'}),
+			'danger':_.template([
+				'<div class="alert alert-danger alert-dismissable cf-notification fade in" role="alert">',
+					'<button type="button" class="close" data-dismiss="alert">',
+						'<span aria-hidden="true">&times;</span>',
+						'<span class="sr-only">Close</span>',
+					'</button>',
+					'<h4><%= notification.title %></h4>',
+					'<p><%= notification.message %></p>',
+				'</div>'
+			].join(''), {'variable':'notification'})
+		}
+	},
+	'notify':function(level, title, message) {
+		// put an alert div in the filters container and set the width so we can 
+		// center it with it being fixed position
+		var newAlertDiv = $(this.notification.templates[level==='danger'?'danger':'warning']({'title':title, 'message':message}))
+			.css({'width':$('.cf-data-filters-container').width()+'px'}),
+			dfContext = this;
+		//this.listenTo(newAlertDiv, 'mouseover', dfContext.quitHideNotifyTimer);
+		//newAlertDiv.on('mouseover', function() { dfContext.quitHideNotifyTimer });
+		newAlertDiv.hover(
+			function() { dfContext.quitHideNotifyTimer(); },
+			function() {
+				dfContext.notification.timeoutID = setTimeout( function(){ dfContext.hideNotification(); }, dfContext.notification.displayDelay);
+			}
+		);
+		//this.listenTo(newAlertDiv, 'mouseout', function() { setTimeout( function(){ dfContext.hideNotification(); }, dfContext.notification.displayDelay) });
+		this.dataFiltersContainer.$el.prepend(newAlertDiv);
+		
+		// set the alert div to fade out after displayDelay milliseconds (use the DataFilters context)
+		this.notification.timeoutID = setTimeout( function(){ dfContext.hideNotification(); }, dfContext.notification.displayDelay);
+		
+	},
+	'hideNotification':function() {
+		// this is executed in Window context
+		$('div.cf-notification',this.dataFiltersContainer.$el).alert('close');
+	},
+	'quitHideNotifyTimer':function(e) {
+		clearTimeout(this.notification.timeoutID);
+	},
 	
 	// called from the event when the filter selection type radio set is changed
-	filterSelectionTypeChange:function(newSelectionType) {
+	'filterSelectionTypeChange':function(newSelectionType) {
 		switch(newSelectionType) {
 			case this.FILTER_SELECTION_TYPES.DEFAULT:
 				this.filterSelectionType = this.FILTER_SELECTION_TYPES.DEFAULT;
@@ -109,7 +158,7 @@ var VDataFilters = Backbone.View.extend({
 	// when a common value column item in the drop down list is changed
 	// columnData: {label: string, name: could be a string or an array, type: string }
 	// 
-	commonValueColumnSelectionChange:function(columnData) {
+	'commonValueColumnSelectionChange':function(columnData) {
 		//console.log(columnData);
 		//console.log(this.commonValueControl.selectedCount);
 		if(this.commonValueControl.selectedCount) {// columns are selected
@@ -136,7 +185,7 @@ var VDataFilters = Backbone.View.extend({
 	
 	// changes the filter factory widget to the given type
 	// column could be a string or an array
-	changeFilterFactoryType:function(type,column,label,subType) {
+	'changeFilterFactoryType':function(type,column,label,subType) {
 		this.currentColumnFilter = {
 			'table':this.table,
 			'type':type,
@@ -147,7 +196,7 @@ var VDataFilters = Backbone.View.extend({
 	},
 	
 	// show the save/cancel edit button group and disable everything but it and the filter factory
-	editFilterMode:function() {
+	'editFilterMode':function() {
 		// show cancel and save filter button
 		$('button.cf-edit-filter-button', this.$el).show();
 		$('button.cf-cancel-edit-filter-button', this.$el).show();
@@ -186,7 +235,7 @@ var VDataFilters = Backbone.View.extend({
 	},
 	
 	// undo everything done in editFilterMode
-	cancelEditFilterMode:function() {
+	'cancelEditFilterMode':function() {
 		$('button.cf-edit-filter-button', this.$el).hide();
 		$('button.cf-cancel-edit-filter-button', this.$el).hide();
 		$('.cf-add-change-filter-group-button button',this.$el).show();
@@ -216,20 +265,17 @@ var VDataFilters = Backbone.View.extend({
 	
 	// PUBLIC Functions
 	// returns filters as an object, or false if there aren't filters to return
-	getCurrentFilter:function() {
-		if( (this.mode == this.MODES.DEFAULT) || ((this.mode!=this.MODES.DEFAULT) ) ) {
-			return this.filters.length ? this.filters.toJSON() : false ;
-		} else {
-			// TODO look at currentWorkingFilterSet and currentFilterCategory and currentColumnFilter
-			console.log(this.currentColumnFilter);
-			return this.filters.length ? this.filters.toJSON() : false ;
-		}
+	'getCurrentFilter':function() {
+		return this.filters.length ? this.filters.toJSON() : false ;
+		
+		// Do we need to check for what mode it is set to?
+		//if(this.mode == this.MODES.DEFAULT) {} else {}
 	},
 	
-	tagName:'div',
-	className:'panel panel-default',
+	'tagName':'div',
+	'className':'panel panel-default',
 	
-	events:{
+	'events':{
 		
 		// DATA FILTER TYPE CHANGE
 		// triggered when the filter type (default/common value) is changed
@@ -270,12 +316,9 @@ var VDataFilters = Backbone.View.extend({
 				}
 				
 				// create new data filter
+				// MDataFilter is the same thing as a standard Modal (it doesn't define anything specific)
 				var ndf = new MDataFilter({
 					'table':this.table,
-					
-					// TODO maybe we need to set this in dataFiltersControl when saving to a filter set
-					'category':this.currentFilterCategory,
-					
 					'type':this.currentColumnFilter.type,
 					'column':this.currentColumnFilter.column,
 					'label':this.currentColumnFilter.label,
@@ -314,7 +357,7 @@ var VDataFilters = Backbone.View.extend({
 	},
 	
 	
-	initialize:function(options) {
+	'initialize':function(options) {
 		if(_.has(options,'mode') && _.isNumber(options.mode)) {
 			// TODO make sure passed in value exists in MODES
 			this.defaultConfig.mode = this.mode = options.mode;
@@ -403,33 +446,34 @@ var VDataFilters = Backbone.View.extend({
 			}
 		}
 		
+		// TODO implement a way to override and add filter widget types and sub-types
 		// Create and Populate the filter factory
-		this.filterFactory = new VDataFilterFactory({showOnInit:this.defaultConfig.showOnInit, collection:new Backbone.Collection(
+		this.filterFactory = new VDataFilterFactory({'showOnInit':this.defaultConfig.showOnInit, 'collection':new Backbone.Collection(
 			[
-				new VDataColumnFilterWidget({'type':'text', collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({'type':'text', 'collection':new Backbone.Collection([
 					new VFilterWidgetTypeTextEq(),
 					new VFilterWidgetTypeTextSrch()
 				])}),
-				new VDataColumnFilterWidget({'type':'number', collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({'type':'number', 'collection':new Backbone.Collection([
 					new VFilterWidgetTypeNumberEq(),
 					new VFilterWidgetTypeNumberBtwn(),
 					new VFilterWidgetTypeNumberSel()
 					
 				])}),
-				new VDataColumnFilterWidget({'type':'date', collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({'type':'date', 'collection':new Backbone.Collection([
 					new VFilterWidgetTypeDateEq(),
 					new VFilterWidgetTypeDateBtwn(),
 					new VFilterWidgetTypeDateSel(),
 					new VFilterWidgetTypeDateCycle()
 					
 				])}),
-				new VDataColumnFilterWidget({'type':'boolean', collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({'type':'boolean', 'collection':new Backbone.Collection([
 					new VFilterWidgetTypeBoolEq({'convertNumeric':this.convertBooleanToNumeric})
 				])}),
-				new VDataColumnFilterWidget({'type':'enum', collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({'type':'enum', 'collection':new Backbone.Collection([
 					new VFilterWidgetTypeEnumIn({'enums':_.where(validTableColumns, {'type':'enum'})})
 				])}),
-				new VDataColumnFilterWidget({'type':'biglist', collection:new Backbone.Collection([
+				new VDataColumnFilterWidget({'type':'biglist', 'collection':new Backbone.Collection([
 					new VFilterWidgetTypeBiglistEq({'datasets':_.where(validTableColumns, {'type':'biglist'})})
 				])})
 			]
@@ -453,8 +497,10 @@ var VDataFilters = Backbone.View.extend({
 			_.template(CFTEMPLATES.dataFiltersPanelContent,{variable:'panelheading'})({'filterColumns':validTableColumns}),
 			this.dataFiltersContainer.el,
 			this.dataFiltersControl.el
-			//
 		);
+		
+		// hack to get Backbone objects to update their 'this' references
+		this.filterFactory.postConfig();
 		
 		//add UI components and set initial display states for UI
 		this.commonValueControl = new VCommonValueFilterControl({'columns':validTableColumns});
@@ -507,7 +553,6 @@ var VDataFilters = Backbone.View.extend({
 					var newFilters = newSet.attributes.filters[i];
 					var f = new MDataFilter({
 						'table':newFilters.attributes.table,
-						'category':newFilters.attributes.category,
 						'type':newFilters.attributes.type,
 						'column':newFilters.attributes.column,
 						'label':newFilters.attributes.label,
@@ -530,6 +575,11 @@ var VDataFilters = Backbone.View.extend({
 			//this.filters.reset(newSet);
 		});
 		
+		// notification events (level,title,message)
+		this.listenTo(this.filterFactory, 'notify', this.notify);
+		this.listenTo(this.dataFiltersControl, 'notify', this.notify);
+		
+		
 		// handle when filterSelectionType is passed with a value other than FILTER_SELECTION_TYPES.DEFAULT
 		if(this.filterSelectionType != this.FILTER_SELECTION_TYPES.DEFAULT) {
 			//call function as if the click event was triggered
@@ -548,7 +598,6 @@ var VDataFilters = Backbone.View.extend({
 		}
 		
 	},
-	render:function() {
-		return this;
-	}
+	
+	'render':function() { return this; }
 });

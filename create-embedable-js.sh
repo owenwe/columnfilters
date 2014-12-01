@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# creates columnfilters-embedable.js and columnfilters-embedable.css files
+# that include all the dependent javascript/css files
+
 if [ -r "columnfilters-embedable.js" ]; then 
 	rm columnfilters-embedable.js
 fi
@@ -28,31 +31,65 @@ cat media/js/jquery.dataTables.min.js >> columnfilters-embedable.js && printf "\
 cat media/js/dataTables.bootstrap.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/bootstrap-datepicker.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/spinbox.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
+
+#media/js/columnfilters/templates/baseTemplateClass.js
+#media/js/columnfilters/templates/commonValueController.js
+#media/js/columnfilters/templates/dataFiltersPanelContent.js
+#media/js/columnfilters/templates/filterOptionListItem.js
+#media/js/columnfilters/templates/dataFiltersControlFooter.js
+#media/js/columnfilters/templates/saveFilterSetModalForm.js
+#media/js/columnfilters/templates/datepickerType4.js
+#media/js/columnfilters/templates/datepickerType3.js
+#media/js/columnfilters/templates/dateBetweenFilterWidgetType.js
+#media/js/columnfilters/templates/numberSpinner1.js
 cat media/js/columnfilters/templates/baseTemplateClass.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/commonValueController.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/dataFiltersPanelContent.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/filterOptionListItem.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/dataFiltersControlBody.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/dataFiltersControlFooter.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
-cat media/js/columnfilters/templates/filterCategoryMenu.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
-cat media/js/columnfilters/templates/filterCategorySaveItem.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/saveFilterSetModalForm.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/datepickerType4.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/datepickerType3.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/dateBetweenFilterWidgetType.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/numberSpinner1.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
-cat media/js/columnfilters/baseClasses/MColumnFilter.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
-cat media/js/columnfilters/baseClasses/CColumnFilters.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
-cat media/js/columnfilters/baseClasses/MDataColumnFilter.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
-cat media/js/columnfilters/baseClasses/CDataColumnFilters.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
+
+#media/js/columnfilters/baseClasses/MDataFilter.js
+#media/js/columnfilters/baseClasses/CDataFilters.js
+#media/js/columnfilters/baseClasses/MFilterSet.js
+#media/js/columnfilters/baseClasses/CDataFilterSets.js
 cat media/js/columnfilters/baseClasses/MDataFilter.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/CDataFilters.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
+cat media/js/columnfilters/baseClasses/MFilterSet.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
+cat media/js/columnfilters/baseClasses/CDataFilterSets.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
+
+#media/js/columnfilters/baseClasses/FilterWidgetType.js
+#media/js/columnfilters/baseClasses/DataColumnFilterWidget.js
+#media/js/columnfilters/baseClasses/DataFilterFactory.js
+#media/js/columnfilters/baseClasses/DataFiltersContainer.js
+#media/js/columnfilters/baseClasses/CommonValueFilterControl.js
+#media/js/columnfilters/baseClasses/DataFilters.js
+#media/js/columnfilters/baseClasses/DataFiltersControlBar.js
 cat media/js/columnfilters/baseClasses/FilterWidgetType.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/DataColumnFilterWidget.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/DataFilterFactory.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/DataFiltersContainer.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/CommonValueFilterControl.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/DataFilters.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
+cat media/js/columnfilters/baseClasses/DataFiltersControlBar.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
+
+#media/js/columnfilters/baseClasses/filterTypes/text/textEq.js
+#media/js/columnfilters/baseClasses/filterTypes/text/textSrch.js
+#media/js/columnfilters/baseClasses/filterTypes/number/numberEq.js
+#media/js/columnfilters/baseClasses/filterTypes/number/numberBtwn.js
+#media/js/columnfilters/baseClasses/filterTypes/number/numberSel.js
+#media/js/columnfilters/baseClasses/filterTypes/date/dateEq.js
+#media/js/columnfilters/baseClasses/filterTypes/date/dateBtwn.js
+#media/js/columnfilters/baseClasses/filterTypes/date/dateSel.js
+#media/js/columnfilters/baseClasses/filterTypes/date/dateCycle.js
+#media/js/columnfilters/baseClasses/filterTypes/boolean/boolEq.js
+#media/js/columnfilters/baseClasses/filterTypes/enum/enumIn.js
+#media/js/columnfilters/baseClasses/filterTypes/biglist/biglistEq.js
 cat media/js/columnfilters/baseClasses/filterTypes/text/textEq.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/filterTypes/text/textSrch.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/filterTypes/number/numberEq.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js

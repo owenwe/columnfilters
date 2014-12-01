@@ -4,6 +4,10 @@ var VDataFilterFactory = Backbone.View.extend({
 	'types':[],
 	'activeColumn':null,
 	
+	'notify':function(level, title, message) {
+		this.trigger('notify', level, title, message);
+	},
+	
 	'savedState':null,
 	'saveState':function() {
 		var af = this.activeFilter();
@@ -129,7 +133,6 @@ var VDataFilterFactory = Backbone.View.extend({
 				reqfw.attributes.getSubType('in').attributes.config(dataCol);
 			}
 			
-			
 			//show the requested filter widget
 			reqfw.attributes.show();
 			
@@ -140,26 +143,33 @@ var VDataFilterFactory = Backbone.View.extend({
 		return this;
 	},
 	
+	'postConfig':function() {
+		this.collection.each(function(filterWidget) {
+			filterWidget.attributes.setFactory(this);
+		}, this);
+	},
+	
 	
 	'tagName':'div',
 	'className':'cf-filter-factory',
 	'initialize':function(options) {
-		
+		// ASSERTION: options will always have 
 		if(options.hasOwnProperty('collection')) {
-			var ffEl = this.$el,
-				ffTypes = this.types;
-			options.collection.each(function(filterWidget) {
-				filterWidget.attributes.hide();
-				ffEl.append(filterWidget.attributes.el);
-				ffTypes.push(filterWidget.attributes.type);
-			});
+			// collection of VDataColumnFilterWidget (where models[n].attributes == VDataColumnFilterWidget)
+			this.types = options.collection.pluck('type');
+			
+			// append the filter widget DOM element to the filter factory element
+			var that = this;
+			this.$el.append($.map(options.collection.models, function(fwm) {
+				return fwm.attributes.$el.hide();//this works
+			}));
 			
 			if(options.hasOwnProperty('showOnInit') && options.showOnInit) {
 				options.collection.at(0).attributes.show();
 			}
+		} else {
+			console.error('a collection must be passed with the VDataFilterFactory constructor.');
 		}
 	},
-	'render':function() {
-		return this;
-	}
+	'render':function() { return this; }
 });

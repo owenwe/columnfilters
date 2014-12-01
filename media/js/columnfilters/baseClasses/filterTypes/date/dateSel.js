@@ -21,7 +21,7 @@ var VFilterWidgetTypeDateSel = VFilterWidgetType.extend({
 			return true;
 		}
 		
-		console.log('one or more dates must be selected');
+		this.trigger('notify', 'danger', 'Date Filter ('+this.type+') Error', 'One or more dates must be selected.');
 		return false;
 	},
 	'getValueDescription':function() {

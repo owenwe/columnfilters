@@ -151,8 +151,6 @@ var eMeta = [
 	}
 ];
 
-var filterSet1, filterSet2;
-
 $(document).ready(function(e) {
 	
 	//df = new VDataFilters({table:'employees', tableColumns:tc, showFirst:'date-column', filterCategories:['user','public']});
@@ -168,26 +166,4 @@ $(document).ready(function(e) {
 		//get filter data from columnfilters object (df)
 		console.log(df.getCurrentFilter());
 	});
-	
-	/*
-	// testing jquery merge
-	filterSet1 = {
-		'category':'foo',
-		'table':'clients',
-		'user':'wes',
-		'name':'Test1',
-		'description':null,
-		'filters':[
-			{'category':'foo', 'column':'fname', 'label':'First Name', 'table':'clients', 'type':'text', 'filterValue':{'type':'equals', 'description':'is equal to', 'value':'orange'}},
-			{'category':'foo', 'column':'lname', 'label':'Last Name', 'table':'clients', 'type':'text', 'filterValue':{'type':'similar', 'description':'is like', 'value':'banana'}},
-			{'category':'foo', 'column':'status', 'label':'Status', 'table':'clients', 'type':'boolean', 'filterValue':{'type':'equals', 'description':'is Active', 'value':1}}
-		]
-	};
-	filterSet2 = $.extend(true,{},filterSet1);
-	for(var i in filterSet2.filters) {
-		filterSet2.filters[i].filterValue.value = 'changed';
-	}
-	console.log(filterSet2);
-	console.log(filterSet1);
-	*/
 });

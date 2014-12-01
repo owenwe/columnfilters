@@ -14,7 +14,7 @@ var VFilterWidgetTypeTextSrch = VFilterWidgetType.extend({
 			return true;
 		}
 		
-		console.log('text cannot be empty');
+		this.trigger('notify', 'danger', 'Text Filter ('+this.type+') Error', 'The text for the search filter can not be empty.');
 		return false;
 	},
 	'getValueDescription':function() {

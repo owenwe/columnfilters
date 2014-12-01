@@ -13,7 +13,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 			return true;
 		}
 		
-		console.log('Enum checklist cannot be empty');
+		this.trigger('notify', 'danger', 'Enum Filter ('+this.type+') Error', 'Enum checklist cannot be empty.');
 		return false;
 	},
 	getValueDescription:function() {//is this public?

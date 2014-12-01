@@ -250,6 +250,8 @@ var VDataFiltersControlBar = Backbone.View.extend({
 				$('form',this.modal).data('category',dataSaveType);
 				if(this.filtersController.filters.length) {
 					this.modalConfigAndShow(isCreatingNewCategory);
+				} else {
+					this.trigger('notify', 'danger', 'No filters to save', 'There must be some filters to save.');
 				}
 			}
 		},
@@ -263,22 +265,35 @@ var VDataFiltersControlBar = Backbone.View.extend({
 		// DONE EDITING FILTER SET CLICK
 		// triggered when the "Done" button in the nav bar has been clicked
 		'click button.cf-save-filter-set-changes-button':function(e) {
-			// put all existing filters (filtersController.filters) into the filters attribute of this collection model
-			this.collection.get(this.currentCategory).attributes.filters = this.filtersController.filters.clone().models;
-			
-			//restore navbar controls
-			//check menus for list items, only enable if there are some
-			$('ul.navbar-nav',this.navbar).each(function(i,navUl) {
-				if($('li.dropup ul.dropdown-menu li',$(navUl)).length) {
-					$('li.dropup',$(navUl)).removeClass('disabled');
-				}
-			});
-			this.saveButton.hide();
-			this.cancelButton.hide();
-			this.editMode = false;
+			// check if there are any filters to save
+			if(this.filtersController.filters.length) {
+				// put all existing filters (filtersController.filters) into the filters attribute of this collection model
+				// TODO set the category of each filter here
+				this.collection.get(this.currentCategory).attributes.filters = this.filtersController.filters.clone().models;
+				
+				//restore navbar controls
+				//check menus for list items, only enable if there are some
+				$('ul.navbar-nav',this.navbar).each(function(i,navUl) {
+					if($('li.dropup ul.dropdown-menu li',$(navUl)).length) {
+						$('li.dropup',$(navUl)).removeClass('disabled');
+					}
+				});
+				this.saveButton.hide();
+				this.cancelButton.hide();
+				this.editMode = false;
+				this.refreshClearFiltersButton();
+			} else {
+				this.trigger(
+					'notify', 
+					'danger', 
+					'No filters to save to filter group', 
+					['There are no filters to save, if your intent is to remove this filter group, ',
+					'click the remove button (next to the edit button) on the filter group in the category menulist.'].join('')
+				);
+			}
 		},
 		
-		// CANCEL EDITING FILTER SET CLICK
+		// CANCEL EDIT FILTER SET CLICK
 		// triggered when the "Cancel" button in the nav bar has been clicked
 		'click button.cf-cancel-filter-set-changes-button':function(e) {
 			// restore filters in the filter set
@@ -294,9 +309,11 @@ var VDataFiltersControlBar = Backbone.View.extend({
 			this.saveButton.hide();
 			this.cancelButton.hide();
 			this.editMode = false;
+			this.refreshClearFiltersButton();
 		},
 		
 		// LOAD FILTER SET CLICK
+		// when the link in the category menu item is clicked
 		'click ul.cf-filter-category-menu-list li h4 a':function(e) {
 			var fsId = $(e.currentTarget).data('id');
 			this.loadFilters($(e.currentTarget).data('id'));
@@ -340,7 +357,7 @@ var VDataFiltersControlBar = Backbone.View.extend({
 				if(saveType==='set') {
 					var category = $('form',this.modal).data('category'),
 						fsDesc = $.trim($('textarea#cfFilterSetSaveDescription',this.modal).val());
-					
+					console.log(category);
 					//create new filter set with all the filters
 					var newFs = new MFilterSet({
 						'category':category,
@@ -350,7 +367,7 @@ var VDataFiltersControlBar = Backbone.View.extend({
 						'description':fsDesc.length?fsDesc:null,
 						'filters':this.filtersController.filters.clone().models
 					});
-					
+					console.log(newFs);
 					this.collection.add(newFs);
 				} else {
 					//adding a new category
@@ -411,7 +428,7 @@ var VDataFiltersControlBar = Backbone.View.extend({
 				}
 			}
 			
-			// event listeners
+			// EVENT LISTENERS
 			
 			// add filter set
 			this.collection.on('add', function(filterSet) {
@@ -433,13 +450,6 @@ var VDataFiltersControlBar = Backbone.View.extend({
 				$('li.dropup span.badge',fcMenuDropdown).html(filterSetsArray.length?filterSetsArray.length:'');
 				// TODO remove filters in this set
 				
-			}, this);
-			
-			this.filtersController.filters.on('add', function(filter) {
-				//this.refreshClearFiltersButton();
-			}, this);
-			this.filtersController.filters.on('remove', function(filter) {
-				//this.refreshClearFiltersButton();
 			}, this);
 		}
 	},

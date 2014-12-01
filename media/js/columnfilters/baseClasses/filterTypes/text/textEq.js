@@ -1,6 +1,6 @@
 // Filter Widget Type Implementation Class for Text (Equals)
 var VFilterWidgetTypeTextEq = VFilterWidgetType.extend({
-	'version':'1.0.2',
+	'version':'1.0.4',
 	'type':'equals',
 	
 	
@@ -14,7 +14,7 @@ var VFilterWidgetTypeTextEq = VFilterWidgetType.extend({
 			return true;
 		}
 		
-		console.log('text cannot be empty');
+		this.trigger('notify', 'danger', 'Text Filter (Equals) Error', 'The text for the equals filter can not be empty.');
 		return false;
 	},
 	'getValueDescription':function() {

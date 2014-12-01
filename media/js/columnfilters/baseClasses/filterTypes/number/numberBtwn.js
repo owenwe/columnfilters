@@ -32,7 +32,7 @@ var VFilterWidgetTypeNumberBtwn = VFilterWidgetType.extend({
 			return true;
 		}
 		
-		console.log('a from and to number must be given');
+		this.trigger('notify', 'danger', 'Number Filter ('+this.type+') Error', 'A from and to number must be given.');
 		return false;
 	},
 	getValueDescription:function() {

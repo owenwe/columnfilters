@@ -19,7 +19,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 			return true;
 		}
 		
-		console.log('one or more numbers must be selected');
+		this.trigger('notify', 'danger', 'Number Filter ('+this.type+') Error', 'One or more numbers must be selected.');
 		return false;
 	},
 	

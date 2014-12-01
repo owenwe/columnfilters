@@ -3,7 +3,6 @@ var VFilterWidgetType = Backbone.View.extend({
 	'visible':false,
 	'active':false,
 	
-	
 	// abstract functions (must override)
 	
 	// if you just want to know if the widget inputs are valid for returning value(s)

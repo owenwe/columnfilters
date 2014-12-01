@@ -35,7 +35,7 @@ var VFilterWidgetTypeDateCycle = VFilterWidgetType.extend({
 			return true;
 		}
 		
-		console.log('a month and year must be selected');
+		this.trigger('notify', 'danger', 'Date Filter ('+this.type+') Error', 'A month and year must be selected.');
 		return false;
 	},
 	getValueDescription:function() {

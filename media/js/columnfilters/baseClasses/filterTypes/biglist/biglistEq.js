@@ -28,7 +28,7 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 			return true;
 		}
 		
-		console.log('Biglist input cannot be empty');
+		this.trigger('notify', 'danger', 'Big List Filter ('+this.type+') Error', 'Biglist input cannot be empty.');
 		return false;
 	},
 	

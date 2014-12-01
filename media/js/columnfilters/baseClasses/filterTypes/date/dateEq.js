@@ -19,7 +19,7 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 			return true;
 		}
 		
-		console.log('a date must be selected');
+		this.trigger('notify', 'danger', 'Date Filter ('+this.type+') Error', 'A date must be selected.');
 		return false;
 	},
 	'getValueDescription':function() {

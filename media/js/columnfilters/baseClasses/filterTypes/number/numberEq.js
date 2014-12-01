@@ -15,7 +15,6 @@ var VFilterWidgetTypeNumberEq = VFilterWidgetType.extend({
 		min:-10, max:100, step:.25
 	},
 	
-	
 	isValid:function() {
 		return !isNaN(this.sb.spinbox('value')*1);
 	},
@@ -23,6 +22,9 @@ var VFilterWidgetTypeNumberEq = VFilterWidgetType.extend({
 		if(this.isValid()) {
 			return true;
 		}
+		
+		this.trigger('notify', 'danger', 'Number Filter ('+this.type+') Error', 'A valid number must be given.');
+		return false;
 	},
 	getValueDescription:function() {
 		if(this.isValid()) {
