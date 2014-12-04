@@ -67,6 +67,14 @@ var VDataFilterFactory = Backbone.View.extend({
 		}
 	},
 	
+	'updateMultiColumnFilter':function(columns) {
+		switch(this.activeFilter().type) {
+			case 'biglist':
+				this.activeFilter().activeType().attributes.updateMultiColumns(columns);
+				break;
+		}
+	},
+	
 	'show':function() {
 		var af = this.activeFilter();
 		if(af){
@@ -131,6 +139,9 @@ var VDataFilterFactory = Backbone.View.extend({
 			if(reqfw.attributes.type==='enum') {
 				//tell the widget to set up for dataCol
 				reqfw.attributes.getSubType('in').attributes.config(dataCol);
+			} else if(reqfw.attributes.type==='biglist') {
+				// change out biglist filter widget data
+				reqfw.attributes.getSubType('equals').attributes.config(dataCol);
 			}
 			
 			//show the requested filter widget
@@ -143,6 +154,7 @@ var VDataFilterFactory = Backbone.View.extend({
 		return this;
 	},
 	
+	// 
 	'postConfig':function() {
 		this.collection.each(function(filterWidget) {
 			filterWidget.attributes.setFactory(this);

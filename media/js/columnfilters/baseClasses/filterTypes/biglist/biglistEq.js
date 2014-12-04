@@ -51,7 +51,10 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 		if(this.validate()) {
 			return {
 				'type':this.type,
+				'table':this.model.get('table'),
 				'column':this.model.get('currentColumn'),
+				'displayKey':this.model.get('displayKey'),
+				'valueKey':this.model.get('valueKey'),
 				'value':this.model.get('currentData'),
 				'description':this.getValueDescription()
 			};
@@ -59,14 +62,16 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 		return false;
 	},
 	'setValue':function(filterValue) {
-		//console.log(filterValue);
 		/*
 		filterValue:
 			value:<some kind of object that would come from one of the datasets>
 			column:string -- should match a 'dataColumn' attribute in one of the collection models
 		*/
+		// TODO multi-column type
+		console.log(filterValue);
 		var dataset = this.collection.findWhere({'dataColumn':filterValue.column});
 		if(dataset && _.has(filterValue,'column') && _.has(filterValue,'value')) {
+			this.model.set('table', filterValue.table);
 			this.model.set('currentColumn', filterValue.column);
 			this.model.set('currentData', filterValue.value);
 			
@@ -81,21 +86,54 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 		this.taInput.val(null);
 	},
 	
-	//not sure what this is for, maybe look in the filter factory
+	// called from the filter factory
+	'updateMultiColumns':function(columnsArray) {
+		this.model.set('currentColumn', columnsArray);
+	},
+	
+	//called from the filter factory
 	'config':function(dataCol) {
-		// dataCol must be a string; as of now I can't figure out how a multi-column filter
-		// would handle multiple values, e.g. WHERE (1,2,3) IN('program_id, area_id)
-		
-		if(dataCol!==this.currentColumn) {
-			this.currentColumn = dataCol;
-			this.$el.html(this.template(this.collection.findWhere({'column':dataCol}).attributes));
+		if(_.isArray(dataCol)) {
+			// 
+			var firstDataset = this.collection.findWhere({'column':dataCol[0]}),
+				sameDataset = this.collection.where({'table':firstDataset.attributes.table});
+			
+			this.model.set('table', $.map(sameDataset, function(e,i) {
+				return e.attributes.column;
+			}));
+			this.model.set('currentColumn', dataCol);
+			// displayKey and valueKey should be the same for items with the same dataset (source table)
+			this.model.set('displayKey', firstDataset.attributes.displayKey);
+			this.model.set('valueKey', firstDataset.attributes.valueKey);
+			this.model.set('currentData', null);
+		} else {
+			var newData = this.collection.findWhere({'column':dataCol});
+			if(dataCol!==this.model.get('currentColumn')) {
+				this.model.set('table', newData.attributes.table);
+				this.model.set('currentColumn', newData.attributes.column);
+				this.model.set('displayKey', newData.attributes.displayKey);
+				this.model.set('valueKey', newData.attributes.valueKey);
+				this.model.set('currentData', null);
+				
+				// destroy current typeahead and rebuild using new dataset
+				this.taInput.typeahead('val',null);
+				this.taInput.typeahead('destroy');
+				this.taInput.typeahead(
+					{'highlight':false, 'hint':false, 'minLength':3},
+					{
+						'name':newData.attributes.dataColumn,
+						'displayKey':newData.attributes.displayKey,
+						'source':newData.attributes.dataset.ttAdapter()
+					}
+				);
+			}
 		}
 	},
 	
 	
 	'events':{
 		'typeahead:selected input.typeahead':function(jqEvent, suggestion, datasetName) {
-			this.model.set('currentColumn', datasetName);
+			//this.model.set('currentColumn', datasetName);
 			this.model.set('currentData', suggestion);
 			var dataset = this.collection.findWhere({'dataColumn':datasetName});
 			if(dataset) {
@@ -114,7 +152,6 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 	].join('')),
 	
 	'initialize':function(options) {
-		
 		this.model = new Backbone.Model();
 		
 		if(_.has(options,'datasets') && _.isArray(options.datasets) && options.datasets.length) {
@@ -122,7 +159,8 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 			this.collection = new Backbone.Collection(
 				$.map(options.datasets, function(e,i){
 					return {
-						'column':e.name, // 'name' property from data table column meta data (may be a sub-field identifier)
+						'table':e.table,
+						'column':e.name, // 'name' property from data table column meta data (will not be a sub-field identifier)
 						'dataColumn':e.dataColumn,// 'data' property from data table column meta data (will not be a sub-field identifier)
 						'dataset':e.datasource,
 						'displayKey':e.displayKey,
@@ -132,6 +170,7 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 			);
 			// use the first data set
 			var defaultDataset = this.collection.at(0).attributes;
+			this.model.set('table', defaultDataset.table);
 			this.model.set('currentColumn', defaultDataset.column);
 			this.model.set('displayKey', defaultDataset.displayKey);
 			this.model.set('valueKey', defaultDataset.valueKey);

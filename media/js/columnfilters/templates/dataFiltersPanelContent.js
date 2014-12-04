@@ -19,13 +19,13 @@ CFTEMPLATES.dataFiltersPanelContent = '<div class="panel-heading well-sm">'+
 			'</div>'+
 			
 			// DEFAULT FILTER SELECTION TYPE
-			'<div class="btn-group cf-add-change-filter-group-button">'+
+			'<div class="btn-group cf-add-change-filter-group-button cf-dropdown-menu-scroll-medium">'+
 				'<button type="button" class="btn btn-default btn-xs cf-add-filter-button">Add Filter</button>'+
 				'<button type="button" data-toggle="dropdown" class="btn btn-default btn-xs dropdown-toggle">'+
 					'<span class="caret"></span>'+
 					'<span class="sr-only">Toggle Dropdown</span>'+
 				'</button>'+
-				'<ul role="menu" class="dropdown-menu cf-columns-select-dd">'+
+				'<ul role="menu" class="dropdown-menu cf-columns-select-dd">'+//dropdown-menu-sm
 				'<% for(var i in panelheading.filterColumns) { %>'+
 					'<% if(!panelheading.filterColumns[i].cfexclude) { %>'+
 						'<%= _.template(CFTEMPLATES.filterOptionListItem,{variable:\'columnData\'})(panelheading.filterColumns[i]) %>'+
@@ -38,4 +38,3 @@ CFTEMPLATES.dataFiltersPanelContent = '<div class="panel-heading well-sm">'+
 		'<div class="col-lg-7 col-md-7 col-sm-5 col-xs-12 cf-filter-factory-container-row"></div>'+
 	'</div>'+
 '</div>';
-//'<%= $.map(panelheading.filterColumns, function(c,i) { return _.template(CFTEMPLATES.filterOptionListItem,{variable:\'columnData\'})(c); }).join("") %>'+

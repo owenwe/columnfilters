@@ -27,17 +27,22 @@ var VCommonValueFilterControl = Backbone.View.extend({
 	
 	
 	tagName:'div',
-	className:'btn-group cf-common-value-dropdown',
+	className:'btn-group cf-common-value-dropdown cf-dropdown-menu-scroll-small',
 	events:{
+		// HOVER EVENTS FOR THE COLUMN DROPDOWN LIST ITEMS
 		'mouseover ul.dropdown-menu li.cf-cvdd-active':function(e) {
 			$(e.currentTarget).addClass('cf-common-value-list-item-hover');
 		},
 		'mouseleave ul.dropdown-menu li.cf-cvdd-active':function(e) {
 			$(e.currentTarget).removeClass('cf-common-value-list-item-hover');
 		},
+		
+		// DISABLED LIST ITEM CLICK (probably to prevent the click event from closing the dropdown)
 		'click ul.dropdown-menu li.disabled':function(e) {
 			return false;
 		},
+		
+		// COLUMN LIST ITEM CLICK
 		'click ul.dropdown-menu li.cf-cvdd-active button':function(e) {
 			//if it wasn't selected, then make it selected
 			//if it was selected, then de-select it
@@ -90,12 +95,20 @@ var VCommonValueFilterControl = Backbone.View.extend({
 	initialize:function(options) {
 		/*
 		 * columns is required in the options
-		 * parse the columns array and pull out any columns that are:
+		 * parse the columns array and remove any columns that are:
 		 *   - the only one of its type
-		 *   - a single-value filter type
+		 *   - enum type
+		 * group the biglist types by their datasource, remove any that don't share a datasource
 		*/
 		var colTypes = _.countBy(options.columns, function(c) {return c.type;}),
-			nonUniques = _.filter(options.columns, function(c) { return ( colTypes[c.type]>1 && c.type!='enum'); });
+			nonUniques = _.filter(options.columns, function(c) { return ( colTypes[c.type]>1 && c.type!=='enum' && c.type!=='biglist'); });
+		
+		if(_.has(colTypes,'biglist') && colTypes.biglist>1) {
+			var bigLists = _.filter(options.columns, function(c) { return (c.type=='biglist'); }),
+				bigListTables = _.countBy(bigLists, function(b) { return b.table; }),
+				multiBigLists = _.filter(bigLists, function(c) { return bigListTables[c.table]>1; });
+			nonUniques = _.union(nonUniques, multiBigLists);
+		}
 		
 		this.collection = new Backbone.Collection( nonUniques );
 		this.$el.append(this.template({'columns':nonUniques}));

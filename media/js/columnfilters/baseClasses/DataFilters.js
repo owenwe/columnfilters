@@ -159,17 +159,18 @@ var VDataFilters = Backbone.View.extend({
 	// columnData: {label: string, name: could be a string or an array, type: string }
 	// 
 	'commonValueColumnSelectionChange':function(columnData) {
-		//console.log(columnData);
 		//console.log(this.commonValueControl.selectedCount);
 		if(this.commonValueControl.selectedCount) {// columns are selected
 			//tell the filter factory to show this data type (if it isn't already)
-			if(this.filterFactory.activeFilter().type !== columnData.type) {
-				this.changeFilterFactoryType(columnData.type,columnData.name,columnData.label);
-			} else {
+			var af = this.filterFactory.activeFilter();
+			if(af && af.type === columnData.type) {
 				// type is the same, so just update the column
 				this.currentColumnFilter.label = columnData.label;
-				this.currentColumnFilter.column =_.map(this.commonValueControl.selectedColumns, function(c) { return c.attributes.name; })
-				//this.filterFactory.updateFilterLabel(this.currentColumnFilter.label);
+				this.currentColumnFilter.column =_.map(this.commonValueControl.selectedColumns, function(c) { return c.attributes.name; });
+				this.filterFactory.updateMultiColumnFilter(this.currentColumnFilter.column);
+			} else {
+				// type is not the same, change the type
+				this.changeFilterFactoryType(columnData.type,columnData.name,columnData.label);
 			}
 		} else {//no more columns are selected
 			//tell filter factorty to hide the active filter (if one is visible)
@@ -431,6 +432,7 @@ var VDataFilters = Backbone.View.extend({
 						if(tc.cftype==='biglist') {
 							// then datasource, displayKey, valueKey MUST exists
 							_.extend(mappedCol, {
+								'table':tc.table,
 								'dataColumn':tc.data,
 								'datasource':tc.datasource,
 								'displayKey':tc.displayKey,
