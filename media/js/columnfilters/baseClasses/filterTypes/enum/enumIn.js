@@ -1,14 +1,14 @@
 // Filter Widget Type Implementation Class for Enum (Select)
 var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
-	version:'1.0.2',
-	type:'in',
+	'version':'1.0.2',
+	'type':'in',
 	
-	currentColumn:null,
+	'currentColumn':null,
 	
-	isValid:function() {
+	'isValid':function() {
 		return $.map($('.dropdown-menu input:checked',this.$el), function(e,i){ return e.value*1; }).length>0;
 	},
-	validate:function() {
+	'validate':function() {
 		if(this.isValid()) {
 			return true;
 		}
@@ -16,15 +16,14 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 		this.trigger('notify', 'danger', 'Enum Filter ('+this.type+') Error', 'Enum checklist cannot be empty.');
 		return false;
 	},
-	getValueDescription:function() {//is this public?
-		
+	'getValueDescription':function() {
 		if(this.isValid()) {
 			return 'is one of these : (' + $.map($('.dropdown-menu input:checked',this.$el), function(e,i){ return e.value*1; }).join(',') + ')';
 		} else {
 			return false;
 		}
 	},
-	getValue:function() {
+	'getValue':function() {
 		if(this.validate()) {
 			var checkMap = [],
 				desc_1 = 'is one of these : (',
@@ -48,11 +47,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	setValue:function(filterValue) {
-		//TODO check if we need to set the enum group
-		//console.log(filterValue);
-		
-		
+	'setValue':function(filterValue) {
 		//set the checkboxes to the values in valueList
 		var vl = filterValue.value,
 			c = this.collection;
@@ -66,7 +61,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 			}
 		});
 	},
-	reset:function() {
+	'reset':function() {
 		//reset happens just before setValue
 		//$('.dropdown-menu input',this.$el).each(function(i,e) {
 			//e.checked = false;
@@ -74,9 +69,8 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 		//this.$el.empty();
 	},
 	
-	config:function(dataCol) {
-		// dataCol must be a string; as of now I can't figure out how a multi-column filter
-		// would handle multiple values, e.g. WHERE (1,2,3) IN('program_id, area_id)
+	'config':function(dataCol) {
+		// dataCol will be a string; TODO enable common value for enum filter
 		
 		if(dataCol!==this.currentColumn) {
 			this.currentColumn = dataCol;
@@ -84,8 +78,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 		}
 	},
 	
-	
-	events:{
+	'events':{
 		'click .dropdown-menu input, .dropdown-menu label':function(e) {
 			e.stopPropagation();
 		},
@@ -94,11 +87,12 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 			return false;
 		},
 	},
+	
 	//className:'dropdown',
 	// data.enums = array of {code, column, <label key>}
 	// data.column = string name of column, used for grouping
 	// data.labelKey = 
-	template:_.template([
+	'template':_.template([
 		'<div class="keep-open">',
 			'<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">Check 1 or more <span class="caret"></span></button>',
 			'<ul class="dropdown-menu cf-enum-dropdown-list" role="menu">',
@@ -116,7 +110,8 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 		'</button>',
 		'</div>'
 	].join(''),{variable:'data'}),
-	initialize:function(options) {
+	
+	'initialize':function(options) {
 		//split enums into groups by options.enums[i].name
 		// check options.enums array of keys named 'id', a mapped copy of the array will 
 		// need to be made where the 'id' keys are renamed to 'code'
@@ -136,8 +131,5 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 		} else {
 			this.$el.html(this.template({'enums':[]}));
 		}
-	},
-	render:function() {
-		return this;
 	}
 });

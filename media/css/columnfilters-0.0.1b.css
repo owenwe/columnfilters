@@ -104,6 +104,30 @@ yours and then try to restrict others from using it.
 	margin-right:5px;
 }
 
+.cf-select-widget-list li {
+	border-style:none!important;
+	padding:3px 9px!important;
+}
+.cf-select-widget-list li button {
+	margin-top:-4px;
+}
+
+.cf-enum-dropdown-list {
+	min-width:150px;
+	/*max-width:300px;*/
+	max-height: 200px;
+	overflow: hidden;
+	overflow-y: auto;
+}
+.cf-enum-dropdown-list li {
+	padding-left:8px;
+	padding-right:8px;
+}
+
+.cf-nopad-dropdown {
+	padding:0;
+}
+
 
 /* Filters Control Nav Bar
  * Menus for Filter Categories and Filter Sets
@@ -162,22 +186,4 @@ yours and then try to restrict others from using it.
 	white-space:normal;
 	overflow:hidden;
 	text-overflow:ellipsis !important;
-}
-
-
-
-.cf-enum-dropdown-list {
-	min-width:150px;
-	/*max-width:300px;*/
-	max-height: 200px;
-	overflow: hidden;
-	overflow-y: auto;
-}
-.cf-enum-dropdown-list li {
-	padding-left:8px;
-	padding-right:8px;
-}
-
-.cf-nopad-dropdown {
-	padding:0;
 }

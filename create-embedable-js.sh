@@ -26,6 +26,7 @@ cat media/js/jquery-2.1.1.min.js >> columnfilters-embedable.js && printf "\n\n" 
 cat media/js/underscore-min.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/backbone-min.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/bootstrap.min.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
+cat media/js/moment.min.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/typeahead.bundle.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/jquery.dataTables.min.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/dataTables.bootstrap.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
@@ -38,8 +39,6 @@ cat media/js/spinbox.js >> columnfilters-embedable.js && printf "\n\n" >> column
 #media/js/columnfilters/templates/filterOptionListItem.js
 #media/js/columnfilters/templates/dataFiltersControlFooter.js
 #media/js/columnfilters/templates/saveFilterSetModalForm.js
-#media/js/columnfilters/templates/datepickerType4.js
-#media/js/columnfilters/templates/datepickerType3.js
 #media/js/columnfilters/templates/dateBetweenFilterWidgetType.js
 #media/js/columnfilters/templates/numberSpinner1.js
 cat media/js/columnfilters/templates/baseTemplateClass.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
@@ -49,8 +48,6 @@ cat media/js/columnfilters/templates/filterOptionListItem.js >> columnfilters-em
 cat media/js/columnfilters/templates/dataFiltersControlBody.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/dataFiltersControlFooter.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/saveFilterSetModalForm.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
-cat media/js/columnfilters/templates/datepickerType4.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
-cat media/js/columnfilters/templates/datepickerType3.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/dateBetweenFilterWidgetType.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/numberSpinner1.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 
@@ -99,6 +96,7 @@ cat media/js/columnfilters/baseClasses/filterTypes/date/dateEq.js >> columnfilte
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateBtwn.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateSel.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateCycle.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
+cat media/js/columnfilters/baseClasses/filterTypes/date/dateYear.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/filterTypes/boolean/boolEq.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/filterTypes/enum/enumIn.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/baseClasses/filterTypes/biglist/biglistEq.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js

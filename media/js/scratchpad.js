@@ -19,14 +19,25 @@
 		 [*] (between) [date input1] [<,<=] d [>,>=] [date input2]
 		 [*] (select) [date dropdown input list]
 		 [ ] (before) [<,<=] [date input]
+		 	 translates to
+			 	WHERE <column> <,<= <date>
 		 [ ] (after) [>,>=] [date input]
-		 [-] (billing cycle) [option:1-15, 16-eom] [month select] [year select]
-		 [ ] (year) [year list] -min year
+		 [*] (cycle) [option:1-15, 16-eom] [month select] [year select] or datepicker with only year/month choices 
+		 	 translates to
+			 	// TODO allow cycle ranges to be set in initialize config option
+			 	WHERE <column> BETWEEN DATE( CONCAT( YEAR(<D>),'-',MONTH(<D>),'-16' ) ) 
+								   AND DATE( CONCAT( YEAR(<D>),'-',MONTH(<D>),'-',DAY( LAST_DAY(<D>) ) ) )
+		 [*] (year) [year list] -min year
 		 [ ] (month) [month list]
 		 [ ] (month day) [month list] [day list]
 		 [ ] (day) [1-31 dropdown]
 		 [ ] (weekday) [week day list]
-		 [ ] (relative) [day/week/month/year] []
+		 [ ] (relative) [day/week/month/year] [signed integer]
+		 	 translates to
+			 	day:	WHERE DATE_ADD/DATE_SUB(<column>, INTERVAL <signed integer> DAY)
+				week:	WHERE DATE_ADD/DATE_SUB(<column>, INTERVAL <signed integer> WEEK)
+				month:	WHERE DATE_ADD/DATE_SUB(<column>, INTERVAL <signed integer> MONTH)
+				year:	WHERE DATE_ADD/DATE_SUB(<column>, INTERVAL <signed integer> YEAR)
 	
 	- An input for a column that is some type of boolean value
 	boolean: [*] [radio set] -true label -false label
@@ -93,7 +104,7 @@ var eMeta = [
 	},
 	{'data':'fname', 'name':'fname', 'title':'First Name', 'type':'string', 'cftype':'text'},
 	{'data':'lname', 'name':'lname', 'title':'Last Name', 'type':'string', 'cftype':'text'},
-	{'data':'dataNumber', 'name':'dataNumber', 'title':'Number', 'type':'num', 'cftype':'number'},
+	{'data':'dataNumber', 'name':'dataNumber', 'title':'Number', 'type':'num', 'cftype':'number', 'config':{'step':1,'min':0,'max':999}},
 	{
 		'data':'status', 
 		'name':'status', 
@@ -105,6 +116,7 @@ var eMeta = [
 		}
 	},
 	{'data':'hired', 'name':'hired', 'title':'Hired', 'type':'date', 'cftype':'date'},
+	{'data':'fired', 'name':'fired', 'title':'Fired', 'type':'date', 'cftype':'date'},
 	{'data':'supervisor', 'name':'supervisor', 'title':'Supervisor', 'type':'string', 'cftype':'text'},
 	{
 		'data':'area', 

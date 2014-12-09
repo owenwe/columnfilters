@@ -1,30 +1,28 @@
 // Filter Widget Type Implementation Class for Date (Equals)
 var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
-	version:'1.0.2',
-	type:'between',
-	dpFrom:null,
-	dpStartDate:null,
-	dpTo:null,
-	dpEndDate:null,
-	dpConfig:{
-		autoclose:true,
-		format:CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us
+	'version':'1.0.3',
+	'type':'between',
+	'dpFrom':null,
+	'dpStartDate':null,
+	'dpTo':null,
+	'dpEndDate':null,
+	'dpConfig':{
+		'autoclose':true,
+		'format':CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us
 	},
 	
-	isValid:function() {
+	'isValid':function() {
 		return !isNaN(this.dpFrom.datepicker('getDate').getTime()) && !isNaN(this.dpTo.datepicker('getDate').getTime());
 	},
-	validate:function() {
-		// TODO unset inputs/labels from danger status
+	'validate':function() {
 		if(this.isValid()) {
-			// TODO set inputs/labels to danger status
 			return true;
 		}
 		
 		this.trigger('notify', 'danger', 'Date Filter ('+this.type+') Error', 'A to and from date must be selected.');
 		return false;
 	},
-	getValueDescription:function() {
+	'getValueDescription':function() {
 		if(this.isValid()) {
 			return [
 				'is between ',
@@ -36,7 +34,7 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 			return false;
 		}
 	},
-	getValue:function() {		
+	'getValue':function() {		
 		if(this.validate()) {
 			return {
 				'type':this.type,
@@ -47,70 +45,73 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	setValue:function(filterValue) {
+	'setValue':function(filterValue) {
 		this.dpStartDate = filterValue.fromDate;
 		this.dpEndDate = filterValue.toDate;
-		this.dpFrom.datepicker('setDate', this.dpStartDate);
-		this.dpTo.datepicker('setDate', this.dpEndDate);
+		this.dpFrom.datepicker('setUTCDate', this.dpStartDate);
+		this.dpTo.datepicker('setUTCDate', this.dpEndDate);
 		this.dpFrom.datepicker('setEndDate',this.dpEndDate);
 		this.dpTo.datepicker('setStartDate',this.dpStartDate);
 	},
-	reset:function() {
+	'reset':function() {
 		this.dpStartDate = null;
 		this.dpEndDate = null;
-		this.dpFrom.datepicker('setDate',null);
-		this.dpTo.datepicker('setDate',null);
+		this.dpFrom.datepicker('update',null);
+		this.dpTo.datepicker('update',null);
 		this.dpFrom.datepicker('setEndDate',null);
 		this.dpTo.datepicker('setStartDate',null);
 	},
 	
 	
-	template:_.template(CFTEMPLATES.datepicker4,{variable:'datepicker'}),
-	events:{
+	'template':_.template(CFTEMPLATES.datepickerBetween,{variable:'datepicker'}),
+	'events':{
+		// these are supposed to cap the start/end of the other datepicker
 		'changeDate .dpbtw input:first-child':function(e) {
-			this.dpFrom.datepicker('setEndDate',e.date);
+			//this.dpFrom.datepicker('setEndDate',e.date);
 			if(e.date) {
 				//date is valid
-				//does the to-date have a limiter?
+				// add a day to the dpStartDate
 				this.dpStartDate = new Date(e.date.valueOf()+86400000);
+				//limit the to datepicker so it can't pick a date before this selected date
 				this.dpTo.datepicker('setStartDate',this.dpStartDate);
 			} else {
 				//cleared date, clear dpTo.startDate
-				this.dpStartDate = null;
-				this.dpTo.datepicker('setStartDate',this.dpStartDate);
-			}
-			if(isNaN(this.dpTo.datepicker('getDate').getTime())) {
-				this.dpTo[0].focus();
+				this.dpTo.datepicker('setStartDate',this.dpStartDate = null);
 			}
 		},
+		'hide .dpbtw input:first-child':function(e) {
+			//show the to-date datepicker if it doesn't have a selected date
+			if(isNaN(this.dpTo.datepicker('getDate').getTime())) {
+				this.dpTo.datepicker('show');
+			}
+		},
+		
 		'changeDate .dpbtw input:last-child':function(e) {
-			//place date value in text input
-			this.dpTo.datepicker('setStartDate',e.date);
+			// limit 
+			//this.dpTo.datepicker('setStartDate',e.date);
 			if(e.date) {
+				// subtract a day from the dpEndDate
 				this.dpEndDate = new Date(e.date.valueOf()-86400000);
+				// limit the from datepicker so it can't pick a date after this selected date
 				this.dpFrom.datepicker('setEndDate',this.dpEndDate);
+				//this.dpTo.datepicker('hide');
 			} else {
 				//cleared date, clear dpFrom.endDate
-				this.dpEndDate = null;
-				this.dpFrom.datepicker('setEndDate',this.dpEndDate);
-			}
-			if(isNaN(this.dpFrom.datepicker('getDate').getTime())) {
-				this.dpFrom[0].focus();
+				this.dpFrom.datepicker('setEndDate',this.dpEndDate = null);
 			}
 		},
-		'click .test':function(e) {
-			console.log(this.dp1.getDate());
-			console.log(this.dp2.getDate());
-		}
+		'hide .dpbtw input:last-child':function(e) {
+			//if there is a from date, then just close, otherwise show from datepicker
+			if(isNaN(this.dpFrom.datepicker('getDate').getTime())) {
+				this.dpFrom.datepicker('show');
+			}
+		},
 	},
 	
-	initialize:function(options) {
+	'initialize':function(options) {
 		this.$el.html(this.template({name:'dpbtw'}));
-		$('.dpbtw input',this.$el).datepicker(this.dpConfig);
+		$('.dpbtw',this.$el).datepicker(this.dpConfig);
 		this.dpFrom = $('.dpbtw input:first-child',this.$el);
 		this.dpTo = $('.dpbtw input:last-child',this.$el);
-	},
-	render:function() {
-		return this;
 	}
 });

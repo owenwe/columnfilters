@@ -445,6 +445,9 @@ var VDataFilters = Backbone.View.extend({
 						if(_.has(tc,'cfenumlabelkey')) {
 							_.extend(mappedCol, {'cfenumlabelkey':tc.cfenumlabelkey});
 						}
+						if(_.has(tc,'config')) {
+							_.extend(mappedCol, {'config':tc.config});
+						}
 						_.extend(mappedCol,{'selected':false});
 						validTableColumns.push(mappedCol);
 					}
@@ -470,7 +473,8 @@ var VDataFilters = Backbone.View.extend({
 					new VFilterWidgetTypeDateEq(),
 					new VFilterWidgetTypeDateBtwn(),
 					new VFilterWidgetTypeDateSel(),
-					new VFilterWidgetTypeDateCycle()
+					new VFilterWidgetTypeDateCycle(),
+					new VFilterWidgetTypeDateYr()
 					
 				])}),
 				new VDataColumnFilterWidget({'type':'boolean', 'collection':new Backbone.Collection([

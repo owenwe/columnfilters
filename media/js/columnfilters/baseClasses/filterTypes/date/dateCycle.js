@@ -1,67 +1,66 @@
 // Filter Widget Type Implementation Class for Date (Equals)
 var VFilterWidgetTypeDateCycle = VFilterWidgetType.extend({
-	version:'1.0.2',
-	type:'cycle',
-	
-	////////////////////////////////////////////////////////////////////
-	// TODO Fix bug where the datepicker looses minViewMode setting
-	////////////////////////////////////////////////////////////////////
+	'version':'1.0.2',
+	'type':'cycle',
 	
 	//aren't these available somewhere else like JQuery or Backbone or something?
-	months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+	'months':['January','February','March','April','May','June','July','August','September','October','November','December'],
 	
-	dp:null,
-	dpConfig:{
-		autoclose:true,
-		minViewMode:1,
-		startView:1,
+	'dp':null,
+	'dpConfig':{
+		'autoclose':true,
+		'minViewMode':1,
+		'startView':1,
 		'name':'dpcy',
 		'format':CFTEMPLATES.DATEPICKER_DATE_FORMATS.month_year
 	},
-	cycle:[
-		{label:'1st-15th', value:1},
-		{label:'16th-End Of Month', value:2}
+	'cycle':[
+		{'label':'1st-15th', 'value':1},
+		{'label':'16th-End Of Month', 'value':2}
 	],
 	
 	
-	isValid:function() {
+	'isValid':function() {
 		var d = this.dp.datepicker('getDate');
 		return !isNaN(d.getTime());
 	},
-	validate:function() {
-		// TODO unset inputs/labels from danger status
+	'validate':function() {
 		if(this.isValid()) {
-			// TODO set inputs/labels to danger status
 			return true;
 		}
 		
 		this.trigger('notify', 'danger', 'Date Filter ('+this.type+') Error', 'A month and year must be selected.');
 		return false;
 	},
-	getValueDescription:function() {
+	'getValueDescription':function() {
 		if(this.isValid()) {
 			var d = this.dp.datepicker('getDate');
-			return 'for the billing cycle of ' + this.months[d.getMonth()] + ', ' + d.getFullYear();
+			return [
+				'for the ', _.findWhere(this.cycle, {'value':$('div.btn-group label.active input',this.$el).val()*1}).label, ' billing cycle of ',
+				this.months[d.getMonth()], ', ', d.getFullYear()
+			].join('');
 		} else {
 			return false;
 		}
 	},
-	getValue:function() {
+	'getValue':function() {
 		if(this.validate()) {
+			// pass along the cycle map object for server-side processing
 			return {
 				'type':this.type,
-				'monthYear':this.dp.datepicker('getDate'),
+				'monthYear':{'date':this.dp.datepicker('getDate'), 'timestamp':this.dp.datepicker('getDate').getTime()},
 				'cycle':$('div.btn-group label.active input',this.$el).val()*1,
+				'cycleMap':this.cycle,
 				'description':this.getValueDescription()
 			};
 		}
 		return false;
 	},
-	setValue:function(filterValue) {
-		if(_.has(filterValue,'monthYear') && _.isDate(filterValue.monthYear)) {
-			this.dp.datepicker('setDate',filterValue.monthYear);
+	'setValue':function(filterValue) {
+		if(_.has(filterValue,'monthYear') && _.isDate(filterValue.monthYear.date)) {
+			this.dp.datepicker('setUTCDate',filterValue.monthYear.date);
 		} else {
-			this.dp.datepicker('setDate',null);
+			this.dp.datepicker('update',null);
 		}
 		if(_.has(filterValue,'cycle')) {
 			// here it is
@@ -77,16 +76,16 @@ var VFilterWidgetTypeDateCycle = VFilterWidgetType.extend({
 			});
 		}
 	},
-	reset:function() {
-		this.setValue({'date':null,'cycle':1});
+	'reset':function() {
+		this.setValue({'cycle':1});
 	},
 	
 	
-	template:_.template(
-		'<div class="btn-group" data-toggle="buttons"></div>'+CFTEMPLATES.datepicker3,
+	'template':_.template(
+		'<div class="btn-group" data-toggle="buttons"></div>'+CFTEMPLATES.datepicker,
 		{variable:'datepicker'}
 	),
-	initialize:function(options) {
+	'initialize':function(options) {
 		if(options && options.hasOwnProperty('cycle')) {
 			// cycle is expected to be an array of date range objects within 1 month
 			// [{label:<str>,value:<?>},...]
@@ -94,7 +93,7 @@ var VFilterWidgetTypeDateCycle = VFilterWidgetType.extend({
 		}
 		this.$el.html(this.template(this.dpConfig));
 		$('.dpcy',this.$el).datepicker(this.dpConfig);
-		this.dp = $('.dpcy input',this.$el);
+		this.dp = $('.dpcy',this.$el);
 		
 		//populate buttons
 		for(var i in this.cycle) {
@@ -107,8 +106,5 @@ var VFilterWidgetTypeDateCycle = VFilterWidgetType.extend({
 		}
 		$('div.btn-group label.btn:first-child',this.$el).addClass('active');
 		$('div.btn-group label.btn:first-child input',this.$el).first().attr('checked','checked');
-	},
-	render:function() {
-		return this;
 	}
 });

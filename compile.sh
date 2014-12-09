@@ -9,8 +9,6 @@ cat media/js/columnfilters/templates/commonValueController.js >> columnfilters-0
 cat media/js/columnfilters/templates/dataFiltersPanelContent.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/templates/filterOptionListItem.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/templates/dataFiltersControlFooter.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
-cat media/js/columnfilters/templates/datepickerType4.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
-cat media/js/columnfilters/templates/datepickerType3.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/templates/dateBetweenFilterWidgetType.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/templates/numberSpinner1.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 
@@ -39,6 +37,7 @@ cat media/js/columnfilters/baseClasses/filterTypes/date/dateEq.js >> columnfilte
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateBtwn.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateSel.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateCycle.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
+cat media/js/columnfilters/baseClasses/filterTypes/date/dateYear.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/boolean/boolEq.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/enum/enumIn.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/biglist/biglistEq.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
