@@ -1,23 +1,23 @@
 // View for the Common Value Filter Selection Control
 var VCommonValueFilterControl = Backbone.View.extend({
 	
-	selectedColumns:[],
-	selectedCount:0,
+	'selectedColumns':[],
+	'selectedCount':0,
 	
-	hide:function() {
+	'hide':function() {
 		this.$el.hide();
 	},
-	show:function() {
+	'show':function() {
 		this.$el.show();
 	},
-	disable:function() {
+	'disable':function() {
 		$('button.dropdown-toggle',this.$el).addClass('disabled');
 	},
-	enable:function() {
+	'enable':function() {
 		$('button.dropdown-toggle',this.$el).removeClass('disabled');
 	},
 	
-	getSelectedColumnData:function() {
+	'getSelectedColumnData':function() {
 		return this.selectedCount ? {
 			'label':_.map(this.selectedColumns, function(c) { return c.attributes.label[0].toUpperCase()+c.attributes.label.substring(1); }).join(','), 
 			'type':this.selectedColumns[0].attributes.type, 
@@ -26,9 +26,9 @@ var VCommonValueFilterControl = Backbone.View.extend({
 	},
 	
 	
-	tagName:'div',
-	className:'btn-group cf-common-value-dropdown cf-dropdown-menu-scroll-small',
-	events:{
+	'tagName':'div',
+	'className':'btn-group cf-common-value-dropdown cf-dropdown-menu-scroll-small',
+	'events':{
 		// HOVER EVENTS FOR THE COLUMN DROPDOWN LIST ITEMS
 		'mouseover ul.dropdown-menu li.cf-cvdd-active':function(e) {
 			$(e.currentTarget).addClass('cf-common-value-list-item-hover');
@@ -90,9 +90,9 @@ var VCommonValueFilterControl = Backbone.View.extend({
 		}
 	},
 	
-	template:_.template(CFTEMPLATES.commonValueController,{variable:'data'}),
+	'template':_.template(CFTEMPLATES.commonValueController,{variable:'data'}),
 	
-	initialize:function(options) {
+	'initialize':function(options) {
 		/*
 		 * columns is required in the options
 		 * parse the columns array and remove any columns that are:
@@ -113,7 +113,8 @@ var VCommonValueFilterControl = Backbone.View.extend({
 		this.collection = new Backbone.Collection( nonUniques );
 		this.$el.append(this.template({'columns':nonUniques}));
 	},
-	render:function() {
+	
+	'render':function() {
 		return this;
 	}
 });

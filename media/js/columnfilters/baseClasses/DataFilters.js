@@ -1,4 +1,7 @@
-// DataFilters (the main shit)
+/* DataFilters
+ * the main control class/view for column filters
+ * 
+*/
 var VDataFilters = Backbone.View.extend({
 	
 	/*
@@ -28,14 +31,20 @@ var VDataFilters = Backbone.View.extend({
 		'filterSelectionType':0,
 		'filters':false,
 		'filterCategories':[],
-		'convertBooleanToNumeric':true
+		'convertBooleanToNumeric':true,
+		'webServiceUrl':'/columnfilters'
 	},
 	'mode':0,					// setting the mode to 1 enables the saving filter sets and filter set groups
 	'table':'undefined',		// the name of the database table or virtual source
 	'filterSelectionType':0,	// the type of filter selection to display
 	'filters':null,				// a collection of MDataFilter
 	'filterCategories':[],		// array of names
+	
+	// this is for the Boolean filter widget
 	'convertBooleanToNumeric':true,
+	
+	// for saving and loading the column filters to the server
+	'webServiceUrl':'/columnfilters',
 	
 	//the modal for add/edit filter sets
 	// TODO this should be moved to VDataFiltersControlBar
@@ -382,6 +391,10 @@ var VDataFilters = Backbone.View.extend({
 		} else {
 			this.filters = new CDataFilters();
 		}
+		// webServiceUrl
+		if(_.has(options,'webServiceUrl')) {
+			this.webServiceUrl = options.webServiceUrl;
+		}
 		// can fetch filters from AJAX, or just populate
 		if(_.has(options,'filterCategories') && _.isArray(options.filterCategories)) {
 			this.defaultConfig.filterCategories = options.filterCategories;
@@ -405,6 +418,7 @@ var VDataFilters = Backbone.View.extend({
 			'render':function,
 			
 			--- ColumnFilters properties ---
+			'table':string
 			'cfexclude':boolean,
 			'cftype':string,
 			'cfenumsource':array,
@@ -427,7 +441,7 @@ var VDataFilters = Backbone.View.extend({
 							'name':tc.name
 						};
 						if(tc.cftype==='enum') {
-							_.extend(mappedCol, {'cfenumsource':tc.cfenumsource});
+							_.extend(mappedCol, {'cfenumsource':tc.cfenumsource,'table':tc.table, 'data':tc.data});
 						}
 						if(tc.cftype==='biglist') {
 							// then datasource, displayKey, valueKey MUST exists
@@ -467,7 +481,6 @@ var VDataFilters = Backbone.View.extend({
 					new VFilterWidgetTypeNumberEq(),
 					new VFilterWidgetTypeNumberBtwn(),
 					new VFilterWidgetTypeNumberSel()
-					
 				])}),
 				new VDataColumnFilterWidget({'type':'date', 'collection':new Backbone.Collection([
 					new VFilterWidgetTypeDateEq(),
@@ -475,7 +488,6 @@ var VDataFilters = Backbone.View.extend({
 					new VFilterWidgetTypeDateSel(),
 					new VFilterWidgetTypeDateCycle(),
 					new VFilterWidgetTypeDateYr()
-					
 				])}),
 				new VDataColumnFilterWidget({'type':'boolean', 'collection':new Backbone.Collection([
 					new VFilterWidgetTypeBoolEq({'convertNumeric':this.convertBooleanToNumeric})
@@ -495,11 +507,11 @@ var VDataFilters = Backbone.View.extend({
 		
 		// filters control; toolbar for saving groups of filters
 		this.dataFiltersControl = new VDataFiltersControlBar({
+			'url':this.webServiceUrl,
 			'filtersController':this,
 			'mode':this.defaultConfig.mode,
 			'filterCategories':this.defaultConfig.filterCategories,
-			'table':this.table,
-			'user_id':181
+			'table':this.table
 		});
 		
 		// constructing the View elements (Heading:Filter Tools, Body:Filters, Footer:Save Controls)
@@ -544,49 +556,34 @@ var VDataFilters = Backbone.View.extend({
 			this.filters.remove(this.filters.get(filterCid));
 		});
 		
-		// upstream handler when a filter item edit click event
-		// puts the sets the filter factory to the correct filter type and initializes with filter value
+		// when the edit button from a filter in the filter container view is clicked
+		// sets the filter factory to the correct filter type and initializes with filter value
 		this.listenTo(this.dataFiltersContainer,'changeClick', function(filterCid) {
 			this.editFilterCid = filterCid;
 			this.editFilterMode();
 			
 			var f = this.filters.get(this.editFilterCid).attributes;
+			//console.log(f);
 			this.changeFilterFactoryType(f.type,f.column,f.label,f.filterValue.type);
 			this.filterFactory.setFilterValue(f);
 		});
 		
-		// upstream handler when a common value column is clicked
+		// when a common value column is clicked
 		this.listenTo(this.commonValueControl, 'columnClick', this.commonValueColumnSelectionChange);
 		
-		// upstream handler when a clear filters event is triggered
+		// when a updateFilter event is triggered in the filter control bar
+		this.listenTo(this.dataFiltersControl, 'updateFilter', function(filter) {
+			this.dataFiltersContainer.updateFilter(filter);
+		});
+		
+		// when a clear filters event is triggered from the filter control bar
 		// newSet is either empty or a filterSet clone
 		this.listenTo(this.dataFiltersControl, 'resetFilters', function(newSet) {
 			if(newSet) {
-				var newFiltersArray = [];
-				for(var i in newSet.attributes.filters) {
-					var newFilters = newSet.attributes.filters[i];
-					var f = new MDataFilter({
-						'table':newFilters.attributes.table,
-						'type':newFilters.attributes.type,
-						'column':newFilters.attributes.column,
-						'label':newFilters.attributes.label,
-						'filterValue':$.extend(true, {}, newFilters.attributes.filterValue)
-					});
-					
-					// listen for change event on the model
-					f.on('change:filterValue', function(filter) {
-						//need to update filter tab content list item
-						this.dataFiltersContainer.updateFilter(filter);
-					}, this);
-					
-					newFiltersArray.push(f);
-				}
-				this.filters.reset(newFiltersArray);
+				this.filters.reset(newSet);
 			} else {
 				this.filters.reset();
 			}
-			
-			//this.filters.reset(newSet);
 		});
 		
 		// notification events (level,title,message)

@@ -29,7 +29,7 @@ var VFilterWidgetTypeNumberSel = VFilterWidgetType.extend({
 				value		Sets or returns the spinner value
 	*/
 	'sb':null,
-	'sbOptions':{min:-100, max:100, step:.25},
+	'sbOptions':{'min':-100, 'max':100, 'step':.25},
 	
 	'addBtn':null,
 	'listEl':null,

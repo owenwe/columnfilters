@@ -45,10 +45,10 @@ var VDataFiltersContainer = Backbone.View.extend({
 			'</a>'
 		].join(''), {'variable':'filterData'}),
 	
-	/*
-	this is only the view for the current filter group, it should NOT control
-	the interaction of filter groups, only add/edit/remove/interaction of the view elements
-	*/
+	/**
+	 * This is only the view for the current filter group, it should NOT control
+	 * the interaction of filter groups, only add/edit/remove/interaction of the view elements
+	 */
 	'filterItemMouseover':function(e){
 		$('button.close',$(e.currentTarget)).show();
 		$('span.cf-filter-edit-button',$(e.currentTarget)).show();
@@ -91,7 +91,10 @@ var VDataFiltersContainer = Backbone.View.extend({
 	
 	// add filter to current filter group
 	'add':function(filter) {
-		// ASSERTION: filter will be a valid attribute object from a filter model
+		//console.log('DataFiltersContainer.add()');
+		//console.log(filter);
+		
+		// ASSERTION: filter will be a valid filter model
 		// filter = filter.attributes: {table, category, column, type, label, filterValue:{type, ...}}
 		// TODO move element events into the 'events' object
 		var mAtt = _.clone(filter.attributes);
@@ -172,6 +175,11 @@ var VDataFiltersContainer = Backbone.View.extend({
 		}
 	},
 	
+	/** 
+	 * Updates the label text for the tab and the filter list item link 
+	 * within the tab content
+	 * The filter argument should be a Filter Model
+	 */
 	'updateFilter':function(filter) {
 		//console.log(filter);
 		var fALink = $('div.tab-content div.list-group a.list-group-item[data-filter-cid="'+filter.cid+'"]', this.$el),
@@ -183,7 +191,9 @@ var VDataFiltersContainer = Backbone.View.extend({
 		}
 	},
 	
-	// uses the filters argument to add filter tabs/tab content to the view
+	/**
+	 * Uses the filters argument to add filter tabs/tab content to the view
+	 */
 	'load':function(filters) {
 		// filters is actually a collection of filters
 		for(var i in filters.models) {
@@ -191,7 +201,9 @@ var VDataFiltersContainer = Backbone.View.extend({
 		}
 	},
 	
-	// removes all filter tabs/tab content from the view 
+	/**
+	 * Removes all filter tabs/tab content from the view 
+	 */
 	'clear':function() {
 		$('ul[role="tablist"] li', this.$el).remove();
 		$('div.tab-content', this.$el).empty();

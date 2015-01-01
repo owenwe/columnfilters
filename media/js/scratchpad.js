@@ -50,6 +50,8 @@
 	biglist: [ ] (equals) [typeahead] -scrollable -custom templates 1)local, 2)prefetch 3)remote
 	         [ ] (list) [typeahead, add button, dropdown list]
 	
+	!!! the data sources for enum and biglist must also be available server-side !!!
+	
 	TODO later
 	- An input for a column that is a foreign key
 	foreignkeyfilter: TODO --all the above search controls, but for the referenced table
@@ -167,7 +169,7 @@ $(document).ready(function(e) {
 	
 	//df = new VDataFilters({table:'employees', tableColumns:tc, showFirst:'date-column', filterCategories:['user','public']});
 	df = new VDataFilters({
-		'mode':0,
+		'mode':1,
 		'filterCategories':['Users','Department'],
 		'table':'employees',
 		'tableColumns':eMeta

@@ -45,9 +45,7 @@ cat media/js/columnfilters/templates/baseTemplateClass.js >> columnfilters-embed
 cat media/js/columnfilters/templates/commonValueController.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/dataFiltersPanelContent.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/filterOptionListItem.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
-cat media/js/columnfilters/templates/dataFiltersControlBody.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/dataFiltersControlFooter.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
-cat media/js/columnfilters/templates/saveFilterSetModalForm.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/dateBetweenFilterWidgetType.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 cat media/js/columnfilters/templates/numberSpinner1.js >> columnfilters-embedable.js && printf "\n\n" >> columnfilters-embedable.js
 

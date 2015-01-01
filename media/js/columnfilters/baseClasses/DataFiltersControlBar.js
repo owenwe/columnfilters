@@ -6,7 +6,7 @@ LocalStorage, Backbone.Collection with AJAX backend to a DB
 Filter Category Structure
 {
 	name:	<string>	short-form label (under 45 characters)
-	sets:	<array>		a collection of filter sets
+	sets:	<array>		a collection of filter sets // TODO 
 }
 
 Filter Set Structure
@@ -16,10 +16,11 @@ Filter Set Structure
 		name:			<string>	short-form label (under 45 characters)
 		category:		<string>	name of the category that this set belongs
 		table:			<string>	the database table (or parent-level object) name
-		user_id:		<integer>	identifier of the user that this set belongs
 		description:	<string>	long-form description of category
 		filters:		<array>		a collection of filter objects
 	},...
+
+this.collection({model:Filter Set})
 */
 var VDataFiltersControlBar = Backbone.View.extend({
 	
@@ -33,10 +34,9 @@ var VDataFiltersControlBar = Backbone.View.extend({
 	// these are passed from the parent controller and are attached to each filter set
 	// for use in storing them  in a database per user
 	'table':null,
-	'user_id':null,
 	
 	'categories':null,			// a collection of category names
-	'currentCategory':null,		// should be the cid of the category in the categories collection
+	'currentFilterSetCid':null,		// should be the cid of the category in the categories collection
 	'editMode':false,			// set to true when editing a filter set
 	
 	// for rendering components of this view
@@ -140,19 +140,58 @@ var VDataFiltersControlBar = Backbone.View.extend({
 		return retVal;
 	},
 	
+	/**
+	 * This will add a menu list item to the save category dropdown menu. It will 
+	 * also add a list item to the category dropdown menu for the FilterSet, and 
+	 * create the category dropdown menu if needed.
+	 * This function does NOT add a FilterSet to the collection.
+	 */
+	'addFilterSet':function(filterSet) {
+		//console.log('adding filter set');
+		//console.log(filterSet);
+		
+		// check if the filter set category exists; add it if it doesn't
+		if(this.categories.where({'name':filterSet.get('category')}).length<1) {
+			//console.log('adding filter category: '+filterSet.get('category'));
+			this.addCategory(filterSet.get('category'));
+		}
+		
+		// adds a dropdown menu item to the category dropdown menu on the nav bar
+		// removes the disabled state of the category dropdown menu
+		// updates the category dropdown menu label to include the number of filter sets
+		var fcMenuDropdown = $('ul.navbar-nav[data-category-name="'+filterSet.get('category')+'"]',this.navbar),
+			newFilterSet = this.templates['filterSetMenuItem'](filterSet);
+		
+		//add filter set menu item
+		$('ul.cf-filter-category-menu-list', fcMenuDropdown).append(newFilterSet);
+		$('li.dropup',fcMenuDropdown).removeClass('disabled');
+		$('li.dropup span.badge',fcMenuDropdown).html(this.collection.where({'category':filterSet.get('category')}).length);
+		
+		// listen to the model's sync event
+		// TODO these are not being called
+		filterSet.on('sync', function(model, resp, opts) {
+			//console.log('FilterSet.sync:response -- enabling');
+			this.enable();
+		}, this);
+		filterSet.on('error', function(model, resp, opts) {
+			console.error('FilterSet.sync:error');
+			this.enable();
+		}, this);
+	},
+	
 	// makes sure there are no duplicates and then adds a menu dropup to the footer control
 	// and a dropup link to the save filters menu
-	'addCategory':function(categoryName, filters) {
+	'addCategory':function(categoryName) {
+		//console.log('addCategory('+categoryName+')');
+		//console.log(this.collection);
+		//console.log(this.categories);
 		// if a category menu with the same name doesn't already exist
-		if(this.collection.where({'category':categoryName}).length<1) {
-			
+		if(this.categories.where({'category':categoryName}).length<1) {
 			// add category name to the categories collection
 			this.categories.add({'name':categoryName});
 			
 			// add a category menu dropup to the footer control nav bar
-			this.navbar.append(
-				this.templates.filterCategoryMenu({'name':categoryName})
-			);
+			this.navbar.append( this.templates.filterCategoryMenu({'name':categoryName}) );
 			
 			// add a divider inbetween each category list item in the save menu (after the first)
 			if(this.collection.length) {
@@ -166,11 +205,6 @@ var VDataFiltersControlBar = Backbone.View.extend({
 					'glyph':this.filterCategoryGlyphMapping(categoryName)
 				})
 			);
-			
-			// TODO handle filters arg (used when filter sets are pulled from existing data):
-			if(filters) {
-				
-			}
 		}
 	},
 	
@@ -189,48 +223,41 @@ var VDataFiltersControlBar = Backbone.View.extend({
 		this.modal.modal('show');
 	},
 	
-	// resets the filtersController.filters with the filters in the identified filterSet
+	/**
+	 * Resets the filtersController.filters collection with the filters retrieved 
+	 * from this.collection by using the filterSetId argument and then triggers 
+	 * the resetFilters event for the DataFilters parent controller to handle.
+	 */
 	'loadFilters':function(filterSetId) {
-		
-		// Future Wes: even the cloned model's attributes are references in the filtersController.filters collection
-		// so we need to figure out a way to clone those attributes so any changes dont' effect the filter set's filters
-		
-		/* this.collection (Collection)
-				.
-				.
-				[filterSet n] (Model)
-					.attributes (Object)
-						.filters (Array)
-							.
-							.
-							[filter n] (Object)
-		*/
+		//console.log(filterSetId);
 		var clonedFilterSet = this.collection.get(filterSetId).clone(),
-			clonedFilterSetFilters = $.extend(true,{},clonedFilterSet.attributes),// this should have made a deep copy, but values are still referenced
+			clonedFilterSetObject = $.extend(true,{},clonedFilterSet.attributes),// this should've made a deep copy and converted the model to an object
 			deepCopyFilterArray = [];
-		for(var i in clonedFilterSetFilters.filters) {//loop through each filter (which is a filter Model)
-			var f = new MDataFilter({
-				'table':clonedFilterSetFilters.filters[i].attributes.table,
-				'category':clonedFilterSet.category,
-				'type':clonedFilterSetFilters.filters[i].attributes.type,
-				'column':clonedFilterSetFilters.filters[i].attributes.column,
-				'label':clonedFilterSetFilters.filters[i].attributes.label,
-				'filterValue':$.extend(true, {}, clonedFilterSetFilters.filters[i].attributes.filterValue)
+		// the filters might be an array of javascript objects or models
+		for(var i in clonedFilterSetObject.filters) {//loop through each filter
+			var fsFilter = clonedFilterSetObject.filters[i],
+				isModel = _.has(fsFilter,'attributes'),
+				f = new MDataFilter();
+			f.set({
+				'table'			: isModel ? fsFilter.get('table') : fsFilter.table,
+				'type'			: isModel ? fsFilter.get('type') : fsFilter.type,
+				'column'		: isModel ? fsFilter.get('column') : fsFilter.column,
+				'label'			: isModel ? fsFilter.get('label') : fsFilter.label,
+				'filterValue'	: $.extend(true, {}, isModel ? fsFilter.get('filterValue') : fsFilter.filterValue)
 			});
 			
-			// listen for change event on the model
+			// listen for change event on the model and update the text labels in the filter container
 			f.on('change:filterValue', function(filter) {
 				//need to update filter tab content list item
+				this.trigger('updateFilter',filter);
 				//this.filtersController.dataFiltersContainer.updateFilter(filter);
-				this.dataFiltersContainer.updateFilter(filter);
 			}, this);
 			
 			deepCopyFilterArray.push( f );
 		}
-		
+		//console.log(deepCopyFilterArray);
 		// the resetFilters event should pass a deep-copy clone collection of filters
-		//this.trigger('resetFilters', deepCopyFilterArray);
-		this.trigger('resetFilters', this.collection.get(filterSetId).clone() );
+		this.trigger( 'resetFilters', deepCopyFilterArray );
 	},
 	
 	
@@ -268,20 +295,24 @@ var VDataFiltersControlBar = Backbone.View.extend({
 			// check if there are any filters to save
 			if(this.filtersController.filters.length) {
 				// put all existing filters (filtersController.filters) into the filters attribute of this collection model
-				// TODO set the category of each filter here
-				this.collection.get(this.currentCategory).attributes.filters = this.filtersController.filters.clone().models;
+				this.collection.get(this.currentFilterSetCid).attributes.filters = this.filtersController.filters.clone().models;
 				
-				//restore navbar controls
-				//check menus for list items, only enable if there are some
-				$('ul.navbar-nav',this.navbar).each(function(i,navUl) {
-					if($('li.dropup ul.dropdown-menu li',$(navUl)).length) {
-						$('li.dropup',$(navUl)).removeClass('disabled');
-					}
-				});
+				// enable category menus and save menu
+				$('ul.navbar-nav li.dropup',this.navbar).addClass('disabled');
+				
+				// hide editing buttons and set the mode back to normal
 				this.saveButton.hide();
 				this.cancelButton.hide();
 				this.editMode = false;
 				this.refreshClearFiltersButton();
+				
+				// update the collection filter set model
+				this.collection.sync('update', this.collection.get(this.currentFilterSetCid), {
+					'context':this,
+					'success':function(data, textStatus, jqXHR){
+						this.enable();
+				}});
+				
 			} else {
 				this.trigger(
 					'notify', 
@@ -297,7 +328,7 @@ var VDataFiltersControlBar = Backbone.View.extend({
 		// triggered when the "Cancel" button in the nav bar has been clicked
 		'click button.cf-cancel-filter-set-changes-button':function(e) {
 			// restore filters in the filter set
-			this.loadFilters(this.currentCategory);
+			this.loadFilters(this.currentFilterSetCid);
 			
 			// restore navbar controls
 			//check menus for list items, only enable if there are some
@@ -325,11 +356,11 @@ var VDataFiltersControlBar = Backbone.View.extend({
 		'click ul.navbar-nav li.dropup ul.cf-filter-category-menu-list button[data-type="edit"]':function(e) {
 			this.editMode = true;
 			
-			// store the selected filter set in currentCategory variable
-			this.currentCategory = $(e.currentTarget).data('id');
+			// store the selected filter set in currentFilterSetCid variable
+			this.currentFilterSetCid = $(e.currentTarget).data('id');
 			
 			// load filters from the selected filter set
-			this.loadFilters(this.currentCategory);
+			this.loadFilters(this.currentFilterSetCid);
 			
 			// show the "done editing" button
 			this.saveButton.show();
@@ -357,18 +388,15 @@ var VDataFiltersControlBar = Backbone.View.extend({
 				if(saveType==='set') {
 					var category = $('form',this.modal).data('category'),
 						fsDesc = $.trim($('textarea#cfFilterSetSaveDescription',this.modal).val());
-					console.log(category);
 					//create new filter set with all the filters
-					var newFs = new MFilterSet({
+					// send filters as javascript objects (not models)
+					this.collection.create({
 						'category':category,
 						'table':this.table,
-						'user_id':this.user_id,
 						'name':fsName,
 						'description':fsDesc.length?fsDesc:null,
 						'filters':this.filtersController.filters.clone().models
 					});
-					console.log(newFs);
-					this.collection.add(newFs);
 				} else {
 					//adding a new category
 					this.addCategory(fsName);
@@ -387,27 +415,41 @@ var VDataFiltersControlBar = Backbone.View.extend({
 	
 	'initialize':function(options) {
 		// ASSERTION: these will always be passed
+		// url
 		// filtersController
 		// mode
 		// filterCategories
 		// table
-		// user
+		
+		// the parent DataFilters View controller
 		this.filtersController = options.filtersController;
+		
+		// set the table property (there should only be 1 table per column filters controller)
 		this.table = options.table;
-		this.user_id = options.user_id;
 		
 		// just a collection of names
 		this.categories = new Backbone.Collection();
 		
 		// the collection of filter sets, where we can pluck the categories from the category property of each set
-		this.collection = new CDataFilterSets();
+		this.collection = new CDataFilterSets({'url':options.url});
 		
+		// add role=navigation attribute to root dom element
 		this.$el.attr('role','navigation');
+		
+		// if the CATEGORY_SETS mode was passed into the constructor then 
 		if(options.mode===this.MODES.CATEGORY_SETS) {
+			// create the DOM elements
 			this.$el.append(_.template(CFTEMPLATES.dataFiltersControlFooter,{variable:'controller'})({'filterCategories':options.filterCategories}));
+			
+			// set the navbar property
 			this.navbar = $('div.collapse.navbar-collapse',this.$el);
+			
+			// set the saveDropdown and cancelButton properties
 			this.saveDropdown = $('ul.navbar-right li.cf-save-filter-list ul.dropdown-menu',this.navbar);
 			this.cancelButton = $('button.cf-cancel-filter-set-changes-button',this.navbar).hide();
+			
+			// set the saveButton and clearFiltersButton properties and disable
+			// the clearFiltersButton since there won't be any filters to begin with
 			this.saveButton = $('button.cf-save-filter-set-changes-button',this.navbar).hide();
 			this.clearFiltersButton = $('button.cf-clear-all-filters-button',this.navbar);
 			this.clearFiltersButton[0].disabled = true;
@@ -421,6 +463,7 @@ var VDataFiltersControlBar = Backbone.View.extend({
 				'show':false
 			});
 			
+			// if there were filter categories passed in then add the menu items for each one
 			if(options.filterCategories.length) {
 				for(var i in options.filterCategories) {
 					//a category is just a small string
@@ -432,25 +475,48 @@ var VDataFiltersControlBar = Backbone.View.extend({
 			
 			// add filter set
 			this.collection.on('add', function(filterSet) {
-				var fcMenuDropdown = $('ul.navbar-nav[data-category-name="'+filterSet.attributes.category+'"]',this.navbar),
-					newFilterSet = this.templates['filterSetMenuItem'](filterSet);
-				//add filter set menu item
-				$('ul.cf-filter-category-menu-list',fcMenuDropdown).append(newFilterSet);
-				$('li.dropup',fcMenuDropdown).removeClass('disabled');
-				$('li.dropup span.badge',fcMenuDropdown).html(this.collection.where({'category':filterSet.attributes.category}).length);
+				this.addFilterSet(filterSet);
 			}, this);
 			
 			// remove filter set
 			this.collection.on('remove', function(filterSet) {
-				console.log('collection remove');
-				var fcMenuDropdown = $('ul.navbar-nav[data-category-name="'+filterSet.attributes.category+'"]',this.navbar);
-				$('ul.cf-filter-category-menu-list li[data-id="'+filterSet.cid+'"]',fcMenuDropdown).remove();
-				var filterSetsArray = this.collection.where({'category':filterSet.attributes.category});
-				$('li.dropup',fcMenuDropdown).toggleClass('disabled', filterSetsArray.length===0);
-				$('li.dropup span.badge',fcMenuDropdown).html(filterSetsArray.length?filterSetsArray.length:'');
-				// TODO remove filters in this set
+				// check for filter set category
+				if(filterSet.attributes.category) {
+					var fcMenuDropdown = $('ul.navbar-nav[data-category-name="'+filterSet.get('category')+'"]', this.navbar);
+					$('ul.cf-filter-category-menu-list li[data-id="'+filterSet.cid+'"]',fcMenuDropdown).remove();
+					var filterSetsArray = this.collection.where({'category':filterSet.get('category')});
+					$('li.dropup',fcMenuDropdown).toggleClass('disabled', filterSetsArray.length===0);
+					$('li.dropup span.badge',fcMenuDropdown).html(filterSetsArray.length?filterSetsArray.length:'');
+					
+					this.collection.sync('delete', filterSet, {
+						'context':this,
+						'success':function(data, textStatus, jqXHR){
+							this.enable();
+					}});
+				}
+			}, this);
+			
+			// sync request event handler for the collection
+			// starting a request to the server
+			this.collection.on('request', function(col, xhr, opts) {
+				this.disable();
+			}, this);
+			
+			// sync response event handler for the collection
+			this.collection.on('sync', function(col, resp, opts) {
+				// resp should be an Array of filterSet models
+				// TODO ?? update the category dropdown menus
+				this.enable();
+			}, this);
+			
+			// sync error event handler for the collection
+			this.collection.on('error', function(col, resp, opts) {
+				console.error('sync:error');
 				
 			}, this);
+			
+			// pass the table with the fetch
+			this.collection.fetch({'data':{'table':options.table}});
 		}
 	},
 	'render':function() { return this; }

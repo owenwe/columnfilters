@@ -6,7 +6,6 @@ var MFilterSet = Backbone.Model.extend({
 		'table':null,
 		'name':null,
 		'description':null,
-		'user':null,
 		'filters':null
 	}
 });

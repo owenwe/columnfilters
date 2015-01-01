@@ -8,6 +8,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 	'isValid':function() {
 		return $.map($('.dropdown-menu input:checked',this.$el), function(e,i){ return e.value*1; }).length>0;
 	},
+	
 	'validate':function() {
 		if(this.isValid()) {
 			return true;
@@ -16,6 +17,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 		this.trigger('notify', 'danger', 'Enum Filter ('+this.type+') Error', 'Enum checklist cannot be empty.');
 		return false;
 	},
+	
 	'getValueDescription':function() {
 		if(this.isValid()) {
 			return 'is one of these : (' + $.map($('.dropdown-menu input:checked',this.$el), function(e,i){ return e.value*1; }).join(',') + ')';
@@ -23,6 +25,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 			return false;
 		}
 	},
+	
 	'getValue':function() {
 		if(this.validate()) {
 			var checkMap = [],
@@ -40,6 +43,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 			
 			return {
 				'type':this.type,
+				'table':this.collection.findWhere({'column':this.currentColumn}).get('table'),
 				'column':this.currentColumn,
 				'value':checkMap,
 				'description':[desc_1,checkNames.join(','),desc_2].join('')
@@ -47,6 +51,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 		}
 		return false;
 	},
+	
 	'setValue':function(filterValue) {
 		//set the checkboxes to the values in valueList
 		var vl = filterValue.value,
@@ -61,6 +66,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 			}
 		});
 	},
+	
 	'reset':function() {
 		//reset happens just before setValue
 		//$('.dropdown-menu input',this.$el).each(function(i,e) {
@@ -70,8 +76,7 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 	},
 	
 	'config':function(dataCol) {
-		// dataCol will be a string; TODO enable common value for enum filter
-		
+		// dataCol will be a string
 		if(dataCol!==this.currentColumn) {
 			this.currentColumn = dataCol;
 			this.$el.html(this.template(this.collection.findWhere({'column':dataCol}).attributes));
@@ -114,19 +119,25 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 	'initialize':function(options) {
 		//split enums into groups by options.enums[i].name
 		// check options.enums array of keys named 'id', a mapped copy of the array will 
-		// need to be made where the 'id' keys are renamed to 'code'
+		// need to be made where the 'id' keys are renamed to 'code' (mimicing java Enum class)
 		var enumData;
 		if(_.has(options,'enums') && _.isArray(options.enums) && options.enums.length) {
+			// incoming meta data
+			// table: string - e.table - the main data table (not the source table of the enum set)
+			// column: string - e.data - the column name in the main data table
+			// enums: array - e.cfenumsource - the data array that populates each grouped enum set
+			// labelKey: string - e.cfenumlabelkey - the property key used to retrieve the iterated enum value label
 			this.collection = new Backbone.Collection(
 				$.map(options.enums, function(e,i){
 					return {
-						'column':e.name,
+						'table':e.table,
+						'column':e.data,
 						'enums':e.cfenumsource,
 						'labelKey':e.cfenumlabelkey
 					};
 				})
 			);
-			this.currentColumn = this.collection.at(0).attributes.column;
+			this.currentColumn = this.collection.at(0).get('column');
 			this.$el.html(this.template(this.collection.at(0).attributes));
 		} else {
 			this.$el.html(this.template({'enums':[]}));
