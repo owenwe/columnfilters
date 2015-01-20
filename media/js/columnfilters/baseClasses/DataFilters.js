@@ -21,8 +21,8 @@ var VDataFilters = Backbone.View.extend({
 	'FILTER_SELECTION_TYPES':{ 'DEFAULT':0, 'COMMON_VALUE':1 },
 	
 	// Enum of the different interactive modes this control can be put into
-	// the dataFiltersControl (DataFiltersControlBar/VDataFiltersControlBar) has a copy of this
-	'MODES':{ 'DEFAULT':0, 'CATEGORY_SETS':1 },
+	// the dataFiltersControl (DataFiltersControlBar/VDataFiltersControlBar) has a version of this
+	'MODES':{ 'DEFAULT':0, 'CATEGORY_SETS':1, 'NO_TYPES':2, 'CATEGORIES_NO_TYPES':3 },
 	
 	'defaultConfig':{
 		'mode':0,
@@ -43,8 +43,9 @@ var VDataFilters = Backbone.View.extend({
 	// this is for the Boolean filter widget
 	'convertBooleanToNumeric':true,
 	
-	// for saving and loading the column filters to the server
-	'webServiceUrl':'/columnfilters',
+	// for saving and loading the column filters (Filter Sets) to the server
+	// if null, then local storage will be used
+	'webServiceUrl':null,
 	
 	//the modal for add/edit filter sets
 	// TODO this should be moved to VDataFiltersControlBar
@@ -279,11 +280,46 @@ var VDataFilters = Backbone.View.extend({
 	
 	// PUBLIC Functions
 	// returns filters as an object, or false if there aren't filters to return
-	'getCurrentFilter':function() {
+	'getCurrentFilter':function() {// deprecated name, will be removed
 		return this.filters.length ? this.filters.toJSON() : false ;
+	},
+	'getFilters':function() {
+		return this.filters.length ? this.filters.toJSON() : false ;
+	},
+	
+	// adds a filter to the filter collection (filters)
+	'addFilter':function(newFilter) {
+		/* newFilter is expected to be:
+		 * { table:, column:, label:, type:, filterValue:{ description:, type:, [value:], ... } }
+		*/
+		//console.log(newFilter);
+		// check if we are in COMMON_VALUE mode
+		// if it is, then check if more than 1 column has been selected
+		if(this.filterSelectionType && this.currentColumnFilter.column.length<2) {
+			alert('Multiple columns are required for a common value, otherwise just use a regular data filter.');
+			return false;
+		}
 		
-		// Do we need to check for what mode it is set to?
-		//if(this.mode == this.MODES.DEFAULT) {} else {}
+		// enable save filter dropdown
+		if(this.mode === this.MODES.CATEGORY_SETS) {
+			if($('li.cf-save-filter-list', this.dataFiltersControl).hasClass('disabled')) {
+				$('li.cf-save-filter-list', this.dataFiltersControl).removeClass('disabled');
+			}
+		}
+		
+		// create new data filter
+		// MDataFilter is the same thing as a standard Modal (it doesn't define anything specific)
+		
+		
+		// listen for change event on the model
+		newFilter.on('change:filterValue', function(filter) {
+			//need to update filter tab content list item
+			//console.log('filterValue change');
+			this.dataFiltersContainer.updateFilter(filter);
+		}, this);
+		
+		//add to the current category of filters
+		this.filters.add(newFilter);
 	},
 	
 	'tagName':'div',
@@ -312,41 +348,15 @@ var VDataFilters = Backbone.View.extend({
 		'click button.cf-add-filter-button':function(e) {
 			var af = this.filterFactory.activeFilter(),
 				fVal = af?this.filterFactory.getFilterValue():false;
-			
-			// check if we are in COMMON_VALUE mode
-			// if it is, then check if more than 1 column has been selected
-			if(this.filterSelectionType && this.currentColumnFilter.column.length<2) {
-				alert('Multiple columns are required for a common value, otherwise just use a regular data filter.');
-				return false;
-			}
-			
 			if(fVal) {
-				
-				// enable save filter dropdown
-				if(this.mode === this.MODES.CATEGORY_SETS) {
-					if($('li.cf-save-filter-list', this.dataFiltersControl).hasClass('disabled')) {
-						$('li.cf-save-filter-list', this.dataFiltersControl).removeClass('disabled');
-					}
-				}
-				
-				// create new data filter
-				// MDataFilter is the same thing as a standard Modal (it doesn't define anything specific)
-				var ndf = new MDataFilter({
+				var f = new MDataFilter({
 					'table':this.table,
 					'type':this.currentColumnFilter.type,
 					'column':this.currentColumnFilter.column,
 					'label':this.currentColumnFilter.label,
 					'filterValue':fVal
 				});
-				
-				// listen for change event on the model
-				ndf.on('change:filterValue', function(filter) {
-					//need to update filter tab content list item
-					this.dataFiltersContainer.updateFilter(filter);
-				}, this);
-				
-				//add to the current category of filters
-				this.filters.add(ndf);
+				this.addFilter(f);
 			}
 		},
 		
@@ -385,12 +395,6 @@ var VDataFilters = Backbone.View.extend({
 		if(_.has(options,'filterSelectionType') && _.isNumber(options.filterSelectionType)) {
 			this.defaultConfig.filterSelectionType = this.filterSelectionType = options.filterSelectionType;
 		}
-		if(_.has(options,'filters')) {
-			// TODO populate 
-			this.defaultConfig.filters = options.filters;
-		} else {
-			this.filters = new CDataFilters();
-		}
 		// webServiceUrl
 		if(_.has(options,'webServiceUrl')) {
 			this.webServiceUrl = options.webServiceUrl;
@@ -404,6 +408,8 @@ var VDataFilters = Backbone.View.extend({
 			this.convertBooleanToNumeric = false;
 		}
 		
+		// a collection to hold all the filters
+		this.filters = new CDataFilters();
 		
 		// validTableColumns will populate the dropdown list of columns and the common value control
 		var validTableColumns = [];
@@ -501,10 +507,14 @@ var VDataFilters = Backbone.View.extend({
 			]
 		)});
 		
+		//////////////////////////////////
 		// There will always be a user (or default) filter
 		// should pull all table filters/column filters for this user + common and public
 		this.dataFiltersContainer = new VDataFiltersContainer({'filtersController':this});
+		//////////////////////////////////
 		
+		
+		//////////////////////////////////
 		// filters control; toolbar for saving groups of filters
 		this.dataFiltersControl = new VDataFiltersControlBar({
 			'url':this.webServiceUrl,
@@ -513,6 +523,7 @@ var VDataFilters = Backbone.View.extend({
 			'filterCategories':this.defaultConfig.filterCategories,
 			'table':this.table
 		});
+		//////////////////////////////////
 		
 		// constructing the View elements (Heading:Filter Tools, Body:Filters, Footer:Save Controls)
 		this.$el.append(
@@ -608,6 +619,37 @@ var VDataFilters = Backbone.View.extend({
 			}
 		}
 		
+		// the MODES.NO_TYPES is a custom mode where custom UI buttons can be added to the panel header
+		switch(this.mode) {
+			case this.MODES.NO_TYPES:
+			case this.MODES.CATEGORIES_NO_TYPES:
+				//console.log('setting up column filters for custom mode');
+				$('div.cf-data-filter-type-selection',this.$el).hide();
+			
+				// options.customUI is assumed to be anyting $.append() would expect
+				if(_.has(options, 'customUI')) {
+					$('div.cf-custom-ui-container', this.$el).append(options.customUI);
+				}
+				break;
+		}
+		
+		
+		// check for filters passed in
+		if(_.has(options, 'filters')) {
+			// need to pre-populate the filters collection
+			for(var fidx in options.filters) {
+				var mdf = new MDataFilter({
+					'table':options.filters[fidx].table,
+					'type':options.filters[fidx].type,
+					'column':options.filters[fidx].column,
+					'label':options.filters[fidx].label,
+					'filterValue':options.filters[fidx].filterValue
+				});
+				this.addFilter(mdf);
+				//this.dataFiltersControl.enable();
+			}
+			this.dataFiltersContainer.showTabContent();
+		}
 	},
 	
 	'render':function() { return this; }

@@ -1,4 +1,9 @@
-// Filter Widget Type Implementation Class for Date (Equals)
+/**
+ * Filter Widget Type Implementation Class for Date (Equals)
+ * requires:
+ * 		bootstrap-datepicker.js (https://github.com/eternicode/bootstrap-datepicker/)
+ * 		moment.js (http://momentjs.com/)
+ */
 var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 	'version':'1.0.3',
 	'type':'between',
@@ -14,6 +19,7 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 	'isValid':function() {
 		return !isNaN(this.dpFrom.datepicker('getDate').getTime()) && !isNaN(this.dpTo.datepicker('getDate').getTime());
 	},
+	
 	'validate':function() {
 		if(this.isValid()) {
 			return true;
@@ -22,6 +28,7 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 		this.trigger('notify', 'danger', 'Date Filter ('+this.type+') Error', 'A to and from date must be selected.');
 		return false;
 	},
+	
 	'getValueDescription':function() {
 		if(this.isValid()) {
 			return [
@@ -34,6 +41,7 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 			return false;
 		}
 	},
+	
 	'getValue':function() {		
 		if(this.validate()) {
 			return {
@@ -45,14 +53,34 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 		}
 		return false;
 	},
+	
 	'setValue':function(filterValue) {
-		this.dpStartDate = filterValue.fromDate;
-		this.dpEndDate = filterValue.toDate;
+		// from/toDate can be: 1) an ISO Date string, 2) a Timestamp integer, 3) a javascript Date object
+		this.dpStartDate = moment(filterValue.fromDate).toDate();
+		this.dpEndDate = moment(filterValue.toDate).toDate();
+		
 		this.dpFrom.datepicker('setUTCDate', this.dpStartDate);
 		this.dpTo.datepicker('setUTCDate', this.dpEndDate);
 		this.dpFrom.datepicker('setEndDate',this.dpEndDate);
 		this.dpTo.datepicker('setStartDate',this.dpStartDate);
 	},
+	
+	// TODO unless we need to modify this, then remove it
+	'processDate':function(dateObj) {
+		switch(typeof(dateObj)) {
+			case 'object':
+				// assume standard javascript date object
+				return moment(dateObj).toDate();
+				break;
+			case 'number':
+				return moment(dateObj).toDate();
+				break;
+			case 'string':
+				return moment(dateObj).toDate();
+				break;
+		}
+	},
+	
 	'reset':function() {
 		this.dpStartDate = null;
 		this.dpEndDate = null;

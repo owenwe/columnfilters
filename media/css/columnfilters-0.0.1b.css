@@ -128,6 +128,11 @@ yours and then try to restrict others from using it.
 	padding:0;
 }
 
+.cf-custom-ui-container {
+	margin-left:5px;
+	margin-right:5px;
+}
+
 
 /* Filters Control Nav Bar
  * Menus for Filter Categories and Filter Sets

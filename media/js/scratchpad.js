@@ -47,7 +47,7 @@
 	
 	- An input for a column with a very large set of (known) values (too many to put into the page)
 	  the primary input is a typeahead
-	biglist: [ ] (equals) [typeahead] -scrollable -custom templates 1)local, 2)prefetch 3)remote
+	biglist: [*] (equals) [typeahead] -scrollable -custom templates 1)local, 2)prefetch 3)remote
 	         [ ] (list) [typeahead, add button, dropdown list]
 	
 	!!! the data sources for enum and biglist must also be available server-side !!!
@@ -144,16 +144,6 @@ var eMeta = [
 		'cfenumlabelkey':'typeId'
 	},
 	{'data':'program.typeId', 'name':'program_typeId', 'title':'Program', 'type':'string', 'cfexclude':true},
-	/*{
-		'data':'specialist',
-		'name':'specialist.id',
-		'title':'Specialist',
-		'type':'object',
-		'cftype':'biglist',
-		'datasource':employees,
-		'displayKey':employeeDTDisplayFunc,
-		'valueKey':'id'
-	},*/
 	{
 		'data':'notes', 
 		'name':'notes', 
@@ -167,12 +157,41 @@ var eMeta = [
 
 $(document).ready(function(e) {
 	
-	//df = new VDataFilters({table:'employees', tableColumns:tc, showFirst:'date-column', filterCategories:['user','public']});
 	df = new VDataFilters({
-		'mode':1,
-		'filterCategories':['Users','Department'],
+		'mode':VDataFilters.prototype.MODES.CATEGORY_SETS,//NO_TYPES  DEFAULT  CATEGORY_SETS
 		'table':'employees',
-		'tableColumns':eMeta
+		'tableColumns':eMeta,
+		
+		'filterCategories':['Test'],
+		/**/
+		'filters':[
+			{
+				'table':'timesheets',
+				'column':'hired',
+				'label':'Hired',
+				'type':'date',
+				'filterValue':{
+					'description':'is between 5/1/2013 and 5/31/2013',
+					'fromDate':moment('2013-5-1','YYYY-M-D').toDate(),
+					'toDate':moment('2013-5-31','YYYY-M-D').toDate(),
+					'type':'between'
+				}
+			},
+			{
+				"table":"employees",
+				"type":"text",
+				"column":"fname",
+				"label":"First Name",
+				"filterValue":{
+					"type":"equals",
+					"value":"foo bar",
+					"description":"is equal to foo bar"
+				}
+			}
+		],
+		
+		
+		'customUI':['<button type="button" class="btn btn-sm btn-default">custom</button>'].join('')
 	});
 	$('div.container-fluid').append(df.el);
 	

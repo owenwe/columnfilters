@@ -27,7 +27,7 @@ var VCommonValueFilterControl = Backbone.View.extend({
 	
 	
 	'tagName':'div',
-	'className':'btn-group cf-common-value-dropdown cf-dropdown-menu-scroll-small',
+	'className':'btn-group cf-common-value-dropdown cf-dropdown-menu-scroll-small pull-left',
 	'events':{
 		// HOVER EVENTS FOR THE COLUMN DROPDOWN LIST ITEMS
 		'mouseover ul.dropdown-menu li.cf-cvdd-active':function(e) {

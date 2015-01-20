@@ -21,11 +21,16 @@ Filter Set Structure
 	},...
 
 this.collection({model:Filter Set})
+
+There is also a local version of the internal collection
 */
 var VDataFiltersControlBar = Backbone.View.extend({
 	
 	// Enum of the different interactive modes this control can be put into
-	'MODES':{ 'DEFAULT':0, 'CATEGORY_SETS':1 },
+	'MODES':{ 'DEFAULT':0, 'CATEGORY_SETS':1, 'NO_TYPES':2, 'CATEGORIES_NO_TYPES':3 },
+	
+	// 
+	'isLocalStorage':false,
 	
 	// the parent controller view that has a 'filters' collection
 	'filtersController':null,
@@ -36,7 +41,7 @@ var VDataFiltersControlBar = Backbone.View.extend({
 	'table':null,
 	
 	'categories':null,			// a collection of category names
-	'currentFilterSetCid':null,		// should be the cid of the category in the categories collection
+	'currentFilterSetCid':null,	// should be the cid of the category in the categories collection
 	'editMode':false,			// set to true when editing a filter set
 	
 	// for rendering components of this view
@@ -123,8 +128,12 @@ var VDataFiltersControlBar = Backbone.View.extend({
 		$('ul.navbar-nav li.dropup',this.navbar).addClass('disabled');
 	},
 	
+	/**
+	 * This will enable/disable the "clear filters" button (the "x" button next to the "save to"
+	 * menu drop up) based on the number of existing filters. If less than 1 then disable
+	*/
 	'refreshClearFiltersButton':function() {
-		this.clearFiltersButton.toggleClass('disabled', this.filtersController.filters.length<1);
+		this.clearFiltersButton.toggleClass('disabled', this.filtersController.filters.length<1);//was <1
 		this.clearFiltersButton[0].disabled = this.filtersController.filters.length?false:true;
 	},
 	
@@ -166,17 +175,6 @@ var VDataFiltersControlBar = Backbone.View.extend({
 		$('ul.cf-filter-category-menu-list', fcMenuDropdown).append(newFilterSet);
 		$('li.dropup',fcMenuDropdown).removeClass('disabled');
 		$('li.dropup span.badge',fcMenuDropdown).html(this.collection.where({'category':filterSet.get('category')}).length);
-		
-		// listen to the model's sync event
-		// TODO these are not being called
-		filterSet.on('sync', function(model, resp, opts) {
-			//console.log('FilterSet.sync:response -- enabling');
-			this.enable();
-		}, this);
-		filterSet.on('error', function(model, resp, opts) {
-			console.error('FilterSet.sync:error');
-			this.enable();
-		}, this);
 	},
 	
 	// makes sure there are no duplicates and then adds a menu dropup to the footer control
@@ -295,7 +293,7 @@ var VDataFiltersControlBar = Backbone.View.extend({
 			// check if there are any filters to save
 			if(this.filtersController.filters.length) {
 				// put all existing filters (filtersController.filters) into the filters attribute of this collection model
-				this.collection.get(this.currentFilterSetCid).attributes.filters = this.filtersController.filters.clone().models;
+				this.collection.get(this.currentFilterSetCid).attributes.filters = this.filtersController.filters.clone().toJSON();
 				
 				// enable category menus and save menu
 				$('ul.navbar-nav li.dropup',this.navbar).addClass('disabled');
@@ -390,13 +388,30 @@ var VDataFiltersControlBar = Backbone.View.extend({
 						fsDesc = $.trim($('textarea#cfFilterSetSaveDescription',this.modal).val());
 					//create new filter set with all the filters
 					// send filters as javascript objects (not models)
+					//console.log('creating new category');
+					
+					// I think this works for remote and local
+					/**/
 					this.collection.create({
 						'category':category,
 						'table':this.table,
 						'name':fsName,
 						'description':fsDesc.length?fsDesc:null,
-						'filters':this.filtersController.filters.clone().models
+						'filters':this.filtersController.filters.clone().toJSON()
 					});
+					
+					// This works for remote and local storage
+					/*
+					this.collection.add(
+						new MDataFilter({
+							'category':category,
+							'table':this.table,
+							'name':fsName,
+							'description':fsDesc.length?fsDesc:null,
+							'filters':this.filtersController.filters.clone().models
+						})
+					);
+					*/
 				} else {
 					//adding a new category
 					this.addCategory(fsName);
@@ -421,25 +436,37 @@ var VDataFiltersControlBar = Backbone.View.extend({
 		// filterCategories
 		// table
 		
-		// the parent DataFilters View controller
-		this.filtersController = options.filtersController;
-		
-		// set the table property (there should only be 1 table per column filters controller)
-		this.table = options.table;
-		
-		// just a collection of names
-		this.categories = new Backbone.Collection();
-		
-		// the collection of filter sets, where we can pluck the categories from the category property of each set
-		this.collection = new CDataFilterSets({'url':options.url});
-		
 		// add role=navigation attribute to root dom element
 		this.$el.attr('role','navigation');
-		
 		// if the CATEGORY_SETS mode was passed into the constructor then 
-		if(options.mode===this.MODES.CATEGORY_SETS) {
+		if(options.mode===options.filtersController.__proto__.MODES.CATEGORY_SETS || options.mode===options.filtersController.__proto__.MODES.CATEGORIES_NO_TYPES) {
+			
+			// the parent DataFilters View controller
+			this.filtersController = options.filtersController;
+			
+			// set the table property (there should only be 1 table per column filters controller)
+			this.table = options.table;
+			
+			// just a collection of names
+			this.categories = new Backbone.Collection();
+			
+			this.editMode = false;
+			
+			// the collection of filter sets, where we can pluck the categories from the category property of each set
+			if(options.url) {
+				this.collection = new CDataFilterSets();
+				this.collection.url = options.url;
+			} else {
+				this.collection = new CDataFilterSetsLocal();
+				this.isLocalStorage = true;
+			}
+			
 			// create the DOM elements
-			this.$el.append(_.template(CFTEMPLATES.dataFiltersControlFooter,{variable:'controller'})({'filterCategories':options.filterCategories}));
+			this.$el.append(
+				_.template(
+					CFTEMPLATES.dataFiltersControlFooter,
+					{variable:'controller'}
+				)({'filterCategories':options.filterCategories}));
 			
 			// set the navbar property
 			this.navbar = $('div.collapse.navbar-collapse',this.$el);
@@ -475,6 +502,9 @@ var VDataFiltersControlBar = Backbone.View.extend({
 			
 			// add filter set
 			this.collection.on('add', function(filterSet) {
+				//console.log('data filter collection add');
+				//console.log(filterSet);
+				// add filterset to ui nav bar and add sync listeners
 				this.addFilterSet(filterSet);
 			}, this);
 			
@@ -482,6 +512,8 @@ var VDataFiltersControlBar = Backbone.View.extend({
 			this.collection.on('remove', function(filterSet) {
 				// check for filter set category
 				if(filterSet.attributes.category) {
+					// remove list item from category dropdown menu
+					// disable filer category dropdown menu if no more filter sets exists in that category
 					var fcMenuDropdown = $('ul.navbar-nav[data-category-name="'+filterSet.get('category')+'"]', this.navbar);
 					$('ul.cf-filter-category-menu-list li[data-id="'+filterSet.cid+'"]',fcMenuDropdown).remove();
 					var filterSetsArray = this.collection.where({'category':filterSet.get('category')});
@@ -499,25 +531,96 @@ var VDataFiltersControlBar = Backbone.View.extend({
 			// sync request event handler for the collection
 			// starting a request to the server
 			this.collection.on('request', function(col, xhr, opts) {
-				this.disable();
+				//console.log('colleciton.request');
+				if(!this.isLocalStorage) {
+					console.log('collection.request');
+					this.disable();
+				}
 			}, this);
 			
 			// sync response event handler for the collection
 			this.collection.on('sync', function(col, resp, opts) {
 				// resp should be an Array of filterSet models
 				// TODO ?? update the category dropdown menus
+				//console.log('collection.sync');
 				this.enable();
 			}, this);
 			
 			// sync error event handler for the collection
 			this.collection.on('error', function(col, resp, opts) {
-				console.error('sync:error');
-				
+				if(this.isLocalStorage) {
+					console.warn('sync.error, but handled because isLocalStorage is true');
+					this.enable();
+				} else {
+					console.error('sync:error');
+					console.log(resp);
+					console.log(opts);
+				}
 			}, this);
 			
-			// pass the table with the fetch
-			this.collection.fetch({'data':{'table':options.table}});
+			// pass the table with the fetch -- collection.read
+			if(!this.isLocalStorage) {
+				this.collection.fetch({'data':{'table':options.table}});
+			}
 		}
 	},
 	'render':function() { return this; }
+});
+
+var CDataFilterSetsLocal = Backbone.Collection.extend({
+	'model':MFilterSet,
+	'localStorage':null,
+	
+	'initialize':function(options) {
+		console.log('initializing Local CDataFilterSets collection');
+		this.url = 'columnfilters';
+		this.sync = function(method, payload, opts) {
+			console.log('Data Filters Control.sync');
+			switch(method) {
+				case 'create':
+					console.log('Data Filters Control.sync.create');
+					console.log(payload);
+					//console.log(opts);
+					this.localStorage.add(payload);
+					opts.success();
+					break;
+				case 'read':
+					console.log('Data Filters Control.sync.read');
+					console.log(payload);//the collection
+					console.log(opts);
+					if(this.localStorage==null) {
+						// create a new local filterset database
+						this.localStorage = new Backbone.Collection([], {'model':MFilterSet});
+					} else {
+						var fsets = this.localStorage.where({'table':opts.table});
+						if(fsets.length) {
+							payload.add(fsets);
+						}
+					}
+					opts.success();
+					break;
+				case 'update':
+					console.log('Data Filters Control.sync.update');
+					console.log(payload);
+					console.log(opts);
+					// value alread changed in collection
+					// TODO opts.context.enable();
+					this.trigger('sync', this, null,null);
+					//opts.success(payload, null, null);
+					break;
+				case 'delete':
+					console.log('Data Filters Control.sync.delete');
+					console.log(payload);
+					console.log(opts);
+					
+					break;
+				default:
+					console.log('Data Filters Control.sync.'+method);
+					//console.log(payload);
+					//console.log(opts);
+					
+					break;
+			}
+		};
+	}
 });

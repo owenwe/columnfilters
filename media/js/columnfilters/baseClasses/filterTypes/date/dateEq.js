@@ -39,9 +39,15 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 		return false;
 	},
 	'setValue':function(filterValue) {
+		// deprecated method
 		// date should be a date
-		if(_.isDate(filterValue.value)) {
-			this.dp.datepicker('setUTCDate',filterValue.value);
+		//if(_.isDate(filterValue.value)) {
+		//	this.dp.datepicker('setUTCDate',filterValue.value);
+		//}
+		
+		// new way with moment
+		if(filterValue.value) {
+			this.dp.datepicker('setUTCDate', moment(filterValue.value).toDate());
 		}
 	},
 	'reset':function() {

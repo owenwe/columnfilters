@@ -96,34 +96,35 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 		if(_.isArray(dataCol)) {
 			// 
 			var firstDataset = this.collection.findWhere({'column':dataCol[0]}),
-				sameDataset = this.collection.where({'table':firstDataset.attributes.table});
+				sameDataset = this.collection.where({'table':firstDataset.get('table')});
 			
 			this.model.set('table', $.map(sameDataset, function(e,i) {
-				return e.attributes.column;
+				return e.get('column');
 			}));
 			this.model.set('currentColumn', dataCol);
 			// displayKey and valueKey should be the same for items with the same dataset (source table)
-			this.model.set('displayKey', firstDataset.attributes.displayKey);
-			this.model.set('valueKey', firstDataset.attributes.valueKey);
+			this.model.set('displayKey', firstDataset.get('displayKey'));
+			this.model.set('valueKey', firstDataset.get('valueKey'));
 			this.model.set('currentData', null);
 		} else {
 			var newData = this.collection.findWhere({'column':dataCol});
 			if(dataCol!==this.model.get('currentColumn')) {
-				this.model.set('table', newData.attributes.table);
-				this.model.set('currentColumn', newData.attributes.column);
-				this.model.set('displayKey', newData.attributes.displayKey);
-				this.model.set('valueKey', newData.attributes.valueKey);
+				this.model.set('table', newData.get('table'));
+				this.model.set('currentColumn', newData.get('column'));
+				this.model.set('displayKey', newData.get('displayKey'));
+				this.model.set('valueKey', newData.get('valueKey'));
 				this.model.set('currentData', null);
 				
 				// destroy current typeahead and rebuild using new dataset
 				this.taInput.typeahead('val',null);
 				this.taInput.typeahead('destroy');
+				newData.get('dataset').initialize();
 				this.taInput.typeahead(
 					{'highlight':false, 'hint':false, 'minLength':3},
 					{
-						'name':newData.attributes.dataColumn,
-						'displayKey':newData.attributes.displayKey,
-						'source':newData.attributes.dataset.ttAdapter()
+						'name':newData.get('dataColumn'),
+						'displayKey':newData.get('displayKey'),
+						'source':newData.get('dataset').ttAdapter()
 					}
 				);
 			}
@@ -153,28 +154,31 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 	
 	'initialize':function(options) {
 		this.model = new Backbone.Model();
-		
 		if(_.has(options,'datasets') && _.isArray(options.datasets) && options.datasets.length) {
 			//split datasets into groups by options.datasets[i].name (column name)
 			this.collection = new Backbone.Collection(
 				$.map(options.datasets, function(e,i){
 					return {
 						'table':e.table,
-						'column':e.name, // 'name' property from data table column meta data (will not be a sub-field identifier)
-						'dataColumn':e.dataColumn,// 'data' property from data table column meta data (will not be a sub-field identifier)
+						'column':e.name,			// 'name' property from data table column meta data (will not be a sub-field identifier)
+						'dataColumn':e.dataColumn,	// 'data' property from data table column meta data (will not be a sub-field identifier)
 						'dataset':e.datasource,
 						'displayKey':e.displayKey,
 						'valueKey':e.valueKey
 					};
 				})
 			);
+			
 			// use the first data set
-			var defaultDataset = this.collection.at(0).attributes;
-			this.model.set('table', defaultDataset.table);
-			this.model.set('currentColumn', defaultDataset.column);
-			this.model.set('displayKey', defaultDataset.displayKey);
-			this.model.set('valueKey', defaultDataset.valueKey);
+			var defaultDataset = this.collection.at(0);
+			this.model.set('table', defaultDataset.get('table'));
+			this.model.set('currentColumn', defaultDataset.get('column'));
+			this.model.set('displayKey', defaultDataset.get('displayKey'));
+			this.model.set('valueKey', defaultDataset.get('valueKey'));
 			this.model.set('currentData', null);
+			
+			// remember to initialize the bloodhound search engine
+			defaultDataset.get('dataset').initialize();
 			
 			this.$el.html(this.template());
 			
@@ -183,9 +187,9 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 			this.taInput.typeahead(
 				{'highlight':false, 'hint':false, 'minLength':3},
 				{
-					'name':defaultDataset.dataColumn,
-					'displayKey':defaultDataset.displayKey,
-					'source':defaultDataset.dataset.ttAdapter()
+					'name':defaultDataset.get('dataColumn'),
+					'displayKey':defaultDataset.get('displayKey'),
+					'source':defaultDataset.get('dataset').ttAdapter()
 				}
 			);
 		} else {

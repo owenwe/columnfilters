@@ -5,7 +5,7 @@ var VDataFiltersContainer = Backbone.View.extend({
 	
 	// this is the main view template
 	'dataFiltersControlBody':_.template([
-		'<div class="row">',
+		'<div class="row" role="tabpanel">',
 			'<div class="col-xs-4">',
 				'<ul class="nav nav-pills nav-stacked" role="tablist"></ul>',
 			'</div>',
@@ -17,7 +17,7 @@ var VDataFiltersContainer = Backbone.View.extend({
 	
 	// this is the tab, it represents filters for a particular column (identified by )
 	'filterColumnTemplate':_.template(
-		['<li>',
+		['<li role="presentation">',
 			'<a href="#<%= columnData.columnId %>" role="pill" data-toggle="pill" class="list-group-item">',
 				'<%= _.isArray(columnData.column) ? columnData.label : (columnData.label[0].toUpperCase()+columnData.label.substring(1)) %> <span class="badge pull-right">1</span>',
 			'</a>',
@@ -25,7 +25,7 @@ var VDataFiltersContainer = Backbone.View.extend({
 	
 	// this is the content for the tab
 	'filterColumnTabTemplate':_.template(
-		['<div class="tab-pane" id="<%= columnData.column %>">',
+		['<div class="tab-pane" role="tabpanel" id="<%= columnData.column %>">',
 			'<div class="list-group"></div>',
 		'</div>'].join(''), {'variable':'columnData'}),
 	
@@ -91,12 +91,10 @@ var VDataFiltersContainer = Backbone.View.extend({
 	
 	// add filter to current filter group
 	'add':function(filter) {
-		//console.log('DataFiltersContainer.add()');
-		//console.log(filter);
-		
 		// ASSERTION: filter will be a valid filter model
 		// filter = filter.attributes: {table, category, column, type, label, filterValue:{type, ...}}
 		// TODO move element events into the 'events' object
+		//console.log(filter);
 		var mAtt = _.clone(filter.attributes);
 		mAtt.cid = filter.cid;
 		mAtt.columnId = _.isArray(mAtt.column) ? mAtt.column.join('') : mAtt.column.replace(".","_");
@@ -136,7 +134,7 @@ var VDataFiltersContainer = Backbone.View.extend({
 		
 		//click event for the edit filter icon button
 		$('h4.list-group-item-heading span.cf-filter-edit-button', flit).click({'dfc':this, 'cid':mAtt.cid},function(e) {
-			//just send the filter cid up the chain
+			//just send the filter cid up the chain (dfc = (d)ata (f)ilter (c)ontroller == DataFilters
 			e.data.dfc.trigger('changeClick',e.data.cid);
 		});
 		
@@ -153,7 +151,12 @@ var VDataFiltersContainer = Backbone.View.extend({
 		} else {//tab doesn't exist for this type, create new one
 			var currentTabsCount = $('ul.nav-pills li a',this.$el).length;
 			//add column pill to tab set
-			$('ul.nav',this.$el).append(this.filterColumnTemplate(mAtt));
+			var newTabLi = $(this.filterColumnTemplate(mAtt));
+			$('a', newTabLi).click(function(e) {
+				e.preventDefault();
+				$(this).tab('show');
+			});
+			$('ul.nav',this.$el).append(newTabLi);
 			
 			//add tab content if needed, or create one
 			var columnTabContent = $(['div#',mAtt.columnId].join(''),this.$el);
@@ -166,13 +169,20 @@ var VDataFiltersContainer = Backbone.View.extend({
 			//add it to the current tab content and update counts
 			// label, type, table, category, column, filterValue:{type, }
 			columnTabContent.append(flit);
-			
 			//set this tab to active if it's the only one
 			if(currentTabsCount<1) {
-				//console.log($('ul.nav-pills li', this.$el));
+				//console.log($('ul.nav-pills li a', this.$el).first());
 				$('ul.nav-pills li a', this.$el).first().tab('show');
 			}
 		}
+	},
+	
+	'showTabContent':function() {
+		var activeTabA = $('ul.nav li.active a', this.$el);
+		if(activeTabA.length) {
+			$(['div.tab-content div',activeTabA.attr('href')].join(''), this.$el).addClass('active');
+		}
+		
 	},
 	
 	/** 
@@ -181,6 +191,7 @@ var VDataFiltersContainer = Backbone.View.extend({
 	 * The filter argument should be a Filter Model
 	 */
 	'updateFilter':function(filter) {
+		//console.log('updating filter ui view');
 		//console.log(filter);
 		var fALink = $('div.tab-content div.list-group a.list-group-item[data-filter-cid="'+filter.cid+'"]', this.$el),
 			fa = filter.attributes,
