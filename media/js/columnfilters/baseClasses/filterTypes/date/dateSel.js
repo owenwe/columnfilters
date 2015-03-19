@@ -1,6 +1,6 @@
 // Filter Widget Type Implementation Class for Number (Select)
 var VFilterWidgetTypeDateSel = VFilterWidgetType.extend({
-	'version':'1.0.3',
+	'version':'1.0.4',
 	'type':'select',
 	'dp':null,
 	'dpConfig':{
@@ -28,7 +28,7 @@ var VFilterWidgetTypeDateSel = VFilterWidgetType.extend({
 			return [
 				'is one of these: (',
 				$.map(this.collection.models,function(md) {
-					return md.get('date').toLocaleDateString();
+					return moment(md.get('date')).format('M/D/YYYY');
 				}),
 				')'
 			].join('');
@@ -100,7 +100,7 @@ var VFilterWidgetTypeDateSel = VFilterWidgetType.extend({
 	'listTemplate':_.template([
 			'<li class="list-group-item" data-cid="<%= dm.cid %>">',
 				'<button class="close" data-cid="<%= dm.cid %>"><span class="glyphicon glyphicon-remove btn-sm"></span></button>',
-				'<p class="list-group-item-heading"><%= dm.get("date").toLocaleDateString() %></p>',
+				'<p class="list-group-item-heading"><%= moment(dm.get("date")).format("M/D/YYYY") %></p>',
 			'</li>'
 		].join(''),
 		{'variable':'dm'}

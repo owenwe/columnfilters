@@ -1,11 +1,11 @@
-// Filter Widget Type Implementation Class for Date (Equals)
-var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
-	'version':'1.0.3',
-	'type':'equals',
+// Filter Widget Type Implementation Class for Date (After)
+var VFilterWidgetTypeDateAfter = VFilterWidgetType.extend({
+	'version':'1.0.1',
+	'type':'after',
 	'dp':null,
 	'dpConfig':{
 		autoclose:true,
-		'name':'dpeq',
+		'name':'dpafter',
 		'format':CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us
 	},
 	
@@ -13,7 +13,6 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 		var d = this.dp.datepicker('getDate');
 		return !isNaN(d.getTime());
 	},
-	
 	'validate':function() {
 		if(this.isValid()) {
 			return true;
@@ -22,15 +21,13 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 		this.trigger('notify', 'danger', 'Date Filter ('+this.type+') Error', 'A date must be selected.');
 		return false;
 	},
-	
 	'getValueDescription':function() {
 		if(this.isValid()) {
-			return 'is equal to ' + moment(this.dp.datepicker('getDate')).format('M/D/YYYY');
+			return 'is after ' + moment(this.dp.datepicker('getDate')).format('M/D/YYYY');
 		} else {
 			return false;
 		}
 	},
-	
 	'getValue':function() {
 		if(this.validate()) {
 			return {
@@ -41,14 +38,12 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 		}
 		return false;
 	},
-	
 	'setValue':function(filterValue) {
 		// new way with moment
 		if(filterValue.value) {
 			this.dp.datepicker('setUTCDate', moment(filterValue.value).toDate());
 		}
 	},
-	
 	'reset':function() {
 		this.dp.datepicker('update',null);
 	},
@@ -59,27 +54,13 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 				CFTEMPLATES.datepicker,
 			'</div>',
 		'</div>'
-	].join(''), {variable:'datepicker'}),
-	
-	'events':{
-		/* for testing
-		'changeDate div.dpeq':function(e) {
-			console.log(e);
-			return false;
-		}*/
-	},
+	].join(''),
+	{variable:'datepicker'}),
+	'events':{},
 	
 	'initialize':function(options) {
-		/*
-		template datepicker3 wants: 
-			name -required: string that will be added to the class list, 
-			date: string date that should be in the same format as what you assign the datepicker, 
-			format: string format - viewMode:CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us/en_gb/zh_cn, 
-			viewMode: use CFTEMPLATES.DATEPICKER_VIEW_MODES.YEARS/MONTHS/DAYS, 
-			minViewMode: same as viewMode
-		*/
 		this.$el.html(this.template(this.dpConfig));
-		$('.dpeq',this.$el).datepicker(this.dpConfig);
-		this.dp = $('.dpeq',this.$el);
+		$('.dpafter',this.$el).datepicker(this.dpConfig);
+		this.dp = $('.dpafter',this.$el);
 	}
 });

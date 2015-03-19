@@ -3,7 +3,7 @@
  * 
 */
 var VDataFilters = Backbone.View.extend({
-	
+	'version':'0.0.1b',
 	/*
 	Default: Column/Type-Based
 	these should translate to AND clauses being appended to WHERE
@@ -22,6 +22,10 @@ var VDataFilters = Backbone.View.extend({
 	
 	// Enum of the different interactive modes this control can be put into
 	// the dataFiltersControl (DataFiltersControlBar/VDataFiltersControlBar) has a version of this
+	// DEFAULT: the controls for saving and creating filter sets are not available
+	// CATEGORY_SETS: controls for creating/saving filter sets are available
+	// NO_TYPES: the "Data Filters"/"Common Value" toggle buttons and the controls for creating/saving filter sets are not available
+	// CATEGORIES_NO_TYPES: the controls for creating/saving filter sets are available, but not the "Data Filters"/"Common Value" toggle buttons
 	'MODES':{ 'DEFAULT':0, 'CATEGORY_SETS':1, 'NO_TYPES':2, 'CATEGORIES_NO_TYPES':3 },
 	
 	'defaultConfig':{
@@ -74,7 +78,7 @@ var VDataFilters = Backbone.View.extend({
 	// the user will have to mouse out of the alert div in order to start the hide timer again.
 	'notification':{
 		'timeoutID':null,
-		'displayDelay':1777,//1777
+		'displayDelay':1777,
 		'templates':{
 			'warning':_.template([
 				'<div class="alert alert-warning alert-dismissable cf-notification fade in" role="alert">',
@@ -348,6 +352,7 @@ var VDataFilters = Backbone.View.extend({
 		'click button.cf-add-filter-button':function(e) {
 			var af = this.filterFactory.activeFilter(),
 				fVal = af?this.filterFactory.getFilterValue():false;
+			//console.log(fVal);
 			if(fVal) {
 				var f = new MDataFilter({
 					'table':this.table,
@@ -490,9 +495,13 @@ var VDataFilters = Backbone.View.extend({
 				])}),
 				new VDataColumnFilterWidget({'type':'date', 'collection':new Backbone.Collection([
 					new VFilterWidgetTypeDateEq(),
+					new VFilterWidgetTypeDateB4(),
+					new VFilterWidgetTypeDateAfter(),
 					new VFilterWidgetTypeDateBtwn(),
 					new VFilterWidgetTypeDateSel(),
 					new VFilterWidgetTypeDateCycle(),
+					new VFilterWidgetTypeDateM(),
+					new VFilterWidgetTypeDateMY(),
 					new VFilterWidgetTypeDateYr()
 				])}),
 				new VDataColumnFilterWidget({'type':'boolean', 'collection':new Backbone.Collection([
@@ -619,17 +628,21 @@ var VDataFilters = Backbone.View.extend({
 			}
 		}
 		
+		// check for custom UI to add
+		// options.customUI is assumed to be anyting $.append() would expect
+		if(_.has(options, 'customUI')) {
+			$('div.cf-custom-ui-container', this.$el).append(options.customUI);
+		}
+		
 		// the MODES.NO_TYPES is a custom mode where custom UI buttons can be added to the panel header
 		switch(this.mode) {
 			case this.MODES.NO_TYPES:
 			case this.MODES.CATEGORIES_NO_TYPES:
 				//console.log('setting up column filters for custom mode');
 				$('div.cf-data-filter-type-selection',this.$el).hide();
-			
-				// options.customUI is assumed to be anyting $.append() would expect
-				if(_.has(options, 'customUI')) {
-					$('div.cf-custom-ui-container', this.$el).append(options.customUI);
-				}
+				break;
+			case this.MODES.ALL:
+				
 				break;
 		}
 		

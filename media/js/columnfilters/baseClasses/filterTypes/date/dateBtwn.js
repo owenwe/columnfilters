@@ -5,7 +5,7 @@
  * 		moment.js (http://momentjs.com/)
  */
 var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
-	'version':'1.0.3',
+	'version':'1.0.4',
 	'type':'between',
 	'dpFrom':null,
 	'dpStartDate':null,
@@ -17,7 +17,7 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 	},
 	
 	'isValid':function() {
-		return !isNaN(this.dpFrom.datepicker('getDate').getTime()) && !isNaN(this.dpTo.datepicker('getDate').getTime());
+		return !isNaN(this.model.get('dpFrom').datepicker('getDate').getTime()) && !isNaN(this.model.get('dpTo').datepicker('getDate').getTime());
 	},
 	
 	'validate':function() {
@@ -33,9 +33,9 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 		if(this.isValid()) {
 			return [
 				'is between ',
-				this.dpFrom.datepicker('getDate').toLocaleDateString(),
+				moment(this.model.get('dpFrom').datepicker('getDate')).format('M/D/YYYY'),
 				' and ',
-				this.dpTo.datepicker('getDate').toLocaleDateString()
+				moment(this.model.get('dpTo').datepicker('getDate')).format('M/D/YYYY')
 			].join('');
 		} else {
 			return false;
@@ -46,8 +46,8 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 		if(this.validate()) {
 			return {
 				'type':this.type,
-				'fromDate':this.dpFrom.datepicker('getDate'),
-				'toDate':this.dpTo.datepicker('getDate'),
+				'fromDate':this.model.get('dpFrom').datepicker('getDate'),
+				'toDate':this.model.get('dpTo').datepicker('getDate'),
 				'description':this.getValueDescription()
 			};
 		}
@@ -59,13 +59,13 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 		this.dpStartDate = moment(filterValue.fromDate).toDate();
 		this.dpEndDate = moment(filterValue.toDate).toDate();
 		
-		this.dpFrom.datepicker('setUTCDate', this.dpStartDate);
-		this.dpTo.datepicker('setUTCDate', this.dpEndDate);
-		this.dpFrom.datepicker('setEndDate',this.dpEndDate);
-		this.dpTo.datepicker('setStartDate',this.dpStartDate);
+		this.model.get('dpFrom').datepicker('setUTCDate', this.dpStartDate);
+		this.model.get('dpTo').datepicker('setUTCDate', this.dpEndDate);
+		this.model.get('dpFrom').datepicker('setEndDate',this.dpEndDate);
+		this.model.get('dpTo').datepicker('setStartDate',this.dpStartDate);
 	},
 	
-	// TODO unless we need to modify this, then remove it
+	// TODO unless we need to modify this, remove it
 	'processDate':function(dateObj) {
 		switch(typeof(dateObj)) {
 			case 'object':
@@ -84,62 +84,68 @@ var VFilterWidgetTypeDateBtwn = VFilterWidgetType.extend({
 	'reset':function() {
 		this.dpStartDate = null;
 		this.dpEndDate = null;
-		this.dpFrom.datepicker('update',null);
-		this.dpTo.datepicker('update',null);
-		this.dpFrom.datepicker('setEndDate',null);
-		this.dpTo.datepicker('setStartDate',null);
+		this.model.get('dpFrom').datepicker('update',null);
+		this.model.get('dpTo').datepicker('update',null);
+		this.model.get('dpFrom').datepicker('setEndDate',null);
+		this.model.get('dpTo').datepicker('setStartDate',null);
 	},
 	
 	
 	'template':_.template(CFTEMPLATES.datepickerBetween,{variable:'datepicker'}),
 	'events':{
 		// these are supposed to cap the start/end of the other datepicker
-		'changeDate .dpbtw input:first-child':function(e) {
-			//this.dpFrom.datepicker('setEndDate',e.date);
+		// when the from date changes
+		/*'changeDate .dpbtw input:first-child':function(e) {
 			if(e.date) {
 				//date is valid
 				// add a day to the dpStartDate
-				this.dpStartDate = new Date(e.date.valueOf()+86400000);
+				this.dpStartDate = new Date(e.timeStamp);
 				//limit the to datepicker so it can't pick a date before this selected date
-				this.dpTo.datepicker('setStartDate',this.dpStartDate);
+				this.model.get('dpTo').datepicker('setStartDate', this.dpStartDate);
 			} else {
 				//cleared date, clear dpTo.startDate
-				this.dpTo.datepicker('setStartDate',this.dpStartDate = null);
+				this.model.get('dpTo').datepicker('setStartDate', this.dpStartDate = null);
 			}
-		},
-		'hide .dpbtw input:first-child':function(e) {
+		},*/
+		//'hide .dpbtw input:first-child':function(e) {
 			//show the to-date datepicker if it doesn't have a selected date
-			if(isNaN(this.dpTo.datepicker('getDate').getTime())) {
-				this.dpTo.datepicker('show');
-			}
-		},
+			//if( this.model.get('dpTo').datepicker('getDate') && isNaN(this.model.get('dpTo').datepicker('getDate').getTime()) ) {
+			//	this.model.get('dpTo').datepicker('show');
+			//}
+		//},
 		
-		'changeDate .dpbtw input:last-child':function(e) {
-			// limit 
-			//this.dpTo.datepicker('setStartDate',e.date);
+		// when the to date changes
+		/*'changeDate .dpbtw input:last-child':function(e) {
+			// limit
+			console.log('dpTo:changeDate');
 			if(e.date) {
+				console.log('date is something: '+moment(e.timeStamp).format('M/D/YYYY'));
 				// subtract a day from the dpEndDate
-				this.dpEndDate = new Date(e.date.valueOf()-86400000);
+				this.dpEndDate = new Date(e.timeStamp);
 				// limit the from datepicker so it can't pick a date after this selected date
-				this.dpFrom.datepicker('setEndDate',this.dpEndDate);
+				this.model.get('dpFrom').datepicker('setEndDate', this.dpEndDate);
 				//this.dpTo.datepicker('hide');
 			} else {
+				console.log('date is falsy');
 				//cleared date, clear dpFrom.endDate
-				this.dpFrom.datepicker('setEndDate',this.dpEndDate = null);
+				this.model.get('dpFrom').datepicker('setEndDate', this.dpEndDate = null);
 			}
-		},
-		'hide .dpbtw input:last-child':function(e) {
+		}*/
+		//'hide .dpbtw input:last-child':function(e) {
 			//if there is a from date, then just close, otherwise show from datepicker
-			if(isNaN(this.dpFrom.datepicker('getDate').getTime())) {
-				this.dpFrom.datepicker('show');
-			}
-		},
+			//if( this.model.get('dpFrom').datepicker('getDate') && isNaN(this.model.get('dpFrom').datepicker('getDate').getTime()) ) {
+				//this.model.get('dpFrom').datepicker('show');
+			//}
+		//}
 	},
 	
 	'initialize':function(options) {
 		this.$el.html(this.template({name:'dpbtw'}));
 		$('.dpbtw',this.$el).datepicker(this.dpConfig);
-		this.dpFrom = $('.dpbtw input:first-child',this.$el);
-		this.dpTo = $('.dpbtw input:last-child',this.$el);
+		
+		this.model = new Backbone.Model({
+			'dpFrom':$('.dpbtw input:first-child',this.$el),
+			'dpTo':$('.dpbtw input:last-child',this.$el)
+		});
 	}
 });

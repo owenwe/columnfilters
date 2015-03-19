@@ -34,9 +34,13 @@ cat media/js/columnfilters/baseClasses/filterTypes/number/numberEq.js >> columnf
 cat media/js/columnfilters/baseClasses/filterTypes/number/numberBtwn.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/number/numberSel.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateEq.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
+cat media/js/columnfilters/baseClasses/filterTypes/date/dateBefore.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
+cat media/js/columnfilters/baseClasses/filterTypes/date/dateAfter.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateBtwn.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateSel.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateCycle.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
+cat media/js/columnfilters/baseClasses/filterTypes/date/dateM.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
+cat media/js/columnfilters/baseClasses/filterTypes/date/dateMY.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/date/dateYear.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/boolean/boolEq.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js
 cat media/js/columnfilters/baseClasses/filterTypes/enum/enumIn.js >> columnfilters-0.0.1b.js && printf "\n\n" >> columnfilters-0.0.1b.js

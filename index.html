@@ -6,26 +6,148 @@
     <link rel="stylesheet" href="media/css/bootstrap.min.css" />
     <link rel="stylesheet" href="media/css/bootstrap-theme.min.css" />
     <link rel="stylesheet" href="media/css/dataTables.bootstrap.css" />
-    <link rel="stylesheet" href="media/css/datepicker.css" />
-    <link rel="stylesheet" href="media/css/datepicker3.css" />
+    <link rel="stylesheet" href="media/css/bootstrap-datepicker3.min.css" />
     <link rel="stylesheet" href="media/css/fuelux.min.css" />
     <link rel="stylesheet" href="media/css/columnfilters-0.0.1b.css" />
     <style>
+div.cal-2-row {
+	float:left;
+	width:100%;
+	border:1px solid #ccc;
+	border-radius:5px;
+	box-shadow: 0px 1px 2px #ddd;
+}
+div.cal-2-row > div:first-of-type {
+	float:left;
+	width:100%;
+	border-bottom:1px dotted #bbb;
+}
+div.cal-2-row > div > div {
+	float:left;
+	width:6.25%;
+	border-right:1px dotted #ccc;
+	height:75px;
+	text-align:center;
+	overflow:hidden;
+	font-weight:bold;
+}
+div.cal-2-row > div:first-child > div:first-child {
+	border-top-left-radius:5px;
+}
+div.cal-2-row > div:first-child > div:first-child > div:first-child {
+	border-top-left-radius:5px;
+}
+div.cal-2-row > div:first-child > div:last-child > h4 {
+	background-color:#777;
+	color:#eee;
+	text-shadow:1px 1px 0px #111;
+	margin-top:0;
+	padding-bottom:2px;
+	text-align:center;
+	text-transform:uppercase;
+	font-size:14px;
+	font-weight:bold;
+	border-top-right-radius:5px;
+}
+div.cal-2-row > div > div:last-child {
+	border-right-style:none;
+	border-right-width:0;
+}
+div.cal-2-row-last-day-not-31 {
+	border-right:1px dotted #ccc!important;
+}
+div.cal-2-row > div > div > div:first-child {
+	width:35%;
+	color:#555;
+	margin-bottom:10px;
+	background-color:#eee;
+	border-top:1px solid #efefef;
+	border-left:1px solid #efefef;
+	border-bottom-right-radius:3px;
+	text-align:center;
+	font-weight:bold;
+	font-size:12px;
+	text-shadow:0px 1px 0px #fff;
+	box-shadow: 1px 2px 2px #ccc;
+}
+
+.extra-div-width-sm {
+	margin-left:5px;
+	margin-right:5px;
+}
 
 
+.col-vis-menu > li {
+	padding:5px 20px;
+}
+.col-vis-menu li > h3 {
+	margin-top:2px;
+	text-align:center;
+}
+.col-vis-menu > li:first-child > h3 {
+	padding-right:20px;
+}
+.col-vis-menu > li:first-child {
+	width:320px;
+	padding:5px 0px 5px 20px;
+}
+.col-vis-menu > li:first-child > ul {
+	white-space:normal;
+	border-right:dashed 1px #bbb;
+}
+.col-vis-menu > li:first-child p {
+	text-align:center;
+	margin-top:10px;
+	padding-top:10px;
+	border-top:solid 1px #dedede;
+}
+.col-vis-menu > li:first-child > ul li .checkbox {
+	position:relative !important;
+	display:block !important;
+	margin:3px 0 !important;
+}
+.col-vis-menu > li:first-child > ul li .checkbox label {
+	padding:2px 10px 3px 2px;
+}
+.col-vis-menu > li:first-child > ul li .checkbox input[type="checkbox"] {
+	margin-right:5px;
+	margin-left:10px;
+}
+.col-vis-menu > li:last-child {
+	vertical-align:top;
+}
+.col-vis-menu > li:only-child {
+	padding:5px 20px;
+}
+.col-vis-menu > li:only-child > ul {
+	border-right-style:none;
+	border-right-width:0;
+}
+.col-vis-menu > li:only-child > h3 {
+	padding:0;
+}
 	</style>
 </head>
 <body>
-	<div class="container-fluid">
+	<div class="container-fluid cfviewmain">
         <div class="page-header">
             <h2>Data Table Scratchpad</h2>
         </div>
     </div>
     
-    <div class="container">
+    <div class="container testbtn form-inline no-footer">
+        <div class="panel panel-default">
+        	<div class="panel-heading clearfix myTest"></div>
+        </div>
+        
+        <br /><br />
     	<button id="testButton" class="btn btn-default btn-primary">Test</button>
+        <br /><br />
+        
     </div>
     
+    <div class="container-fluid small-call-test" style="margin-bottom:50px"></div>
+    <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
     <!-- javascript resources -->
     <script src="media/js/jquery-2.1.1.min.js"></script>
 	<script src="media/js/underscore-min.js"></script>
@@ -72,9 +194,13 @@
     <script src="media/js/columnfilters/baseClasses/filterTypes/number/numberBtwn.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/number/numberSel.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateEq.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateBefore.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateAfter.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateBtwn.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateSel.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateCycle.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateM.js"></script>
+    <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateMY.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/date/dateYear.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/boolean/boolEq.js"></script>
     <script src="media/js/columnfilters/baseClasses/filterTypes/enum/enumIn.js"></script>

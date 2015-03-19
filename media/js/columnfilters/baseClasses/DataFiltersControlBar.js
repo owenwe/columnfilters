@@ -533,7 +533,7 @@ var VDataFiltersControlBar = Backbone.View.extend({
 			this.collection.on('request', function(col, xhr, opts) {
 				//console.log('colleciton.request');
 				if(!this.isLocalStorage) {
-					console.log('collection.request');
+					//console.log('collection.request');
 					this.disable();
 				}
 			}, this);
