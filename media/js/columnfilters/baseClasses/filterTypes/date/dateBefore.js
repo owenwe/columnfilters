@@ -1,19 +1,10 @@
-/**
- * Filter Widget Type Implementation Class for Date (Equals)
- * !!! SEND/RECEIVE ALL TIMESTAMPS AS UTC !!!
- */
-var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
-	'version':'1.0.7',
-	'type':'equals',
-	'dp':null,
-	'dpConfig':{
-		autoclose:true,
-		'name':'dpeq',
-		'format':CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us
-	},
+// Filter Widget Type Implementation Class for Date (Before)
+var VFilterWidgetTypeDateB4 = VFilterWidgetType.extend({
+	'version':'1.0.4',
+	'type':'before',
 	
 	'isValid':function() {
-		var d = this.dp.datepicker('getUTCDate');
+		var d = this.model.get('dp').datepicker('getUTCDate');
 		return d && !isNaN(d.getTime());
 	},
 	
@@ -28,7 +19,7 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 	
 	'getValueDescription':function() {
 		if(this.isValid()) {
-			return 'is equal to ' + moment.utc(this.dp.datepicker('getUTCDate')).format('M/D/YYYY');
+			return 'is before ' + moment.utc(this.model.get('dp').datepicker('getUTCDate')).format('M/D/YYYY');
 		} else {
 			return false;
 		}
@@ -38,7 +29,7 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 		if(this.validate()) {
 			return {
 				'type':this.type,
-				'value':this.dp.datepicker('getUTCDate').getTime(),
+				'value':moment.utc(this.dp.datepicker('getUTCDate')).valueOf(),
 				'description':this.getValueDescription()
 			};
 		}
@@ -48,18 +39,18 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 	'setValue':function(filterValue) {
 		// new way with moment
 		if(filterValue.value) {
-			this.dp.datepicker('setUTCDate', moment.utc(filterValue.value).toDate());
+			this.model.get('dp').datepicker('setUTCDate', moment.utc(filterValue.value).toDate());
 		}
 	},
 	
 	'reset':function() {
-		this.dp.datepicker('update',null);
+		this.model.get('dp').datepicker('update', null);
 	},
 	
 	'template':_.template([
 		'<div class="row">',
 			'<div class="col-lg-5 col-md-7 col-sm-12 col-xs-8">',
-				'<div class="input-group date">',
+				'<div class="input-group">',
 					'<input type="text" class="form-control date" value="" />',
 					'<span class="input-group-addon">',
 						'<span class="glyphicon glyphicon-calendar"></span>',
@@ -67,11 +58,21 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 				'</div>',
 			'</div>',
 		'</div>'
-	].join(''), {variable:'datepicker'}),
+	].join('')),
 	
 	'initialize':function(options) {
-		this.$el.html(this.template(this.dpConfig));
-		$('input.date',this.$el).datepicker(this.dpConfig);
-		this.dp = $('input.date', this.$el);
+		this.model = new Backbone.Model({
+			'dp':null,
+			'dpConfig':{
+				'autoclose':true,
+				'name':'dpb4',
+				'format':CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us
+			}
+		});
+		
+		this.$el.html(this.template({}));
+		
+		$('input.date', this.$el).datepicker(this.model.get('dpConfig'));
+		this.model.set('dp', $('input.date', this.$el));
 	}
 });

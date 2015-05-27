@@ -15,14 +15,22 @@ yours and then try to restrict others from using it.
 	overflow:auto;
 }
 
+.cf-dropdown-menu-scroll-medium ul.dropdown-menu {
+	max-height: 400px;
+	overflow: hidden;
+	overflow-y: auto;
+}
+.cf-dropdown-menu-scroll-small ul.dropdown-menu {
+	max-height: 200px;
+	overflow: hidden;
+	overflow-y: auto;
+}
+
 .cf-data-filter-type-selection, .cf-common-value-dropdown {
 	margin-right:4px;
 }
 .cf-common-value-dropdown ul.dropdown-menu {
 	min-width:200px;
-	max-height: 200px;
-	overflow: hidden;
-	overflow-y: auto;
 }
 .cf-common-value-dropdown ul.dropdown-menu li button {
 	background-color:transparent !important;
@@ -96,6 +104,35 @@ yours and then try to restrict others from using it.
 	margin-right:5px;
 }
 
+.cf-select-widget-list li {
+	border-style:none!important;
+	padding:3px 9px!important;
+}
+.cf-select-widget-list li button {
+	margin-top:-4px;
+}
+
+.cf-enum-dropdown-list {
+	min-width:150px;
+	/*max-width:300px;*/
+	max-height: 200px;
+	overflow: hidden;
+	overflow-y: auto;
+}
+.cf-enum-dropdown-list li {
+	padding-left:8px;
+	padding-right:8px;
+}
+
+.cf-nopad-dropdown {
+	padding:0;
+}
+
+.cf-custom-ui-container {
+	margin-left:5px;
+	margin-right:5px;
+}
+
 
 /* Filters Control Nav Bar
  * Menus for Filter Categories and Filter Sets
@@ -154,21 +191,4 @@ yours and then try to restrict others from using it.
 	white-space:normal;
 	overflow:hidden;
 	text-overflow:ellipsis !important;
-}
-
-
-
-.cf-enum-dropdown-list {
-	min-width:150px;
-	/*max-width:300px;*/
-	max-height: 200px;
-	overflow: hidden;
-	overflow-y: auto;
-}
-.cf-enum-dropdown-list li {
-	padding-left:8px;
-}
-
-.cf-nopad-dropdown {
-	padding:0;
 }

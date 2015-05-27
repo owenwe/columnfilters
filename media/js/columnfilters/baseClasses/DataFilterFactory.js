@@ -13,22 +13,21 @@ var VDataFilterFactory = Backbone.View.extend({
 		var af = this.activeFilter();
 		if(af) {
 			var fw = af.activeType();
-			//console.log(af);
-			//console.log(fw);
 			this.savedState = {
-				'dataCol':fw.attributes.currentColumn,
 				'type':af.type,
 				'label':af.getLabel(),
 				'subtype':fw.attributes.type
 			};
+			if(af.type==='enum' || af.type==='biglist') {
+				_.extend(this.savedState, {'dataCol':fw.attributes.model.get('currentColumn')});
+			}
 		} else {
 			this.savedState = null;
 		}
 	},
 	'restoreState':function() {
 		if(this.savedState) {
-			//console.log(this.savedState);
-			this.load(this.savedState.dataCol,this.savedState.type,this.savedState.label,this.savedState.subtype);
+			this.load(this.savedState.dataCol, this.savedState.type, this.savedState.label, this.savedState.subtype);
 		} else {
 			//check if there is an active filter; hide it if so
 			var af = this.activeFilter();
@@ -52,7 +51,7 @@ var VDataFilterFactory = Backbone.View.extend({
 		//first we have to find the current filter widget
 		var fw = this.collection.findWhere({'type':filter.type});
 		if(fw) {
-			fw.attributes.reset();
+			// fw is a DataColumnFilterWidget (container of widgets of a specific type)
 			fw.attributes.setFilterValue(filter.filterValue);
 		}
 		return this;
@@ -64,6 +63,14 @@ var VDataFilterFactory = Backbone.View.extend({
 			if(af) {
 				af.setLabel(newLabel);
 			}
+		}
+	},
+	
+	'updateMultiColumnFilter':function(columns) {
+		switch(this.activeFilter().type) {
+			case 'biglist':
+				this.activeFilter().activeType().attributes.updateMultiColumns(columns);
+				break;
 		}
 	},
 	
@@ -114,6 +121,7 @@ var VDataFilterFactory = Backbone.View.extend({
 	
 	// displays the requested filter widget type
 	'load':function(dataCol, dataType, dataLabel, subType) {
+		//console.log(['dataCol: ',dataCol, ', dataType: ',dataType, ', dataLabel: ', dataLabel, ', subType: ', subType].join(''));
 		//find it in the collection
 		var reqfw = this.collection.findWhere({'type':dataType}),
 			curfw = this.activeFilter();
@@ -131,6 +139,9 @@ var VDataFilterFactory = Backbone.View.extend({
 			if(reqfw.attributes.type==='enum') {
 				//tell the widget to set up for dataCol
 				reqfw.attributes.getSubType('in').attributes.config(dataCol);
+			} else if(reqfw.attributes.type==='biglist') {
+				// change out biglist filter widget data
+				reqfw.attributes.getSubType('equals').attributes.config(dataCol);
 			}
 			
 			//show the requested filter widget
@@ -143,6 +154,7 @@ var VDataFilterFactory = Backbone.View.extend({
 		return this;
 	},
 	
+	// 
 	'postConfig':function() {
 		this.collection.each(function(filterWidget) {
 			filterWidget.attributes.setFactory(this);
@@ -153,7 +165,6 @@ var VDataFilterFactory = Backbone.View.extend({
 	'tagName':'div',
 	'className':'cf-filter-factory',
 	'initialize':function(options) {
-		// ASSERTION: options will always have 
 		if(options.hasOwnProperty('collection')) {
 			// collection of VDataColumnFilterWidget (where models[n].attributes == VDataColumnFilterWidget)
 			this.types = options.collection.pluck('type');

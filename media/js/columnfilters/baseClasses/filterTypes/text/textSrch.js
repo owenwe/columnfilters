@@ -8,9 +8,7 @@ var VFilterWidgetTypeTextSrch = VFilterWidgetType.extend({
 		return $.trim($('input',this.$el).val()).length>0;
 	},
 	'validate':function() {
-		// TODO unset inputs/labels from danger status
 		if(this.isValid()) {
-			// TODO set inputs/labels to danger status
 			return true;
 		}
 		
@@ -28,7 +26,7 @@ var VFilterWidgetTypeTextSrch = VFilterWidgetType.extend({
 		if(this.validate()) {
 			return {
 				'type':this.type,
-				value:$.trim($('input',this.$el).val()),
+				'value':$.trim($('input',this.$el).val()),
 				'description':this.getValueDescription()
 			};
 		}

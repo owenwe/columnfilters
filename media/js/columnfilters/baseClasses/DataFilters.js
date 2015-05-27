@@ -1,6 +1,9 @@
-// DataFilters (the main shit)
+/* DataFilters
+ * the main control class/view for column filters
+ * 
+*/
 var VDataFilters = Backbone.View.extend({
-	
+	'version':'0.0.1c',
 	/*
 	Default: Column/Type-Based
 	these should translate to AND clauses being appended to WHERE
@@ -18,8 +21,12 @@ var VDataFilters = Backbone.View.extend({
 	'FILTER_SELECTION_TYPES':{ 'DEFAULT':0, 'COMMON_VALUE':1 },
 	
 	// Enum of the different interactive modes this control can be put into
-	// the dataFiltersControl (DataFiltersControlBar/VDataFiltersControlBar) has a copy of this
-	'MODES':{ 'DEFAULT':0, 'CATEGORY_SETS':1 },
+	// the dataFiltersControl (DataFiltersControlBar/VDataFiltersControlBar) has a version of this
+	// DEFAULT: the controls for saving and creating filter sets are not available
+	// CATEGORY_SETS: controls for creating/saving filter sets are available
+	// NO_TYPES: the "Data Filters"/"Common Value" toggle buttons and the controls for creating/saving filter sets are not available
+	// CATEGORIES_NO_TYPES: the controls for creating/saving filter sets are available, but not the "Data Filters"/"Common Value" toggle buttons
+	'MODES':{ 'DEFAULT':0, 'CATEGORY_SETS':1, 'NO_TYPES':2, 'CATEGORIES_NO_TYPES':3 },
 	
 	'defaultConfig':{
 		'mode':0,
@@ -28,14 +35,21 @@ var VDataFilters = Backbone.View.extend({
 		'filterSelectionType':0,
 		'filters':false,
 		'filterCategories':[],
-		'convertBooleanToNumeric':true
+		'convertBooleanToNumeric':true,
+		'webServiceUrl':'/columnfilters'
 	},
 	'mode':0,					// setting the mode to 1 enables the saving filter sets and filter set groups
 	'table':'undefined',		// the name of the database table or virtual source
 	'filterSelectionType':0,	// the type of filter selection to display
 	'filters':null,				// a collection of MDataFilter
 	'filterCategories':[],		// array of names
+	
+	// this is for the Boolean filter widget
 	'convertBooleanToNumeric':true,
+	
+	// for saving and loading the column filters (Filter Sets) to the server
+	// if null, then local storage will be used
+	'webServiceUrl':null,
 	
 	//the modal for add/edit filter sets
 	// TODO this should be moved to VDataFiltersControlBar
@@ -64,7 +78,7 @@ var VDataFilters = Backbone.View.extend({
 	// the user will have to mouse out of the alert div in order to start the hide timer again.
 	'notification':{
 		'timeoutID':null,
-		'displayDelay':1777,//1777
+		'displayDelay':1777,
 		'templates':{
 			'warning':_.template([
 				'<div class="alert alert-warning alert-dismissable cf-notification fade in" role="alert">',
@@ -159,17 +173,18 @@ var VDataFilters = Backbone.View.extend({
 	// columnData: {label: string, name: could be a string or an array, type: string }
 	// 
 	'commonValueColumnSelectionChange':function(columnData) {
-		//console.log(columnData);
 		//console.log(this.commonValueControl.selectedCount);
 		if(this.commonValueControl.selectedCount) {// columns are selected
 			//tell the filter factory to show this data type (if it isn't already)
-			if(this.filterFactory.activeFilter().type !== columnData.type) {
-				this.changeFilterFactoryType(columnData.type,columnData.name,columnData.label);
-			} else {
+			var af = this.filterFactory.activeFilter();
+			if(af && af.type === columnData.type) {
 				// type is the same, so just update the column
 				this.currentColumnFilter.label = columnData.label;
-				this.currentColumnFilter.column =_.map(this.commonValueControl.selectedColumns, function(c) { return c.attributes.name; })
-				//this.filterFactory.updateFilterLabel(this.currentColumnFilter.label);
+				this.currentColumnFilter.column =_.map(this.commonValueControl.selectedColumns, function(c) { return c.attributes.name; });
+				this.filterFactory.updateMultiColumnFilter(this.currentColumnFilter.column);
+			} else {
+				// type is not the same, change the type
+				this.changeFilterFactoryType(columnData.type,columnData.name,columnData.label);
 			}
 		} else {//no more columns are selected
 			//tell filter factorty to hide the active filter (if one is visible)
@@ -186,6 +201,7 @@ var VDataFilters = Backbone.View.extend({
 	// changes the filter factory widget to the given type
 	// column could be a string or an array
 	'changeFilterFactoryType':function(type,column,label,subType) {
+		//console.log(['changeFilterFactoryType >> type: ',type,', column: ',column,', label: ',label,', subType: ',subType].join(''));
 		this.currentColumnFilter = {
 			'table':this.table,
 			'type':type,
@@ -269,11 +285,46 @@ var VDataFilters = Backbone.View.extend({
 	
 	// PUBLIC Functions
 	// returns filters as an object, or false if there aren't filters to return
-	'getCurrentFilter':function() {
+	'getCurrentFilter':function() {// deprecated name, will be removed
 		return this.filters.length ? this.filters.toJSON() : false ;
+	},
+	'getFilters':function() {
+		return this.filters.length ? this.filters.toJSON() : false ;
+	},
+	
+	// adds a filter to the filter collection (filters)
+	'addFilter':function(newFilter) {
+		/* newFilter is expected to be:
+		 * { table:, column:, label:, type:, filterValue:{ description:, type:, [value:], ... } }
+		*/
+		//console.log(newFilter);
+		// check if we are in COMMON_VALUE mode
+		// if it is, then check if more than 1 column has been selected
+		if(this.filterSelectionType && this.currentColumnFilter.column.length<2) {
+			alert('Multiple columns are required for a common value, otherwise just use a regular data filter.');
+			return false;
+		}
 		
-		// Do we need to check for what mode it is set to?
-		//if(this.mode == this.MODES.DEFAULT) {} else {}
+		// enable save filter dropdown
+		if(this.mode === this.MODES.CATEGORY_SETS) {
+			if($('li.cf-save-filter-list', this.dataFiltersControl).hasClass('disabled')) {
+				$('li.cf-save-filter-list', this.dataFiltersControl).removeClass('disabled');
+			}
+		}
+		
+		// create new data filter
+		// MDataFilter is the same thing as a standard Modal (it doesn't define anything specific)
+		
+		
+		// listen for change event on the model
+		newFilter.on('change:filterValue', function(filter) {
+			//need to update filter tab content list item
+			//console.log('filterValue change');
+			this.dataFiltersContainer.updateFilter(filter);
+		}, this);
+		
+		//add to the current category of filters
+		this.filters.add(newFilter);
 	},
 	
 	'tagName':'div',
@@ -302,41 +353,16 @@ var VDataFilters = Backbone.View.extend({
 		'click button.cf-add-filter-button':function(e) {
 			var af = this.filterFactory.activeFilter(),
 				fVal = af?this.filterFactory.getFilterValue():false;
-			
-			// check if we are in COMMON_VALUE mode
-			// if it is, then check if more than 1 column has been selected
-			if(this.filterSelectionType && this.currentColumnFilter.column.length<2) {
-				alert('Multiple columns are required for a common value, otherwise just use a regular data filter.');
-				return false;
-			}
-			
+			//console.log(fVal);
 			if(fVal) {
-				
-				// enable save filter dropdown
-				if(this.mode === this.MODES.CATEGORY_SETS) {
-					if($('li.cf-save-filter-list', this.dataFiltersControl).hasClass('disabled')) {
-						$('li.cf-save-filter-list', this.dataFiltersControl).removeClass('disabled');
-					}
-				}
-				
-				// create new data filter
-				// MDataFilter is the same thing as a standard Modal (it doesn't define anything specific)
-				var ndf = new MDataFilter({
+				var f = new MDataFilter({
 					'table':this.table,
 					'type':this.currentColumnFilter.type,
 					'column':this.currentColumnFilter.column,
 					'label':this.currentColumnFilter.label,
 					'filterValue':fVal
 				});
-				
-				// listen for change event on the model
-				ndf.on('change:filterValue', function(filter) {
-					//need to update filter tab content list item
-					this.dataFiltersContainer.updateFilter(filter);
-				}, this);
-				
-				//add to the current category of filters
-				this.filters.add(ndf);
+				this.addFilter(f);
 			}
 		},
 		
@@ -375,11 +401,9 @@ var VDataFilters = Backbone.View.extend({
 		if(_.has(options,'filterSelectionType') && _.isNumber(options.filterSelectionType)) {
 			this.defaultConfig.filterSelectionType = this.filterSelectionType = options.filterSelectionType;
 		}
-		if(_.has(options,'filters')) {
-			// TODO populate 
-			this.defaultConfig.filters = options.filters;
-		} else {
-			this.filters = new CDataFilters();
+		// webServiceUrl
+		if(_.has(options,'webServiceUrl')) {
+			this.webServiceUrl = options.webServiceUrl;
 		}
 		// can fetch filters from AJAX, or just populate
 		if(_.has(options,'filterCategories') && _.isArray(options.filterCategories)) {
@@ -390,6 +414,8 @@ var VDataFilters = Backbone.View.extend({
 			this.convertBooleanToNumeric = false;
 		}
 		
+		// a collection to hold all the filters
+		this.filters = new CDataFilters();
 		
 		// validTableColumns will populate the dropdown list of columns and the common value control
 		var validTableColumns = [];
@@ -404,11 +430,18 @@ var VDataFilters = Backbone.View.extend({
 			'render':function,
 			
 			--- ColumnFilters properties ---
+			'table':string
 			'cfexclude':boolean,
 			'cftype':string,
 			'cfenumsource':array,
 			'cfenumvaluekey':string // TODO implement
 			'cfenumlabelkey':string
+			
+			  [biglist properties]
+			  'table':string
+			  'datasource':a bloodhound object
+			  'displayKey':string
+			  'valueKey':string
 			*/
 			for(var i in options.tableColumns) {
 				var tc = options.tableColumns[i];
@@ -426,11 +459,12 @@ var VDataFilters = Backbone.View.extend({
 							'name':tc.name
 						};
 						if(tc.cftype==='enum') {
-							_.extend(mappedCol, {'cfenumsource':tc.cfenumsource});
+							_.extend(mappedCol, {'cfenumsource':tc.cfenumsource,'table':tc.table, 'data':tc.data});
 						}
 						if(tc.cftype==='biglist') {
 							// then datasource, displayKey, valueKey MUST exists
 							_.extend(mappedCol, {
+								'table':tc.table,
 								'dataColumn':tc.data,
 								'datasource':tc.datasource,
 								'displayKey':tc.displayKey,
@@ -443,6 +477,9 @@ var VDataFilters = Backbone.View.extend({
 						if(_.has(tc,'cfenumlabelkey')) {
 							_.extend(mappedCol, {'cfenumlabelkey':tc.cfenumlabelkey});
 						}
+						if(_.has(tc,'config')) {
+							_.extend(mappedCol, {'config':tc.config});
+						}
 						_.extend(mappedCol,{'selected':false});
 						validTableColumns.push(mappedCol);
 					}
@@ -452,49 +489,76 @@ var VDataFilters = Backbone.View.extend({
 		
 		// TODO implement a way to override and add filter widget types and sub-types
 		// Create and Populate the filter factory
-		this.filterFactory = new VDataFilterFactory({'showOnInit':this.defaultConfig.showOnInit, 'collection':new Backbone.Collection(
-			[
-				new VDataColumnFilterWidget({'type':'text', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeTextEq(),
-					new VFilterWidgetTypeTextSrch()
-				])}),
-				new VDataColumnFilterWidget({'type':'number', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeNumberEq(),
-					new VFilterWidgetTypeNumberBtwn(),
-					new VFilterWidgetTypeNumberSel()
-					
-				])}),
-				new VDataColumnFilterWidget({'type':'date', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeDateEq(),
-					new VFilterWidgetTypeDateBtwn(),
-					new VFilterWidgetTypeDateSel(),
-					new VFilterWidgetTypeDateCycle()
-					
-				])}),
-				new VDataColumnFilterWidget({'type':'boolean', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeBoolEq({'convertNumeric':this.convertBooleanToNumeric})
-				])}),
-				new VDataColumnFilterWidget({'type':'enum', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeEnumIn({'enums':_.where(validTableColumns, {'type':'enum'})})
-				])}),
-				new VDataColumnFilterWidget({'type':'biglist', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeBiglistEq({'datasets':_.where(validTableColumns, {'type':'biglist'})})
-				])})
-			]
-		)});
+		this.filterFactory = new VDataFilterFactory({
+			'showOnInit':this.defaultConfig.showOnInit, 
+			'collection':new Backbone.Collection([
+				new VDataColumnFilterWidget({
+					'type':'text', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeTextEq(),
+						new VFilterWidgetTypeTextSrch()
+					])
+				}),
+				new VDataColumnFilterWidget({
+					'type':'number', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeNumberEq(),
+						new VFilterWidgetTypeNumberBtwn(),
+						new VFilterWidgetTypeNumberSel()
+					])
+				}),
+				new VDataColumnFilterWidget({
+					'type':'date', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeDateEq(),
+						new VFilterWidgetTypeDateB4(),
+						new VFilterWidgetTypeDateAfter(),
+						new VFilterWidgetTypeDateBtwn(),
+						new VFilterWidgetTypeDateSel(),
+						new VFilterWidgetTypeDateCycle(),
+						new VFilterWidgetTypeDateM(),
+						new VFilterWidgetTypeDateMY(),
+						new VFilterWidgetTypeDateYr()
+					])
+				}),
+				new VDataColumnFilterWidget({
+					'type':'boolean', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeBoolEq({'convertNumeric':this.convertBooleanToNumeric})
+					])
+				}),
+				new VDataColumnFilterWidget({
+					'type':'enum', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeEnumIn({'enums':_.where(validTableColumns, {'type':'enum'})})
+					])
+				}),
+				new VDataColumnFilterWidget({
+					'type':'biglist', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeBiglistEq({'datasets':_.where(validTableColumns, {'type':'biglist'})})
+					])
+				})
+			])
+		});
 		
+		//////////////////////////////////
 		// There will always be a user (or default) filter
 		// should pull all table filters/column filters for this user + common and public
 		this.dataFiltersContainer = new VDataFiltersContainer({'filtersController':this});
+		//////////////////////////////////
 		
+		
+		//////////////////////////////////
 		// filters control; toolbar for saving groups of filters
 		this.dataFiltersControl = new VDataFiltersControlBar({
+			'url':this.webServiceUrl,
 			'filtersController':this,
 			'mode':this.defaultConfig.mode,
 			'filterCategories':this.defaultConfig.filterCategories,
-			'table':this.table,
-			'user_id':181
+			'table':this.table
 		});
+		//////////////////////////////////
 		
 		// constructing the View elements (Heading:Filter Tools, Body:Filters, Footer:Save Controls)
 		this.$el.append(
@@ -517,6 +581,7 @@ var VDataFilters = Backbone.View.extend({
 		// EVENT HANDLERS
 		// event handler when a filter is added
 		this.filters.on('add', function(filter) {
+			//console.log('handling filters.add');
 			this.dataFiltersContainer.add(filter);
 			if(this.mode===this.MODES.CATEGORY_SETS) {
 				this.dataFiltersControl.refreshClearFiltersButton();
@@ -524,6 +589,7 @@ var VDataFilters = Backbone.View.extend({
 		}, this);
 		
 		this.filters.on('remove', function(filter) {
+			//console.log('handling filters.remove');
 			if(this.filters.length<1) {
 				// disable the add filter dropdown
 				$('li.cf-save-filter-list', this.dataFiltersControl).addClass('disabled');
@@ -538,49 +604,34 @@ var VDataFilters = Backbone.View.extend({
 			this.filters.remove(this.filters.get(filterCid));
 		});
 		
-		// upstream handler when a filter item edit click event
-		// puts the sets the filter factory to the correct filter type and initializes with filter value
+		// when the edit button from a filter in the filter container view is clicked
+		// sets the filter factory to the correct filter type and initializes with filter value
 		this.listenTo(this.dataFiltersContainer,'changeClick', function(filterCid) {
 			this.editFilterCid = filterCid;
 			this.editFilterMode();
 			
 			var f = this.filters.get(this.editFilterCid).attributes;
+			//console.log(f);
 			this.changeFilterFactoryType(f.type,f.column,f.label,f.filterValue.type);
 			this.filterFactory.setFilterValue(f);
 		});
 		
-		// upstream handler when a common value column is clicked
+		// when a common value column is clicked
 		this.listenTo(this.commonValueControl, 'columnClick', this.commonValueColumnSelectionChange);
 		
-		// upstream handler when a clear filters event is triggered
+		// when a updateFilter event is triggered in the filter control bar
+		this.listenTo(this.dataFiltersControl, 'updateFilter', function(filter) {
+			this.dataFiltersContainer.updateFilter(filter);
+		});
+		
+		// when a clear filters event is triggered from the filter control bar
 		// newSet is either empty or a filterSet clone
 		this.listenTo(this.dataFiltersControl, 'resetFilters', function(newSet) {
 			if(newSet) {
-				var newFiltersArray = [];
-				for(var i in newSet.attributes.filters) {
-					var newFilters = newSet.attributes.filters[i];
-					var f = new MDataFilter({
-						'table':newFilters.attributes.table,
-						'type':newFilters.attributes.type,
-						'column':newFilters.attributes.column,
-						'label':newFilters.attributes.label,
-						'filterValue':$.extend(true, {}, newFilters.attributes.filterValue)
-					});
-					
-					// listen for change event on the model
-					f.on('change:filterValue', function(filter) {
-						//need to update filter tab content list item
-						this.dataFiltersContainer.updateFilter(filter);
-					}, this);
-					
-					newFiltersArray.push(f);
-				}
-				this.filters.reset(newFiltersArray);
+				this.filters.reset(newSet);
 			} else {
 				this.filters.reset();
 			}
-			
-			//this.filters.reset(newSet);
 		});
 		
 		// notification events (level,title,message)
@@ -605,6 +656,41 @@ var VDataFilters = Backbone.View.extend({
 			}
 		}
 		
+		// check for custom UI to add
+		// options.customUI is assumed to be anyting $.append() would expect
+		if(_.has(options, 'customUI')) {
+			$('div.cf-custom-ui-container', this.$el).append(options.customUI);
+		}
+		
+		// the MODES.NO_TYPES is a custom mode where custom UI buttons can be added to the panel header
+		switch(this.mode) {
+			case this.MODES.NO_TYPES:
+			case this.MODES.CATEGORIES_NO_TYPES:
+				//console.log('setting up column filters for custom mode');
+				$('div.cf-data-filter-type-selection',this.$el).hide();
+				break;
+			case this.MODES.ALL:
+				
+				break;
+		}
+		
+		
+		// check for filters passed in
+		if(_.has(options, 'filters')) {
+			// need to pre-populate the filters collection
+			for(var fidx in options.filters) {
+				var mdf = new MDataFilter({
+					'table':options.filters[fidx].table,
+					'type':options.filters[fidx].type,
+					'column':options.filters[fidx].column,
+					'label':options.filters[fidx].label,
+					'filterValue':options.filters[fidx].filterValue
+				});
+				this.addFilter(mdf);
+				//this.dataFiltersControl.enable();
+			}
+			this.dataFiltersContainer.showTabContent();
+		}
 	},
 	
 	'render':function() { return this; }

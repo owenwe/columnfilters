@@ -2,7 +2,7 @@ CFTEMPLATES.commonValueController = [
 	'<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">',
 		'Select Columns <span class="caret"></span>',
 	'</button>',
-	'<ul class="dropdown-menu dropdown-menu-sm" role="menu">',
+	'<ul class="dropdown-menu" role="menu">',//dropdown-menu-sm
 		'<% for(var i in data.columns) { %>',
 			'<li class="cf-cvdd-active">',
 				'<button type="button" class="btn btn-block text-capitalize " data-name="<%= data.columns[i].name %>" data-type="<%= data.columns[i].type %>">',
