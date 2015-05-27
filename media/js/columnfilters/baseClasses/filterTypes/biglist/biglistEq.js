@@ -4,25 +4,16 @@ the primary input is a typeahead
 [typeahead] -scrollable -custom templates 1)local, 2)prefetch 3)remote
 */
 var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
-	'version':'1.0.0',
+	'version':'1.0.3',
 	'type':'equals',
-	
-	/*
-	model attributes:
-	currentColumn
-	currentData
-	displayKey
-	valueKey
-	*/
-	'model':null,
 	
 	// the text input used for typeahead
 	'taInput':null,
 	
-	
 	'isValid':function() {
 		return this.model.get('currentData')!=null;
 	},
+	
 	'validate':function() {
 		if(this.isValid()) {
 			return true;
@@ -47,6 +38,7 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 	'getValueDescription':function() {//is this public?
 		return this.isValid() ? ('is '+this.getDisplayValue()) : false;
 	},
+	
 	'getValue':function() {
 		if(this.validate()) {
 			return {
@@ -61,6 +53,7 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 		}
 		return false;
 	},
+	
 	'setValue':function(filterValue) {
 		/*
 		filterValue:
@@ -68,7 +61,7 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 			column:string -- should match a 'dataColumn' attribute in one of the collection models
 		*/
 		// TODO multi-column type
-		console.log(filterValue);
+		//console.log(filterValue);
 		var dataset = this.collection.findWhere({'dataColumn':filterValue.column});
 		if(dataset && _.has(filterValue,'column') && _.has(filterValue,'value')) {
 			this.model.set('table', filterValue.table);
@@ -93,8 +86,9 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 	
 	//called from the filter factory
 	'config':function(dataCol) {
+		//console.log(dataCol);
 		if(_.isArray(dataCol)) {
-			// 
+			// for a "common value" filter type
 			var firstDataset = this.collection.findWhere({'column':dataCol[0]}),
 				sameDataset = this.collection.where({'table':firstDataset.get('table')});
 			
@@ -107,6 +101,7 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 			this.model.set('valueKey', firstDataset.get('valueKey'));
 			this.model.set('currentData', null);
 		} else {
+			//console.log(this.collection.toJSON());
 			var newData = this.collection.findWhere({'column':dataCol});
 			if(dataCol!==this.model.get('currentColumn')) {
 				this.model.set('table', newData.get('table'));
@@ -153,7 +148,14 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 	].join('')),
 	
 	'initialize':function(options) {
-		this.model = new Backbone.Model();
+		this.model = new Backbone.Model({
+			'table':null,
+			'currentData':null,
+			'currentColumn':null,
+			'displayKey':null,
+			'valueKey':null
+		});
+		
 		if(_.has(options,'datasets') && _.isArray(options.datasets) && options.datasets.length) {
 			//split datasets into groups by options.datasets[i].name (column name)
 			this.collection = new Backbone.Collection(
@@ -193,8 +195,9 @@ var VFilterWidgetTypeBiglistEq = VFilterWidgetType.extend({
 				}
 			);
 		} else {
+			// shouldn't we error out at this point?
 			this.$el.html(this.template());
-			this.taInput = $('input.typeahead',this.$el);
+			this.taInput = $('input.typeahead', this.$el);
 		}
 	},
 	'render':function() {

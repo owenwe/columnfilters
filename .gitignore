@@ -1,7 +1,7 @@
 .gitignore
+.project
+.settings
 proc.sh
-columnfilters-0.0.1b.js
 cftest.html
 columnfilters-embedable.css
 columnfilters-embedable.js
-pip-copy-to-tomcat.sh

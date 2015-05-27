@@ -3,7 +3,7 @@
  * 
 */
 var VDataFilters = Backbone.View.extend({
-	'version':'0.0.1b',
+	'version':'0.0.1c',
 	/*
 	Default: Column/Type-Based
 	these should translate to AND clauses being appended to WHERE
@@ -201,6 +201,7 @@ var VDataFilters = Backbone.View.extend({
 	// changes the filter factory widget to the given type
 	// column could be a string or an array
 	'changeFilterFactoryType':function(type,column,label,subType) {
+		//console.log(['changeFilterFactoryType >> type: ',type,', column: ',column,', label: ',label,', subType: ',subType].join(''));
 		this.currentColumnFilter = {
 			'table':this.table,
 			'type':type,
@@ -435,6 +436,12 @@ var VDataFilters = Backbone.View.extend({
 			'cfenumsource':array,
 			'cfenumvaluekey':string // TODO implement
 			'cfenumlabelkey':string
+			
+			  [biglist properties]
+			  'table':string
+			  'datasource':a bloodhound object
+			  'displayKey':string
+			  'valueKey':string
 			*/
 			for(var i in options.tableColumns) {
 				var tc = options.tableColumns[i];
@@ -482,39 +489,58 @@ var VDataFilters = Backbone.View.extend({
 		
 		// TODO implement a way to override and add filter widget types and sub-types
 		// Create and Populate the filter factory
-		this.filterFactory = new VDataFilterFactory({'showOnInit':this.defaultConfig.showOnInit, 'collection':new Backbone.Collection(
-			[
-				new VDataColumnFilterWidget({'type':'text', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeTextEq(),
-					new VFilterWidgetTypeTextSrch()
-				])}),
-				new VDataColumnFilterWidget({'type':'number', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeNumberEq(),
-					new VFilterWidgetTypeNumberBtwn(),
-					new VFilterWidgetTypeNumberSel()
-				])}),
-				new VDataColumnFilterWidget({'type':'date', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeDateEq(),
-					new VFilterWidgetTypeDateB4(),
-					new VFilterWidgetTypeDateAfter(),
-					new VFilterWidgetTypeDateBtwn(),
-					new VFilterWidgetTypeDateSel(),
-					new VFilterWidgetTypeDateCycle(),
-					new VFilterWidgetTypeDateM(),
-					new VFilterWidgetTypeDateMY(),
-					new VFilterWidgetTypeDateYr()
-				])}),
-				new VDataColumnFilterWidget({'type':'boolean', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeBoolEq({'convertNumeric':this.convertBooleanToNumeric})
-				])}),
-				new VDataColumnFilterWidget({'type':'enum', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeEnumIn({'enums':_.where(validTableColumns, {'type':'enum'})})
-				])}),
-				new VDataColumnFilterWidget({'type':'biglist', 'collection':new Backbone.Collection([
-					new VFilterWidgetTypeBiglistEq({'datasets':_.where(validTableColumns, {'type':'biglist'})})
-				])})
-			]
-		)});
+		this.filterFactory = new VDataFilterFactory({
+			'showOnInit':this.defaultConfig.showOnInit, 
+			'collection':new Backbone.Collection([
+				new VDataColumnFilterWidget({
+					'type':'text', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeTextEq(),
+						new VFilterWidgetTypeTextSrch()
+					])
+				}),
+				new VDataColumnFilterWidget({
+					'type':'number', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeNumberEq(),
+						new VFilterWidgetTypeNumberBtwn(),
+						new VFilterWidgetTypeNumberSel()
+					])
+				}),
+				new VDataColumnFilterWidget({
+					'type':'date', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeDateEq(),
+						new VFilterWidgetTypeDateB4(),
+						new VFilterWidgetTypeDateAfter(),
+						new VFilterWidgetTypeDateBtwn(),
+						new VFilterWidgetTypeDateSel(),
+						new VFilterWidgetTypeDateCycle(),
+						new VFilterWidgetTypeDateM(),
+						new VFilterWidgetTypeDateMY(),
+						new VFilterWidgetTypeDateYr()
+					])
+				}),
+				new VDataColumnFilterWidget({
+					'type':'boolean', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeBoolEq({'convertNumeric':this.convertBooleanToNumeric})
+					])
+				}),
+				new VDataColumnFilterWidget({
+					'type':'enum', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeEnumIn({'enums':_.where(validTableColumns, {'type':'enum'})})
+					])
+				}),
+				new VDataColumnFilterWidget({
+					'type':'biglist', 
+					'collection':new Backbone.Collection([
+						new VFilterWidgetTypeBiglistEq({'datasets':_.where(validTableColumns, {'type':'biglist'})})
+					])
+				})
+			])
+		});
 		
 		//////////////////////////////////
 		// There will always be a user (or default) filter
@@ -555,6 +581,7 @@ var VDataFilters = Backbone.View.extend({
 		// EVENT HANDLERS
 		// event handler when a filter is added
 		this.filters.on('add', function(filter) {
+			//console.log('handling filters.add');
 			this.dataFiltersContainer.add(filter);
 			if(this.mode===this.MODES.CATEGORY_SETS) {
 				this.dataFiltersControl.refreshClearFiltersButton();
@@ -562,6 +589,7 @@ var VDataFilters = Backbone.View.extend({
 		}, this);
 		
 		this.filters.on('remove', function(filter) {
+			//console.log('handling filters.remove');
 			if(this.filters.length<1) {
 				// disable the add filter dropdown
 				$('li.cf-save-filter-list', this.dataFiltersControl).addClass('disabled');

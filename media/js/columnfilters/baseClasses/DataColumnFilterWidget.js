@@ -37,6 +37,7 @@ var VDataColumnFilterWidget = Backbone.View.extend({
 	'setFilterValue':function(filterValue) {
 		var fwt = this.collection.findWhere({'type':filterValue.type});
 		if(fwt) {
+			// fwt is the sub filter widget
 			fwt.attributes.setValue(filterValue);
 		}
 	},

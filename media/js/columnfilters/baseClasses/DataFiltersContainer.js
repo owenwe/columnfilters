@@ -1,6 +1,13 @@
-// Data Filters Container Controller
+/**
+ * Data Filters Container Controller
+ * This view holds the list of filters applied to each data column.
+ * There are 2 lists, the main list is a tab navigation and each tab
+ * represents the column that one or more filters have been added to.
+ * The second list is the tab nav panel and it contains a list of 
+ * filters for the column.
+ */
 var VDataFiltersContainer = Backbone.View.extend({
-	
+	'version':'1.0.1',
 	'preDisableTabStates':[],
 	
 	// this is the main view template

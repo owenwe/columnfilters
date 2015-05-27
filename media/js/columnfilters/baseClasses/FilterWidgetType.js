@@ -1,3 +1,6 @@
+/**
+ * An abstract view to be extended by a filter widget
+ */
 var VFilterWidgetType = Backbone.View.extend({
 	'type':'equals',//abstract
 	'visible':false,

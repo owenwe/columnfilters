@@ -1,18 +1,13 @@
 // Filter Widget Type Implementation Class for Date (Before)
 var VFilterWidgetTypeDateB4 = VFilterWidgetType.extend({
-	'version':'1.0.1',
+	'version':'1.0.4',
 	'type':'before',
-	'dp':null,
-	'dpConfig':{
-		autoclose:true,
-		'name':'dpb4',
-		'format':CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us
-	},
 	
 	'isValid':function() {
-		var d = this.dp.datepicker('getDate');
-		return !isNaN(d.getTime());
+		var d = this.model.get('dp').datepicker('getUTCDate');
+		return d && !isNaN(d.getTime());
 	},
+	
 	'validate':function() {
 		if(this.isValid()) {
 			return true;
@@ -21,46 +16,63 @@ var VFilterWidgetTypeDateB4 = VFilterWidgetType.extend({
 		this.trigger('notify', 'danger', 'Date Filter ('+this.type+') Error', 'A date must be selected.');
 		return false;
 	},
+	
 	'getValueDescription':function() {
 		if(this.isValid()) {
-			return 'is before ' + moment(this.dp.datepicker('getDate')).format('M/D/YYYY');
+			return 'is before ' + moment.utc(this.model.get('dp').datepicker('getUTCDate')).format('M/D/YYYY');
 		} else {
 			return false;
 		}
 	},
+	
 	'getValue':function() {
 		if(this.validate()) {
 			return {
 				'type':this.type,
-				'value':this.dp.datepicker('getDate'),
+				'value':moment.utc(this.dp.datepicker('getUTCDate')).valueOf(),
 				'description':this.getValueDescription()
 			};
 		}
 		return false;
 	},
+	
 	'setValue':function(filterValue) {
 		// new way with moment
 		if(filterValue.value) {
-			this.dp.datepicker('setUTCDate', moment(filterValue.value).toDate());
+			this.model.get('dp').datepicker('setUTCDate', moment.utc(filterValue.value).toDate());
 		}
 	},
+	
 	'reset':function() {
-		this.dp.datepicker('update',null);
+		this.model.get('dp').datepicker('update', null);
 	},
 	
 	'template':_.template([
 		'<div class="row">',
 			'<div class="col-lg-5 col-md-7 col-sm-12 col-xs-8">',
-				CFTEMPLATES.datepicker,
+				'<div class="input-group">',
+					'<input type="text" class="form-control date" value="" />',
+					'<span class="input-group-addon">',
+						'<span class="glyphicon glyphicon-calendar"></span>',
+					'</span>',
+				'</div>',
 			'</div>',
 		'</div>'
-	].join(''),
-	{variable:'datepicker'}),
-	'events':{},
+	].join('')),
 	
 	'initialize':function(options) {
-		this.$el.html(this.template(this.dpConfig));
-		$('.dpb4',this.$el).datepicker(this.dpConfig);
-		this.dp = $('.dpb4',this.$el);
+		this.model = new Backbone.Model({
+			'dp':null,
+			'dpConfig':{
+				'autoclose':true,
+				'name':'dpb4',
+				'format':CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us
+			}
+		});
+		
+		this.$el.html(this.template({}));
+		
+		$('input.date', this.$el).datepicker(this.model.get('dpConfig'));
+		this.model.set('dp', $('input.date', this.$el));
 	}
 });

@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="media/css/dataTables.bootstrap.css" />
     <link rel="stylesheet" href="media/css/bootstrap-datepicker3.min.css" />
     <link rel="stylesheet" href="media/css/fuelux.min.css" />
-    <link rel="stylesheet" href="media/css/columnfilters-0.0.1b.css" />
+    <link rel="stylesheet" href="media/css/typeahead-ext.css" />
+    <link rel="stylesheet" href="media/css/columnfilters.css" />
     <style>
 div.cal-2-row {
 	float:left;
@@ -133,13 +134,17 @@ div.cal-2-row > div > div > div:first-child {
         <div class="page-header">
             <h2>Data Table Scratchpad</h2>
         </div>
+        
     </div>
     
     <div class="container testbtn form-inline no-footer">
         <div class="panel panel-default">
         	<div class="panel-heading clearfix myTest"></div>
         </div>
-        
+        <div class="form-group">
+            <label for="inputNumber" class="control-label">Number</label>
+            <input class="form-control" type="number" id="inputNumber" name="inputNumber" min="0" max="100" size="5" />
+        </div>
         <br /><br />
     	<button id="testButton" class="btn btn-default btn-primary">Test</button>
         <br /><br />

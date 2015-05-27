@@ -1,9 +1,7 @@
 // Filter Widget Type Implementation Class for Enum (Select)
 var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
-	'version':'1.0.2',
+	'version':'1.0.3',
 	'type':'in',
-	
-	'currentColumn':null,
 	
 	'isValid':function() {
 		return $.map($('.dropdown-menu input:checked',this.$el), function(e,i){ return e.value*1; }).length>0;
@@ -43,8 +41,8 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 			
 			return {
 				'type':this.type,
-				'table':this.collection.findWhere({'column':this.currentColumn}).get('table'),
-				'column':this.currentColumn,
+				'table':this.collection.findWhere({'column':this.model.get('currentColumn')}).get('table'),
+				'column':this.model.get('currentColumn'),
 				'value':checkMap,
 				'description':[desc_1,checkNames.join(','),desc_2].join('')
 			};
@@ -77,8 +75,8 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 	
 	'config':function(dataCol) {
 		// dataCol will be a string
-		if(dataCol!==this.currentColumn) {
-			this.currentColumn = dataCol;
+		if(dataCol!==this.model.get('currentColumn')) {
+			this.model.set('currentColumn', dataCol);
 			this.$el.html(this.template(this.collection.findWhere({'column':dataCol}).attributes));
 		}
 	},
@@ -117,9 +115,13 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 	].join(''),{variable:'data'}),
 	
 	'initialize':function(options) {
+		this.model = new Backbone.Model({
+			'currentColumn':null
+		});
+		
 		//split enums into groups by options.enums[i].name
 		// check options.enums array of keys named 'id', a mapped copy of the array will 
-		// need to be made where the 'id' keys are renamed to 'code' (mimicing java Enum class)
+		// need to be configured so that the 'id' keys are renamed to 'code' (mimicing java Enum class)
 		var enumData;
 		if(_.has(options,'enums') && _.isArray(options.enums) && options.enums.length) {
 			// incoming meta data
@@ -137,9 +139,10 @@ var VFilterWidgetTypeEnumIn = VFilterWidgetType.extend({
 					};
 				})
 			);
-			this.currentColumn = this.collection.at(0).get('column');
-			this.$el.html(this.template(this.collection.at(0).attributes));
+			this.model.set('currentColumn', this.collection.at(0).get('column'));
+			this.$el.html(this.template(this.collection.at(0).toJSON()));
 		} else {
+			// shouldn't we error out?
 			this.$el.html(this.template({'enums':[]}));
 		}
 	}

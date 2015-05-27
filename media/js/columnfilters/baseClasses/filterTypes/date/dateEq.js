@@ -1,6 +1,9 @@
-// Filter Widget Type Implementation Class for Date (Equals)
+/**
+ * Filter Widget Type Implementation Class for Date (Equals)
+ * !!! SEND/RECEIVE ALL TIMESTAMPS AS UTC !!!
+ */
 var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
-	'version':'1.0.3',
+	'version':'1.0.7',
 	'type':'equals',
 	'dp':null,
 	'dpConfig':{
@@ -10,8 +13,8 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 	},
 	
 	'isValid':function() {
-		var d = this.dp.datepicker('getDate');
-		return !isNaN(d.getTime());
+		var d = this.dp.datepicker('getUTCDate');
+		return d && !isNaN(d.getTime());
 	},
 	
 	'validate':function() {
@@ -25,7 +28,7 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 	
 	'getValueDescription':function() {
 		if(this.isValid()) {
-			return 'is equal to ' + moment(this.dp.datepicker('getDate')).format('M/D/YYYY');
+			return 'is equal to ' + moment.utc(this.dp.datepicker('getUTCDate')).format('M/D/YYYY');
 		} else {
 			return false;
 		}
@@ -35,7 +38,7 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 		if(this.validate()) {
 			return {
 				'type':this.type,
-				'value':this.dp.datepicker('getDate'),
+				'value':this.dp.datepicker('getUTCDate').getTime(),
 				'description':this.getValueDescription()
 			};
 		}
@@ -45,7 +48,7 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 	'setValue':function(filterValue) {
 		// new way with moment
 		if(filterValue.value) {
-			this.dp.datepicker('setUTCDate', moment(filterValue.value).toDate());
+			this.dp.datepicker('setUTCDate', moment.utc(filterValue.value).toDate());
 		}
 	},
 	
@@ -56,30 +59,19 @@ var VFilterWidgetTypeDateEq = VFilterWidgetType.extend({
 	'template':_.template([
 		'<div class="row">',
 			'<div class="col-lg-5 col-md-7 col-sm-12 col-xs-8">',
-				CFTEMPLATES.datepicker,
+				'<div class="input-group date">',
+					'<input type="text" class="form-control date" value="" />',
+					'<span class="input-group-addon">',
+						'<span class="glyphicon glyphicon-calendar"></span>',
+					'</span>',
+				'</div>',
 			'</div>',
 		'</div>'
 	].join(''), {variable:'datepicker'}),
 	
-	'events':{
-		/* for testing
-		'changeDate div.dpeq':function(e) {
-			console.log(e);
-			return false;
-		}*/
-	},
-	
 	'initialize':function(options) {
-		/*
-		template datepicker3 wants: 
-			name -required: string that will be added to the class list, 
-			date: string date that should be in the same format as what you assign the datepicker, 
-			format: string format - viewMode:CFTEMPLATES.DATEPICKER_DATE_FORMATS.en_us/en_gb/zh_cn, 
-			viewMode: use CFTEMPLATES.DATEPICKER_VIEW_MODES.YEARS/MONTHS/DAYS, 
-			minViewMode: same as viewMode
-		*/
 		this.$el.html(this.template(this.dpConfig));
-		$('.dpeq',this.$el).datepicker(this.dpConfig);
-		this.dp = $('.dpeq',this.$el);
+		$('input.date',this.$el).datepicker(this.dpConfig);
+		this.dp = $('input.date', this.$el);
 	}
 });

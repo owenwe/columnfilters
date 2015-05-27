@@ -1,12 +1,12 @@
 // Filter Widget Type Implementation Class for Date (Month Year)
 var VFilterWidgetTypeDateMY = VFilterWidgetType.extend({
-	'version':'1.0.3',
+	'version':'1.0.8',
 	'type':'monthyear',
 	
 	'isValid':function() {
 		// a month and year is selected
 		var retM = $('select', this.$el).val()*1,
-			retY = this.model.get('dp').datepicker('getDate');
+			retY = this.model.get('dp').datepicker('getUTCDate');
 		return ( (retM>-1) && (retY));
 	},
 	
@@ -14,7 +14,6 @@ var VFilterWidgetTypeDateMY = VFilterWidgetType.extend({
 		if(this.isValid()) {
 			return true;
 		}
-		
 		this.trigger('notify', 'danger', 'Date Filter ('+this.type+') Error', 'A month and year must be selected.');
 		return false;
 	},
@@ -25,19 +24,24 @@ var VFilterWidgetTypeDateMY = VFilterWidgetType.extend({
 				'is in ', 
 				moment({'month':$('select', this.$el).val()*1}).format('MMMM'),
 				' of year ',
-				moment(this.model.get('dp').datepicker('getDate')).format('YYYY')
+				moment.utc(this.model.get('dp').datepicker('getUTCDate')).format('YYYY')
 			].join('');
 		} else {
 			return false;
 		}
 	},
 	
+	/**
+	 * Returns:
+	 * { type:'monthyear', month:<0-11>, start:<timestamp>, year:<int>, description:<string> }
+	 */
 	'getValue':function() {
 		if(this.validate()) {
 			return {
 				'type':this.type,
 				'month':$('select', this.$el).val()*1,
-				'year':this.model.get('dp').datepicker('getDate').getFullYear(),
+				'start':moment.utc(this.model.get('dp').datepicker('getUTCDate')).valueOf(),
+				'year':moment.utc(this.model.get('dp').datepicker('getUTCDate')).year(),
 				'description':this.getValueDescription()
 			};
 		}
@@ -62,15 +66,19 @@ var VFilterWidgetTypeDateMY = VFilterWidgetType.extend({
 			'<div class="col-lg-5 col-md-6 col-sm-12 col-xs-8">',
 				'<label class="control-label">Month: </label>',
 				'<select class="form-control">',
-					'<option value="-1"></option>',
 				'<% for(var i in months) { %>',
-					'<option value="<%= ((i*1)+1) %>"><%= months[i] %></option>',
+					'<option value="<%= ((i*1)) %>"><%= months[i] %></option>',
 				'<% } %>',
 				'</select>',
 			'</div>',
 			'<div class="col-lg-5 col-md-6 col-sm-12 col-xs-8">',
 				'<label class="control-label">Year: </label>',
-				CFTEMPLATES.datepicker,
+				'<div class="input-group date">',
+					'<input type="text" class="form-control date" value="" />',
+					'<span class="input-group-addon">',
+						'<span class="glyphicon glyphicon-calendar"></span>',
+					'</span>',
+				'</div>',
 			'</div>',
 		'</div>'
 	].join('')),
@@ -104,9 +112,9 @@ var VFilterWidgetTypeDateMY = VFilterWidgetType.extend({
 		this.$el.html( this.template({'datepicker':this.model.get('dpConfig'), 'months':this.model.get('months')}) );
 		
 		// create the datepicker
-		$('.dpmy', this.$el).datepicker(this.model.get('dpConfig'));
+		$('input', this.$el).datepicker(this.model.get('dpConfig'));
 		
 		// set the model's dp property now that the datepicker has been created
-		this.model.set('dp', $('.dpmy', this.$el));
+		this.model.set('dp', $('input', this.$el));
 	}
 });
