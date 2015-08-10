@@ -1,0 +1,20 @@
+.cf-data-filter-type-selection, .cf-common-value-dropdown {
+    margin-right:4px;
+}
+.cf-common-value-dropdown ul.dropdown-menu {
+    min-width:200px;
+}
+.cf-common-value-dropdown ul.dropdown-menu li button {
+    background-color:transparent !important;
+    border-style:none;
+}
+.cf-common-value-list-item-hover {
+    background-color:#f3f7f7;
+}
+.cf-common-value-list-item-hover button {
+    font-weight:bold;
+}
+.cf-common-value-dropdown ul.dropdown-menu li.disabled button {
+    color:#eee;
+}
+

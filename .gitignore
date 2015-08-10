@@ -1,7 +1,4 @@
 .gitignore
 .project
 .settings
-proc.sh
-cftest.html
-columnfilters-embedable.css
-columnfilters-embedable.js
+.README.md.html

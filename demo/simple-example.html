@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" charset="utf-8" content="text/html; charset=UTF-8" />
+    <title>columnfilters implementation page</title>
+    <link rel="stylesheet" href="media/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="media/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="media/css/dataTables.bootstrap.css" />
+    <link rel="stylesheet" href="media/css/bootstrap-datepicker3.min.css" />
+    <link rel="stylesheet" href="media/css/fuelux.min.css" />
+    <link rel="stylesheet" href="media/css/typeahead-ext.css" />
+    <link rel="stylesheet" href="../dist/dataTables.columnfilters.min.css" />
+    <style>
+	body {
+	   padding-top:15px;
+	}
+	</style>
+</head>
+<body>
+	<div class="container-fluid">
+        <div id="simple-example"></div>
+    </div>
+    
+    <div class="container">
+    	<button id="testButton" class="btn btn-default btn-primary">Test</button>
+    </div>
+    
+    <script src="media/js/jquery-2.1.1.min.js"></script>
+    <script src="media/js/underscore-min.js"></script>
+    <script src="media/js/backbone.js"></script>
+    <script src="media/js/bootstrap.min.js"></script>
+    <script src="media/js/moment.min.js"></script>
+    <script src="media/js/typeahead.bundle.min.js"></script>
+    <script src="media/js/jquery.dataTables.min.js"></script>
+    <script src="media/js/dataTables.bootstrap.js"></script>
+    <script src="media/js/bootstrap-datepicker.min.js"></script>
+    <script src="media/js/spinbox.js"></script>
+    <script src="../dist/dataTables.columnfilters.js"></script>
+    <script src="media/js/DateCycleFilterWidget.js"></script>
+<script>
+'use strict';
+
+var tc, 
+    cf,
+    
+    cities = new Bloodhound({
+        'name':'cities',
+        'datumTokenizer':$.fn.ColumnFilters.tokenizers.whitespace,
+        'queryTokenizer':Bloodhound.tokenizers.whitespace,
+        'prefetch':{
+            'url':'data/cities.json'
+        }
+    }),
+	
+    areas = [//required
+		{'id':1, 'name':'No Area Designated', 'description':null},
+		{'id':2, 'name':'Redding', 'description':null},
+		{'id':3, 'name':'Chico', 'description':null}
+    ], 
+    
+    payors = [
+       {"id":1,"name":"None","type":"NONE"},
+       {"id":2,"name":"Other","type":"Oth"},
+       {"id":3,"name":"Medi Cal","type":"MCAL"},
+       {"id":4,"name":"Insurance","type":"INS"},
+       {"id":5,"name":"Healthy Families","type":"HF"}
+   ],
+    
+    programs = [
+		{'id':'1', 'typeId':'--', 'description':'No Program Assigned', 'amount':null},
+		{'id':'2', 'typeId':'AD', 'description':'Administration', 'amount':null},
+		{'id':'3', 'typeId':'AS', 'description':'Autism Support Program', 'amount':72.00},
+		{'id':'4', 'typeId':'DV', 'description':'Developmental', 'amount':72.00},
+		{'id':'5', 'typeId':'EX', 'description':'Extended', 'amount':72.00},
+		{'id':'6', 'typeId':'EV', 'description':'Evaluation', 'amount':72.00},
+		{'id':'7', 'typeId':'TR', 'description':'Training', 'amount':null},
+		{'id':'8', 'typeId':'EP', 'description':'Play Group Under 3', 'amount':72.00},
+		{'id':'9', 'typeId':'AP', 'description':'Play Group Over 3', 'amount':72.00},
+		{'id':'10', 'typeId':'PG', 'description':'Play Group', 'amount':null},
+		{'id':'11', 'typeId':'C', 'description':'Cleaning', 'amount':null},
+		{'id':'12', 'typeId':'PH', 'description':'Planning Hours', 'amount':null},
+		{'id':'13', 'typeId':'R', 'description':'Reports', 'amount':null},
+		{'id':'14', 'typeId':'A1', 'description':'ABAS', 'amount':100.00},
+		{'id':'15', 'typeId':'B1', 'description':'Bayley', 'amount':500.00},
+		{'id':'16', 'typeId':'BA', 'description':'Bayley/Abas', 'amount':600.00},
+		{'id':'17', 'typeId':'H1', 'description':'Help', 'amount':400.00},
+		{'id':'32', 'typeId':'O', 'description':'Other', 'amount':null}
+    ],
+	
+    sampleColumns = [
+		{
+		    'data':'id', 
+		    'type':'int', 
+		    'control':{'type':'hidden', 'name':'id'},
+			'cfexclude':true
+		},
+		{'data':'fname', 'title':'First Name', 'type':'string'},
+		{'data':'lname', 'title':'Last Name', 'type':'varchar'},
+		{'data':'status', 'title':'Status', 'type':'boolean'},
+		{'data':'hired', 'title':'Hired', 'type':'date'},
+		
+		{'data':'supervisor', 'title':'Supervisor', 'type':'tinytext'},
+		
+		{'data':'payor1', 'title':'Payor 1', 'type':'object', 'table':'payors', 'datasource':payors, 'valueKey':'id', 'displayKey':'name'},
+		{'data':'payor2', 'title':'Payor 2', 'type':'object', 'table':'payors', 'datasource':payors, 'valueKey':'id', 'displayKey':'name'},
+		
+		{
+			'data':'area',  
+			'title':'Area', 
+			'type':'object', 
+			'table':'areas',
+			'datasource':areas,
+			'valueKey':'id',
+			'displayKey':'name'
+		},
+		{
+			'data':'program', 
+			'title':'Program', 
+			'type':'object', 
+			'table':'programs',
+			'datasource':programs,
+			'valueKey':'id',
+			'displayKey':'typeId'
+		},
+		{
+            'data':'program2', 
+            'title':'Program 2', 
+            'type':'object', 
+            'table':'programs',
+            'datasource':programs,
+            'valueKey':'id',
+            'displayKey':'typeId'
+        },
+        {
+            'data':'city',
+            'type':'reference',
+            'title':'City',
+            'table':'cities',
+            'datasource':cities,
+            'valueKey':'id',
+            'displayKey':function(c) {
+                return c.name;
+            }
+        },
+		{'data':'notes', 'title':'Notes', 'type':'longtext'},
+		{'data':'boolTest', 'title':'Bool 1', 'type':'boolean', 'trueLabel':'Yes', 'falseLabel':'No'}
+    ]
+;
+
+$(document).ready(function(e) {
+	cf = $('#simple-example').ColumnFilters({
+	    'mode':$.fn.ColumnFilters.Modes.CATEGORY_SETS,
+        'table':'employees', 
+        'columns':sampleColumns,
+        'columnsControlConfig':{
+            'defaultSelectedColumnValue':'hired'
+        },
+        'filters':[
+			{
+			    'column':'supervisor', 
+			    'label':'Supervisor', 
+			    'table':'employees', 
+			    'type':'text', 
+			    'filterValue':{'value':'smith', 'operator':'search', 'description':'is like smith'}
+			},
+            {
+                'column':'hired', 
+                'label':'Hired', 
+                'table':'employees', 
+                'type':'date', 
+                'filterValue':{'value':212914800000, 'operator':'equals', 'description':'is equal to 9/30/1976'}
+            }
+        ],
+        'filtersContainerConfig':{'activeColumnIndex':1},
+        'dataTypeWidgets':[
+            {
+                'type':'date',
+                'widgets':[new DateCycleFilterWidget()]
+            }
+        ]
+    });
+	
+	$('#testButton').on('click', function(e) {
+		//get filter data from columnfilters object (df)
+		console.log(cf.getFilters());
+	});
+});
+</script>
+</body>
+</html>

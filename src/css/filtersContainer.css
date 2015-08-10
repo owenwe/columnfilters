@@ -1,0 +1,28 @@
+.columnfilters .panel .cf-data-filters-container {
+	max-height:86px;
+	overflow:hidden;
+	padding:0!important;
+}
+
+.columnfilters .panel .cf-data-filters-container > p {
+	margin-top:10px;
+	padding: 10px 15px;
+}
+
+.columnfilters .panel .cf-data-filters-container .cf-column-filters-list-container {
+	max-height:86px;
+    overflow-y:auto;
+    width:30%;
+    float:left;
+}
+
+.columnfilters .panel .cf-data-filters-container div.tab-content {
+	max-height:86px;
+	overflow-y:auto;
+	width:70%;
+	float:left;
+}
+
+.columnfilters .panel .cf-data-filters-container div.tab-content div.tab-pane {
+	margin-bottom:0!important;
+}
