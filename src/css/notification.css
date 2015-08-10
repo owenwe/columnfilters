@@ -1,0 +1,11 @@
+.cf-notification {
+    position:fixed !important;
+    margin-top:-10px !important;
+    z-index:99999 !important;
+    max-height:100px !important;
+}
+.cf-notification p {
+    max-height:3em;
+    overflow:auto;
+}
+

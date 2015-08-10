@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: DateBetweenFilterWidget</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: DateBetweenFilterWidget</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        DateBetweenFilterWidget
+        </h2>
+        
+            <div class="class-description">A widget for text data type that is equal to a value.</div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+    <h2>Constructor</h2>
+    
+
+    <h4 class="name" id="DateBetweenFilterWidget"><span class="type-signature"></span>new DateBetweenFilterWidget<span class="signature">(options)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    A customized extended Backbone.View instance
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The configuration options for this View instance.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-version">Version:</dt>
+    <dd class="tag-version"><ul class="dummy"><li>1.0.8</li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4206">line 4206</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+        <h3 class="subsection-title">Extends</h3>
+
+        
+
+
+    <ul>
+        <li><a href="global.html#Backbone-View">Backbone-View</a></li>
+    </ul>
+
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="className"><span class="type-signature">(readonly) </span>className<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    This Backbone View's class values.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>cf-filter-widget</li>
+        </ul></dd>
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4204">line 4204</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="model"><span class="type-signature">(protected) </span>model<span class="type-signature"> :Backbone-Model</span></h4>
+
+
+
+
+<div class="description">
+    This view instance's model data.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Backbone-Model</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>operator</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                    'between'
+                
+                </td>
+            
+
+            <td class="description last">the type of filter matching that this widget would perform</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4218">line 4218</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="template"><span class="type-signature">(readonly) </span>template<span class="type-signature"> :Underscore-template</span></h4>
+
+
+
+
+<div class="description">
+    The underscore template used in the render function.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Underscore-template</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4192">line 4192</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="disable"><span class="type-signature"></span>disable<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Sets all the interactive controls in this View instance to a disabled state.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4113">line 4113</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="enable"><span class="type-signature"></span>enable<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Enables all the interactive controls in this View instance.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4103">line 4103</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="get"><span class="type-signature"></span>get<span class="signature">()</span><span class="type-signature"> &rarr; {object}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Gets the value from this filter widget
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4123">line 4123</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getOperator"><span class="type-signature"></span>getOperator<span class="signature">()</span><span class="type-signature"> &rarr; {string}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Returns the operator for this filter widget instance.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4177">line 4177</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="hide"><span class="type-signature"></span>hide<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Hides this View instance.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4093">line 4093</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="reset"><span class="type-signature"></span>reset<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Sets all the interactive controls within this View's instance to their default state and value.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4165">line 4165</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="set"><span class="type-signature"></span>set<span class="signature">(filterValue)</span><span class="type-signature"> &rarr; {<a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Sets the values of this filter widget with the passed object.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>filterValue</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An object that has values for all the interactive controls within this View instance.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4150">line 4150</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="show"><span class="type-signature"></span>show<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Displays this View instance.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line4083">line 4083</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BiglistEqualsFilterWidget.html">BiglistEqualsFilterWidget</a></li><li><a href="BooleanEqualsFilterWidget.html">BooleanEqualsFilterWidget</a></li><li><a href="ColumnFilters.html">ColumnFilters</a></li><li><a href="ColumnFiltersContainer.html">ColumnFiltersContainer</a></li><li><a href="ColumnSelectionControl.html">ColumnSelectionControl</a></li><li><a href="DateAfterFilterWidget.html">DateAfterFilterWidget</a></li><li><a href="DateBeforeFilterWidget.html">DateBeforeFilterWidget</a></li><li><a href="DateBetweenFilterWidget.html">DateBetweenFilterWidget</a></li><li><a href="DateEqualsFilterWidget.html">DateEqualsFilterWidget</a></li><li><a href="DateListFilterWidget.html">DateListFilterWidget</a></li><li><a href="DateMonthFilterWidget.html">DateMonthFilterWidget</a></li><li><a href="DateMonthYearFilterWidget.html">DateMonthYearFilterWidget</a></li><li><a href="DateYearFilterWidget.html">DateYearFilterWidget</a></li><li><a href="EnumEqualsFilterWidget.html">EnumEqualsFilterWidget</a></li><li><a href="FilterFactory.html">FilterFactory</a></li><li><a href="FilterSaveControl.html">FilterSaveControl</a></li><li><a href="NumberBetweenFilterWidget.html">NumberBetweenFilterWidget</a></li><li><a href="NumberEqualsFilterWidget.html">NumberEqualsFilterWidget</a></li><li><a href="NumberListFilterWidget.html">NumberListFilterWidget</a></li><li><a href="TextEqualsFilterWidget.html">TextEqualsFilterWidget</a></li><li><a href="TextSearchFilterWidget.html">TextSearchFilterWidget</a></li></ul><h3>Events</h3><ul><li><a href="ColumnSelectionControl.events.html#event:%2522button.cf-add-column-filter-button%2522:click">"button.cf-add-column-filter-button":click</a></li><li><a href="ColumnSelectionControl.events.html#event:%2522cc.filter.add%2522">"cc.filter.add"</a></li><li><a href="ColumnSelectionControl.events.html#event:%2522cc.filter.save%2522">"cc.filter.save"</a></li><li><a href="ColumnSelectionControl.events.html#event:%2522div.cf-column-control-action-controlsdiv.btn-groupbutton.btn-default%2522:click">"div.cf-column-control-action-controls div.btn-group button.btn-default":click</a></li><li><a href="ColumnSelectionControl.events.html#event:%2522div.cf-column-control-action-controlsdiv.btn-groupbutton.btn-success%2522:click">"div.cf-column-control-action-controls div.btn-group button.btn-success":click</a></li><li><a href="ColumnSelectionControl.events.html#event:%2522div.cf-filter-type-selectselect%2522:change">"div.cf-filter-type-select select":change</a></li><li><a href="ColumnSelectionControl.events.html#event:%2522div.cf-filter-type-select-columnselect%2522:change">"div.cf-filter-type-select-column select":change</a></li><li><a href="ColumnSelectionControl.events.html#event:%2522div.cf-filter-type-select-commonselect%2522:change">"div.cf-filter-type-select-common select":change</a></li><li><a href="ColumnSelectionControl.events.html#event:%2522fc.filter-cancel.click%2522">"fc.filter-cancel.click"</a></li><li><a href="FilterSaveControl.events.html#event:%2522div.cf-fsc-clear-filterset-buttonbutton%2522:click">"div.cf-fsc-clear-filterset-button button":click</a></li><li><a href="FilterSaveControl.events.html#event:%2522div.cf-fsc-save-filterset-buttongroupbutton:first-child%2522:click">"div.cf-fsc-save-filterset-buttongroup button:first-child":click</a></li><li><a href="FilterSaveControl.events.html#event:%2522div.modal-footerbutton:last-child%2522:click">"div.modal-footer button:last-child":click</a></li><li><a href="FilterSaveControl.events.html#event:%2522li.cf-save-filter-list-itemul.dropdown-menuli%2522:click">"li.cf-save-filter-list-item ul.dropdown-menu li":click</a></li><li><a href="FilterSaveControl.events.html#event:%2522ul.cf-fsc-filter-set-menulibutton.cf-fsc-filter-set-edit-button%2522:click">"ul.cf-fsc-filter-set-menu li button.cf-fsc-filter-set-edit-button":click</a></li><li><a href="FilterSaveControl.events.html#event:%2522ul.cf-fsc-filter-set-menulibutton.cf-fsc-filter-set-remove-button%2522:click">"ul.cf-fsc-filter-set-menu li button.cf-fsc-filter-set-remove-button":click</a></li><li><a href="FilterSaveControl.events.html#event:%2522ul.cf-fsc-filter-set-menulih4a%2522:click">"ul.cf-fsc-filter-set-menu li h4 a":click</a></li><li><a href="FilterWidget.html#event:%2522cf.fw.submit%2522">"cf.fw.submit"</a></li></ul><h3>Namespaces</h3><ul><li><a href="$.fn.ColumnFilters.html">ColumnFilters</a></li><li><a href="ColumnSelectionControl.events.html">events</a></li><li><a href="FilterSaveControl.events.html">events</a></li></ul><h3>Interfaces</h3><ul><li><a href="FilterWidget.html">FilterWidget</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Mon Aug 10 2015 00:01:23 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+/*
+ColumnFilters css for the columnfilters Datatables 1.10.x plugin
+Version: 0.0.1b
+License is free for everyone, no restrictions, you just can't claim it is 
+yours and then try to restrict others from using it.
+*/
+
+.columnfilters .panel > nav.navbar {
+    min-height:auto!important;
+    margin-bottom:auto!important;
+}
+.columnfilters nav.navbar form.navbar-form {
+    margin: 2px 0px!important;
+}
+
