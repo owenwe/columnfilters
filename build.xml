@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="columnfilters" default="help" basedir=".">
+	<description>
+        Compile and deploy ant script for the columnfilters DataTable extension.
+    </description>
+	
+	<condition property="is-windows">
+        <os family="windows" />
+    </condition>
+	
+	<property name="yui" value="yuicompressor-2.4.8.jar" />
+	<property name="source.dir" value="dist" />
+	
+	
+	<!-- distribute/release -->
+	<target name="dist" depends="compile" description="compiles source into single files, minifies them, then generates the documentation">
+	    <antcall target="doc" />
+	</target>
+	
+	
+	<!-- minify js and css files -->
+    <target name="compile" depends="combine" description="minify .js and .css files">
+        <exec dir="${basedir}" executable="java">
+            <arg line="-jar lib/${yui} -o dist/dataTables.columnfilters.min.js dist/dataTables.columnfilters.js" />
+        </exec>
+        <exec dir="${basedir}" executable="java">
+          <arg line="-jar lib/${yui} --line-break 0 -o dist/dataTables.columnfilters.min.css dist/dataTables.columnfilters.css" />
+        </exec>
+    </target>
+	
+	
+	<!-- combine js and css files -->
+	<target name="combine" description="combines .js and .css files">
+		<concat destfile="${basedir}/dist/dataTables.columnfilters.css" ignoreempty="yes" fixlastline="yes">
+			<filelist dir="${basedir}/src/css">
+				<file name="columnfilters.css" />
+				<file name="columnSelectControl.css" />
+				<file name="filtersContainer.css" />
+				<file name="saveControl.css" />
+				<file name="notification.css" />
+			</filelist>
+		</concat>
+		<concat destfile="${basedir}/dist/dataTables.columnfilters.js" ignoreempty="yes" fixlastline="yes">
+			<filelist dir="${basedir}/src">
+				<file name="start.js" />
+				
+				<!-- main source -->
+				<file name="controls/columnFilters.js" />
+				
+				<!-- templates -->
+				<file name="templates/columnSelectionControl/view.js" />
+				<file name="templates/columnSelectionControl/filterFactory.js" />
+				<file name="templates/columnSelectionControl/widgetOperatorSelect.js" />
+				<file name="templates/filtersContainer/view.js" />
+				<file name="templates/filterSaveControl/view.js" />
+				<file name="templates/filterSaveControl/filterSetModalForm.js" />
+				<file name="templates/filterSaveControl/categoryModalForm.js" />
+				<file name="templates/widgets/text/text.js" />
+				<file name="templates/widgets/number/numberSpinner.js" />
+				<file name="templates/widgets/number/numberSpinnersBetween.js" />
+				<file name="templates/widgets/number/numberList.js" />
+				<file name="templates/widgets/date/datepicker.js" />
+                <file name="templates/widgets/date/between.js" />
+				<file name="templates/widgets/date/list.js" />
+				
+				<!-- base classes/objects (collection/model) -->
+				
+				<!-- base classes/objects (views) -->
+				<file name="controls/columnSelectionControl.js" />
+				<file name="controls/filterSaveControl.js" />
+				<file name="controls/filterFactory.js" />
+				<file name="controls/filtersContainer.js" />
+				
+				<!-- widget types classes (text) -->
+				<file name="controls/filterTypes/text/textEquals.js" />
+				<file name="controls/filterTypes/text/textSearch.js" />
+				
+				<!-- widget types classes (number) -->
+				<file name="controls/filterTypes/number/numberEquals.js" />
+				<file name="controls/filterTypes/number/numberBetween.js" />
+				<file name="controls/filterTypes/number/numberList.js" />
+				
+				<!-- widget types classes (date) -->
+				<file name="controls/filterTypes/date/dateEquals.js" />
+				<file name="controls/filterTypes/date/dateAfter.js" />
+				<file name="controls/filterTypes/date/dateBefore.js" />
+				<file name="controls/filterTypes/date/dateBetween.js" />
+				<file name="controls/filterTypes/date/dateList.js" />
+				<file name="controls/filterTypes/date/dateMonth.js" />
+				<file name="controls/filterTypes/date/dateMonthYear.js" />
+				<file name="controls/filterTypes/date/dateYear.js" />
+				
+				<!-- widget types classes (boolean/toggle) -->
+				<file name="controls/filterTypes/boolean/booleanEquals.js" />
+				
+				<!-- widget types classes (enum/medium-sized list) -->
+				<file name="controls/filterTypes/enum/enumEquals.js" />
+				
+				<!-- widget types classes (typeahead/autocomplete) -->
+				<file name="controls/filterTypes/biglist/biglistEquals.js" />
+				
+				<!-- enums -->
+				<file name="enums/datepickerDateFormats.js" />
+				<file name="enums/datepickerViewModes.js" />
+				<file name="enums/datepickerWeekStartDays.js" />
+				<file name="enums/modes.js" />
+				<file name="enums/filterSelectionTypes.js" />
+				<file name="enums/controlModes.js" />
+				
+				<!-- configuration properties -->
+				<file name="configDefaults.js" />
+				
+				<file name="end.js" />
+			</filelist>
+		</concat>
+	</target>
+	
+	
+	<target name="doc" description="generates the documentation">
+        <delete includeemptydirs="true">
+            <fileset dir="docs" includes="**/*" />
+        </delete>
+        <exec dir="${basedir}" osfamily="windows" executable="cmd">
+            <arg line="/c" />
+            <arg line="jsdoc" />
+            <arg line="${source.dir}" />
+            <arg line="-c conf.json" />
+        </exec>
+        <exec dir="${basedir}" osfamily="unix" executable="jsdoc">
+            <arg line="${source.dir}" />
+            <arg line="-c conf.json" />
+            <arg line="-r README.md" />
+            <arg line="-d docs" />
+        </exec>
+    </target>
+	
+	
+	<!-- Help Target -->
+    <target name="help">
+        <echo message="" />
+        <echo message="ColumnFilters Ant Build Script" />
+        <echo message="" />
+        <echo message="compile" />
+        <echo message="combines and minifies source files into dataTables.columnfilters.min.js and dataTables.columnfilters.min.css" />
+        <echo message="" />
+        <echo message="combine" />
+        <echo message="combines .js and .css files in the src directory and creates dataTables.columnfilters.js and dataTables.columnfilters.css in the dist directory" />
+        <echo message="" />
+        <echo message="Help" />
+        <echo message="This message information" />
+    </target>
+</project>

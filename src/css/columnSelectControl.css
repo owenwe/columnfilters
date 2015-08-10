@@ -1,0 +1,46 @@
+.columnfilters nav.cf-column-select-control {
+	border-bottom-left-radius:0px !important;
+    border-bottom-right-radius:0px !important;
+}
+
+.columnfilters #cf-filter-select-tools option.disabled {
+    color:#bfbfbf !important;
+}
+
+.columnfilters .cf-select-widget-list li {
+    border-style:none!important;
+    padding:3px 9px!important;
+}
+.columnfilters .cf-select-widget-list li button {
+    margin-top:-4px;
+}
+
+.columnfilters .cf-enum-dropdown-list {
+    min-width:150px;
+    max-height: 200px;
+    overflow: hidden;
+    overflow-y: auto;
+}
+.columnfilters .cf-enum-dropdown-list li {
+    padding-left:8px;
+    padding-right:8px;
+}
+
+.columnfilters .cf-nopad-dropdown {
+    padding:0;
+}
+
+.columnfilters .cf-custom-ui-container {
+    margin-left:5px;
+    margin-right:5px;
+}
+
+.columnfilters .cf-fw-enum-list-item {
+	padding:3px 10px;
+}
+.columnfilters .cf-fw-enum-list-item label {
+	white-space:nowrap;
+}
+.columnfilters .cf-fw-enum-list-item label span {
+	margin-left:7px;
+}
