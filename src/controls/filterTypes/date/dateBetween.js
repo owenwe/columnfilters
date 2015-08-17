@@ -49,8 +49,8 @@ var DateBetweenFilterWidget = Backbone.View.extend(
     'get':function() {
         var dfrom = $('input:first-child', this.$el).datepicker('getUTCDate'),
             dto = $('input:last-child', this.$el).datepicker('getUTCDate'),
-            fromDateCheck = _.isDate(dfrom) ? dfrom.getTime() : NaN,
-            toDateCheck = _.isDate(dto) ? dto.getTime() : NaN;
+            fromDateCheck = _.isDate(dfrom) ? dfrom.valueOf() : NaN,
+            toDateCheck = _.isDate(dto) ? dto.valueOf() : NaN;
         if( (!isNaN(fromDateCheck) && !isNaN(toDateCheck)) && (fromDateCheck <= toDateCheck) ) {
             return {
                 'operator':this.getOperator(),

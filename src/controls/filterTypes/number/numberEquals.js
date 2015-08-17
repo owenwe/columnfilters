@@ -47,17 +47,17 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
      * @return {object}
      */
     'get':function() {
-        var value = $('div.spinbox', this.$el).spinbox('value');
+        var value = $('div.spinbox', this.$el).spinbox('value'),
+            cds = this.model.get('currentDatasource');
         if(_.isFinite(value)) {
             return {
                 'operator':this.getOperator(), 
+                'column':cds.get('data'),
                 'value':value,
                 'description':['is equal to', value].join(' ')
             };
-        } else {
-            // TODO tigger/handle error notification
-            return false;
         }
+        return false;
     },
     
     /**
@@ -68,6 +68,7 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
      * @return {NumberEqualsFilterWidget}
      */
     'set':function(filterValue) {
+        this.useDatasource(filterValue.column);
         if(_.isFinite(filterValue.value)) {
             $('div.spinbox', this.$el).spinbox('value', filterValue.value);
         }
@@ -80,8 +81,7 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
      * @return {NumberEqualsFilterWidget}
      */
     'reset':function() {
-        $('div.spinbox', this.$el).spinbox('value', 
-            this.model.get('spinboxConfig').min);
+        this.model.trigger('change:currentDatasource');
         return this;
     },
     
@@ -92,6 +92,56 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
      */
     'getOperator':function() {
         return this.model.get('operator');
+    },
+    
+    /**
+     * Adds a single or multiple datasource objects to this View's collection.
+     * @function NumberEqualsFilterWidget#addDatasource
+     * @param {object|object[]} ds - A column data object that includes a 
+     * datasource property, or an array of datasource objects. 
+     * @return {NumberEqualsFilterWidget}
+     */
+    'addDatasource':function(ds) {
+        if(_.isArray(ds)) {
+            for(var i in ds) {
+                this.collection.add(ds[i]);
+            }
+        } else if(_.isObject(ds)) {
+            this.collection.add(ds);
+        }
+        
+        if(this.model.get('currentDatasourceIndex')<0) {
+            this.model.set('currentDatasourceIndex', 0);
+            this.model.set('currentDatasource', 
+                this.collection.at(this.model.get('currentDatasourceIndex')));
+        }
+        return this;
+    },
+    
+    /**
+     * Attempts to change the current datasource by comparing the passed table 
+     * and column parameters.
+     * @function NumberEqualsFilterWidget#useDatasource
+     * @param {string} column - the column/data property of the datasource
+     * @return {boolean} - true when the datasource was changed
+     */
+    'useDatasource':function(column) {
+        var currentDS = this.model.get('currentDatasource'),
+            newDSIndex;
+        if(currentDS.get('data')===column) {
+            return false;
+        }
+        
+        newDSIndex = _.findIndex(this.collection.toJSON(), function(c) {
+            return c.data===column
+        });
+        if(newDSIndex>-1) {
+            this.model.set('currentDatasourceIndex', newDSIndex);
+            this.model.set('currentDatasource', 
+                this.collection.at(this.model.get('currentDatasourceIndex')
+            ));
+        }
+        return true;
     },
     
     
@@ -143,18 +193,18 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
      * @typedef {Backbone-View} NumberEqualsFilterWidget
      * @class
      * @classdesc A widget for a number data type that is equal to a value.
-     * @version 1.0.4
+     * @version 1.0.5
      * @constructs NumberEqualsFilterWidget
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
-     * @param {object} [options.attributes={class:"form-control input-mini spinbox-input", autocomplete:"off", placeholder:"is equal to value", size:"6"}] - 
+     * @param {object} [options.attributes={class:"form-control spinbox-input", autocomplete:"off", placeholder:"equal", size:"4"}] - 
      * The attributes that will applied to the input element in this control.
      * @param {object} [options.spinboxConfig={}] - The configuration object 
      * for the fuelux spinbox. See the fuelux spinbox documentation for the
      * default values.
      */
     'initialize':function(options) {
-        this.version = '1.0.4';
+        this.version = '1.0.5';
         /**
          * This view instance's model data.
          * @name model
@@ -166,31 +216,50 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
          */
         this.model = new Backbone.Model($.extend(
             {
-                'attributes':{
-                    'class':'form-control spinbox-input', 
-                    'autocomplete':'off',
-                    'placeholder':'equals',
-                    'size':'4'
-                },
-                'spinboxConfig':{
-                    'value':1,
-                    'min':1,
-                    'max':999,
-                    'step':1,
-                    'hold':true,
-                    'speed':'medium',
-                    'disabled':false,
-                    'units':[]
-                }
+                'currentDatasource':null,
+                'currentDatasourceIndex':-1
             },
             options, 
-            {'operator':'equals'}
+            {
+                'operator':'equals',
+                'defaults':{
+                    'attributes':{
+                        'class':'form-control spinbox-input', 
+                        'autocomplete':'off',
+                        'placeholder':'equals',
+                        'size':'4'
+                    },
+                    'spinboxConfig':{
+                        'value':1,
+                        'min':1,
+                        'max':999,
+                        'step':1,
+                        'hold':true,
+                        'speed':'medium',
+                        'disabled':false,
+                        'units':[]
+                    }
+                }
+            }
         ));
-        this.render();
+        
+        this.model.on('change:currentDatasource', 
+            this.render, this);
+        
+        this.collection = new Backbone.Collection();
     },
     
-    'render':function() {
-        this.$el.empty().append(this.template(this.model.toJSON()));
+    'render':function(mod, value, opts) {
+        var cds = this.model.get('currentDatasource');
+        this.$el.empty().append(this.template(
+            {
+                'attributes':cds.has('attributes') ? cds.get('attributes') :
+                    this.model.get('defaults').attributes
+            }
+        ));
+        $('div.spinbox', this.$el).spinbox(
+            cds.has('spinboxConfig') ? cds.get('spinboxConfig') : 
+                this.model.get('defaults').spinboxConfig);
         return this.$el;
     }
 });

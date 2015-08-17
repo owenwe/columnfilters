@@ -1,8 +1,11 @@
-// plugin default configuration values
+/**
+ * These are the default values for the ColumnFilters plugin.
+ * @memberof $.fn.ColumnFilters
+ */
 $.fn.ColumnFilters.defaults = {
      // Attributes applied to the container element created during construction.
     'wrapperAttributes':{
-        'class':'columnfilters'
+        
     },
     
     // translates database types to columnfilters widget types
@@ -37,7 +40,7 @@ $.fn.ColumnFilters.defaults = {
     
     // this is for the ajax calls that manage the filter categories
     'url':null,
-    'ajax':{},
+    'ajax':{}, // TODO do we use this?
     
     // you can use these to pass in pre-populated filters and filter categories
     'filters':[],
@@ -54,47 +57,47 @@ $.fn.ColumnFilters.defaults = {
         {
             'type':'text', 
             'widgets':[
-                new TextEqualsFilterWidget({}),
-                new TextSearchFilterWidget({})
+                new TextEqualsFilterWidget(),
+                new TextSearchFilterWidget()
             ]
         },
         {
             'type':'number',
             'widgets':[
-                new NumberEqualsFilterWidget({}),
-                new NumberBetweenFilterWidget({}),
-                new NumberListFilterWidget({})
+                new NumberEqualsFilterWidget(),
+                new NumberBetweenFilterWidget(),
+                new NumberListFilterWidget()
             ]
         },
         {
             'type':'date',
             'widgets':[
-                new DateEqualsFilterWidget({}),
-                new DateAfterFilterWidget({}),
-                new DateBeforeFilterWidget({}),
-                new DateBetweenFilterWidget({}),
-                new DateListFilterWidget({}),
-                new DateMonthFilterWidget({}),
-                new DateMonthYearFilterWidget({}),
-                new DateYearFilterWidget({}),
+                new DateEqualsFilterWidget(),
+                new DateAfterFilterWidget(),
+                new DateBeforeFilterWidget(),
+                new DateBetweenFilterWidget(),
+                new DateListFilterWidget(),
+                new DateMonthFilterWidget(),
+                new DateMonthYearFilterWidget(),
+                new DateYearFilterWidget(),
             ]
         },
         {
             'type':'boolean',
             'widgets':[
-                new BooleanEqualsFilterWidget({})
+                new BooleanEqualsFilterWidget()
             ]
         },
         {
             'type':'enum',
             'widgets':[
-                new EnumEqualsFilterWidget({})
+                new EnumEqualsFilterWidget()
             ]
         },
         {
             'type':'biglist',
             'widgets':[
-                new BiglistEqualsFilterWidget({})
+                new BiglistEqualsFilterWidget()
             ]
         }
     ],

@@ -51,7 +51,7 @@ var DateBeforeFilterWidget = Backbone.View.extend(
         if(d && !isNaN(d.getTime())) {
             return {
                 'operator':this.getOperator(),
-                'value':d.getTime(),
+                'value':d.valueOf(),
                 'description':['is before',moment.utc(d).format('M/D/YYYY')].join(' ')
             }
         } else {
@@ -104,6 +104,9 @@ var DateBeforeFilterWidget = Backbone.View.extend(
     'template':_.template($.fn.ColumnFilters.DATEPICKER_TEMPLATE, 
         {'variable':'config'}),
     
+    
+    'tagName':'fieldset',
+        
     /**
      * This Backbone View's class values.
      * @readonly
@@ -117,11 +120,13 @@ var DateBeforeFilterWidget = Backbone.View.extend(
      * @typedef {Backbone-View} DateBeforeFilterWidget
      * @class
      * @classdesc A widget for text data type that is equal to a value.
+     * @version 1.0.5
      * @constructs DateBeforeFilterWidget
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
      */
     'initialize':function(options) {
+        this.version = '1.0.5';
         /**
          * This view instance's model data.
          * @name model

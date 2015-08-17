@@ -149,7 +149,11 @@ var FilterSaveControl = Backbone.View.extend(
                             'table':this.model.get('table'),
                             'name':name,
                             'description':desc.length ? desc : null,
-                            'filters':this.filters.clone().toJSON()
+                            'filters':this.filters.clone().toJSON(),
+                            'error':function(cm, resp, opts) {
+                                this.trigger('fsc.ajax.error', resp, cm);
+                                this.$el.trigger('fsc.ajax.error', [resp, cm]);
+                            }
                         });
                     }
                     
@@ -179,8 +183,12 @@ var FilterSaveControl = Backbone.View.extend(
                 var m = this.collection.get($(e.currentTarget).data('id'));
                 this.disable();
                 m.destroy({
-                    'sucess':function(model, resp) {
-                        console.log('model destroy success');
+                    'sucess':function(model, resp, opts) {
+                        //console.log('model destroy success');
+                    },
+                    'error':function(model, resp, opts) {
+                        this.trigger('fsc.ajax.error', resp, model);
+                        this.$el.trigger('fsc.ajax.error', [resp, model]);
                     }
                 });
                 this.collection.remove($(e.currentTarget).data('id'));
@@ -248,7 +256,13 @@ var FilterSaveControl = Backbone.View.extend(
                 // put the filters from this.filters.collection into the 
                 // editingFilterSet.filters and do an update()
                 this.disable();
-                this.model.get('editingFilterSet').save({'filters':this.filters.toJSON()});
+                this.model.get('editingFilterSet').save({
+                    'filters':this.filters.toJSON(),
+                    'error':function(model, resp, opts) {
+                        this.trigger('fsc.ajax.error', resp, model);
+                        this.$el.trigger('fsc.ajax.error', [resp, model]);
+                    }
+                });
                 this.changeMode($.fn.ColumnFilters.ControlModes.NORMAL);
             }
         }
@@ -286,7 +300,11 @@ var FilterSaveControl = Backbone.View.extend(
          * @name model
          * @type {Backbone-Model}
          * @memberof FilterSaveControl.prototype
-         * @property {*} propety1name - 
+         * @property {number} mode - An enum value from ColumnFilters.Modes
+         * @property {string} url - 
+         * @property {string} table - 
+         * @property {number} controlMode - 
+         * @property {object} editingFilterSet - 
          */
         this.model = new Backbone.Model($.extend(
             {
@@ -304,6 +322,8 @@ var FilterSaveControl = Backbone.View.extend(
         this.model.on('change:controlMode', this.modeChangeHandler, this);
         
         this.filters = options.filters;
+        
+        // if the mode is one that displays filter sets
         if(_.contains(
                 [$.fn.ColumnFilters.Modes.CATEGORY_SETS,
                  $.fn.ColumnFilters.Modes.CATEGORIES_NO_TYPES], 
@@ -336,7 +356,6 @@ var FilterSaveControl = Backbone.View.extend(
                 
                 // after the xhr response
                 this.collection.on('sync', function(col, resp, opts) {
-
                     this.enable();
                 }, this);
                 // when the request is sent
@@ -345,13 +364,13 @@ var FilterSaveControl = Backbone.View.extend(
                 }, this);
                 // an error in the xhr happened
                 this.collection.on('error', function(col, resp, opts) {
-                    console.log('collection.sync.error');
-                    console.log(resp);
-                    console.log(opts);
+                    this.trigger('fsc.ajax.error', resp, col);
+                    this.$el.trigger('fsc.ajax.error', [resp, col]);
                 }, this);
                 
                 // initialize the filterSet collection
                 this.collection.fetch({
+                    'context':this,
                     'remove':false, 
                     'data':{'table':options.table},
                     'success':function(col, resp, opts) {
@@ -371,8 +390,13 @@ var FilterSaveControl = Backbone.View.extend(
                             }
                         ));
                     },
-                    'context':this
+                    'error':function(col, resp, opts) {
+                        this.trigger('fsc.ajax.error', resp, col);
+                        this.$el.trigger('fsc.ajax.error', [resp, col]);
+                    }
                 });
+            } else {
+                this.render();
             }
         }
     },

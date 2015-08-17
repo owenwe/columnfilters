@@ -150,7 +150,9 @@ var BooleanEqualsFilterWidget = Backbone.View.extend(
         });
         if(newDSIndex>-1) {
             this.model.set('currentDatasourceIndex', newDSIndex);
-            this.model.set('currentDatasource', this.collection.at(this.model.get('currentDatasourceIndex')));
+            this.model.set('currentDatasource', 
+                this.collection.at(this.model.get('currentDatasourceIndex')
+            ));
         }
         
         return true;
@@ -172,16 +174,6 @@ var BooleanEqualsFilterWidget = Backbone.View.extend(
             '</label>',
         '</div>'
     ].join(''), {'variable':'config'}),
-    
-    /**
-     * This View's events object. 
-     * @readonly
-     * @type {object}
-     * @property {function} namespaced.event - Event handler function
-     */
-    'events':{
-        
-    },
     
     'tagName':'fieldset',
     

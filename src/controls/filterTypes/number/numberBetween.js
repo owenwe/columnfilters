@@ -48,17 +48,19 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
      */
     'get':function() {
         var from = $('div.cf-fw-from-date', this.$el).spinbox('value'), 
-            to   = $('div.cf-fw-to-date', this.$el).spinbox('value');
+            to   = $('div.cf-fw-to-date', this.$el).spinbox('value'),
+            cds = this.model.get('currentDatasource');
         if(_.isFinite(from) && _.isFinite(to)) {
             return {
                 'operator':this.getOperator(),
+                'column':cds.get('data'),
                 'from':from,
                 'to':to,
                 'description':['is between', from, 'and', to].join(' ')
             };
-        } else {
-            return false;
         }
+        
+        return false;
     },
     
     /**
@@ -69,6 +71,7 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
      * @return {NumberBetweenFilterWidget}
      */
     'set':function(filterValue) {
+        this.useDatasource(filterValue.column);
         if(_.isFinite(filterValue.from)) {
             $('div.cf-fw-from-date', this.$el).spinbox('value', filterValue.from);
         }
@@ -85,10 +88,7 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
      * @return {NumberBetweenFilterWidget}
      */
     'reset':function() {
-        $('div.cf-fw-from-date', this.$el).spinbox('value', 
-            this.model.get('fromSpinboxConfig').min);
-        $('div.cf-fw-to-date', this.$el).spinbox('value', 
-            this.model.get('toSpinboxConfig').min);
+        this.model.trigger('change:currentDatasource');
         return this;
     },
     
@@ -99,6 +99,57 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
      */
     'getOperator':function() {
         return this.model.get('operator');
+    },
+    
+    /**
+     * Adds a single or multiple datasource objects to this View's collection.
+     * @function NumberBetweenFilterWidget#addDatasource
+     * @param {object|object[]} ds - A column data object that includes a 
+     * datasource property, or an array of datasource objects. 
+     * @return {NumberBetweenFilterWidget}
+     */
+    'addDatasource':function(ds) {
+        if(_.isArray(ds)) {
+            for(var i in ds) {
+                this.collection.add(ds[i]);
+            }
+        } else if(_.isObject(ds)) {
+            this.collection.add(ds);
+        }
+        
+        if(this.model.get('currentDatasourceIndex')<0) {
+            this.model.set('currentDatasourceIndex', 0);
+            this.model.set('currentDatasource', 
+                this.collection.at(this.model.get('currentDatasourceIndex')));
+        }
+        return this;
+    },
+    
+    /**
+     * Attempts to change the current datasource by comparing the passed table 
+     * and column parameters.
+     * @function NumberBetweenFilterWidget#useDatasource
+     * @param {string} column - the column/data property of the datasource
+     * @return {boolean} - true when the datasource was changed
+     */
+    'useDatasource':function(column) {
+        var currentDS = this.model.get('currentDatasource'),
+            newDSIndex;
+    
+        if(currentDS.get('data')===column) {
+            return false;
+        }
+        
+        newDSIndex = _.findIndex(this.collection.toJSON(), function(c) {
+            return c.data===column
+        });
+        if(newDSIndex>-1) {
+            this.model.set('currentDatasourceIndex', newDSIndex);
+            this.model.set('currentDatasource', 
+                this.collection.at(this.model.get('currentDatasourceIndex')
+            ));
+        }
+        return true;
     },
     
     
@@ -120,7 +171,7 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
         'changed.fu.spinbox':function(e, val) {
             if(!_.isFinite(val)) {
                 // which spinbox is it?
-                
+                console.log(e);
             }
         },
         'keyup input':function(e) {
@@ -143,13 +194,13 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
      * @typedef {Backbone-View} NumberBetweenFilterWidget
      * @class
      * @classdesc A widget for number data type that is between two values.
-     * @version 1.0.3
+     * @version 1.0.4
      * @constructs NumberBetweenFilterWidget
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
      */
     'initialize':function(options) {
-        this.version = '1.0.3';
+        this.version = '1.0.4';
         /**
          * This view instance's model data.
          * @name model
@@ -165,48 +216,57 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
          */
         this.model = new Backbone.Model($.extend(
             {
-                'fromAttributes':{
-                    'class':'form-control spinbox-input', 
-                    'autocomplete':'off',
-                    'placeholder':'from',
-                    'size':'4'
-                },
-                'toAttributes':{
-                    'class':'form-control spinbox-input', 
-                    'autocomplete':'off',
-                    'placeholder':'to',
-                    'size':'4'
-                },
-                'fromSpinboxConfig':{
-                    'value':1,
-                    'min':1,
-                    'max':999,
-                    'step':1,
-                    'hold':true,
-                    'speed':'medium',
-                    'disabled':false,
-                    'units':[]
-                },
-                'toSpinboxConfig':{
-                    'value':1,
-                    'min':1,
-                    'max':999,
-                    'step':1,
-                    'hold':true,
-                    'speed':'medium',
-                    'disabled':false,
-                    'units':[]
-                }
+                'currentDatasource':null,
+                'currentDatasourceIndex':-1
             },
-            options, 
-            {'operator':'between'}
+            options,
+            {
+                'operator':'between',
+                'defaults':{
+                    'attributes':{
+                        'class':'form-control spinbox-input', 
+                        'autocomplete':'off',
+                        'size':'4'
+                    },
+                    'spinboxConfig':{
+                        'value':1,
+                        'min':1,
+                        'max':999,
+                        'step':1,
+                        'hold':true,
+                        'speed':'medium',
+                        'disabled':false,
+                        'units':[]
+                    }
+                }
+            }
         ));
         
-        this.render();
+        this.model.on('change:currentDatasource', 
+            this.render, this);
+        
+        this.collection = new Backbone.Collection();
     },
     
-    'render':function() {
-        this.$el.empty().append(this.template(this.model.toJSON()));
+    'render':function(mod, value, opts) {
+        var cds = this.model.get('currentDatasource');
+        this.$el.empty().append(this.template(
+            {
+                'attributes':cds.has('attributes') ? 
+                    cds.get('attributes') :
+                    this.model.get('defaults').attributes
+            }
+        ));
+        $('div.cf-fw-from-date', this.$el).spinbox(
+            cds.has('spinboxConfig') ? 
+                cds.get('spinboxConfig') : 
+                this.model.get('defaults').spinboxConfig
+        );
+        $('div.cf-fw-to-date', this.$el).spinbox(
+            cds.has('spinboxConfig') ? 
+                cds.get('spinboxConfig') : 
+                this.model.get('defaults').spinboxConfig
+        );
         return this.$el;
     }
 });

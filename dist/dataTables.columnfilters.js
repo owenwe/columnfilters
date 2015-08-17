@@ -136,6 +136,26 @@ var ColumnFilters = Backbone.View.extend(
         return this.model.get(key);
     },
     
+    /**
+     * A function that returns the version of not just this object, but all the 
+     * complex objects that this object manages.
+     * @function ColumnFilters#versions
+     * @return {object} A JSON object where the keys represent the class or 
+     * object and the values are the versions.
+     */
+    'versions':function() {
+        var dtws = this.get('columnControl').model.get('filterFactory').model.get('dataTypeWidgets'),
+            dtwTypes = _.groupBy(dtws, 'type');
+        
+        return {
+            'ColumnFilters':this.version,
+            'ColumnSelectionControl':this.get('columnControl').version,
+            'FilterFactory':this.get('columnControl').model.get('filterFactory').versions(),
+            'ColumnFiltersContainer':this.get('filtersContainer').version,
+            'FilterSaveControl':this.get('filtersControl').version
+        };
+    },
+    
     
     /**
      * This View's events object. 
@@ -192,15 +212,15 @@ var ColumnFilters = Backbone.View.extend(
      * @type {string}
      * @default
      */
-    'className':'panel panel-default',
+    'className':'columnfilters',
     
     /**
      * The main Backbone View used in this plugin.
      * @author Wes Owen wowen@ccctechcenter.org
-     * @version 1.0.1
      * @typedef {Backbone-View} ColumnFilters
      * @class
      * @classdesc This view renders and controls the ColumnFilters jQuery plugin.
+     * @version 1.0.2
      * @constructs ColumnFilters
      * @extends Backbone-View
      * @param {object} options - configuration options for this View instance
@@ -208,9 +228,10 @@ var ColumnFilters = Backbone.View.extend(
      * for the datatables server-side data.
      */
     'initialize':function(options) {
-        this.version = '1.0.1';
+        this.version = '1.0.2';
         
-        // 
+        // add this view as the context to the ajax object used in the filter 
+        // set Backbone.sync request
         options.ajax.context = this;
         
         /**
@@ -241,19 +262,18 @@ var ColumnFilters = Backbone.View.extend(
             'columnsControlConfig'
         ]), {'cachedFilter':null}));
         
-        // for now let's keep the filters in this view's collection
+        // this.collection == filters
         this.collection = new Backbone.Collection(options.filters);
-        // the add event will be caught here first
-        this.collection.on('update', function(coll, opt) {
-            // TODO 
+        
+        // re-broadcast this event
+        this.collection.on('update', function(col, opt) {
+            this.trigger('filters.update', col, opt);
+            this.$el.trigger('filters.update', [col, opt]);
             
         }, this);
         this.collection.on('reset', function(col, opt) {
-            /*if(col) {
-                this.collection.reset(col);
-            } else {
-                this.collection.reset();
-            }*/
+            this.trigger('filters.reset', col, opt);
+            this.$el.trigger('filters.reset', [col, opt]);
         }, this);
         
         /* 
@@ -269,16 +289,16 @@ var ColumnFilters = Backbone.View.extend(
         this.model.set('columnControl', new ColumnSelectionControl(
             $.extend(options.columnsControlConfig, {
                 'columns': _.map(
-                    _.reject(options.columns, function(c){
+                    _.reject(options.columns, function(c) {
                         return _.has(c,'cfexclude') && c.cfexclude
                     }),
-                    function(c){
+                    function(c) {
                         if(_.contains(['reference', 'object'], c.type)) {
                             // a table property is required for these types
                             _.extendOwn(c, {'referenceTable':c.table});
                         }
                         _.extendOwn(c, {'table':options.table});
-                        return _.extendOwn(c, {
+                        return $.extend(c, {
                             'type':this.get('DB_TO_CF_TYPES')[c.type]
                         });
                     },
@@ -305,14 +325,22 @@ var ColumnFilters = Backbone.View.extend(
             }),
             'filters':this.collection
         }));
+        this.model.get('filtersControl').on('fsc.ajax.error', function(xhr, obj) {
+            this.trigger('columnfilters.ajax.error', xhr, obj);
+            this.$el.trigger('columnfilters.ajax.error', [xhr, obj]);
+        }, this);
+        
+        this.render();
     },
     
     'render':function() {
         this.$el.empty();
         this.$el.append(
-            this.get('columnControl').$el, 
-            this.get('filtersContainer').$el, 
-            this.get('filtersControl').$el
+            $('<div />').addClass('panel panel-default').append(
+                this.get('columnControl').$el, 
+                this.get('filtersContainer').$el, 
+                this.get('filtersControl').$el
+            )
         );
         return this.$el;
     }
@@ -321,16 +349,11 @@ var ColumnFilters = Backbone.View.extend(
 
 /**
  * The ColumnFilters jQuery plugin namespace. Access by using 
- * <code>$.fn.ColumnFilters</code>
+ * <code>$.fn.ColumnFilters</code>. To construct, pass in a configuration object 
+ * or call <code>ColumnFilters(<em>config</em>)</code> on a jQuery selection.
  * @namespace $.fn.ColumnFilters
  */
 $.fn.ColumnFilters = function(config) {
-    
-    if(this.length<1 || !this.is('div')) {
-        console.error('ColumnFilters must be called on a <div> element');
-        return;
-    }
-    
     // variables used in this scope
     var i, j,
         dtw,
@@ -350,12 +373,17 @@ $.fn.ColumnFilters = function(config) {
         'notification':null
     };
     
-    
     // create the container for the view
-    protectedConfig.container = $('<div />').attr(
-        $.fn.ColumnFilters.defaults.wrapperAttributes
-    );
-    this.replaceWith(protectedConfig.container);
+    if(this.length && _.isElement(this[0])) {
+        this.attr(
+            $.fn.ColumnFilters.defaults.wrapperAttributes
+        );
+        protectedConfig.container = this;
+    } else {
+        protectedConfig.container = $('<div />').attr(
+            $.fn.ColumnFilters.defaults.wrapperAttributes
+        );
+    }
     
     // combine and save the defaults with the passed in configuration object and 
     // protected configuration options
@@ -372,11 +400,7 @@ $.fn.ColumnFilters = function(config) {
                     for(j in config.dataTypeWidgets[i].widgets) {
                         dtw.widgets.push(config.dataTypeWidgets[i].widgets[j]);
                     }
-                } else {
-                    $.fn.ColumnFilters.defaults.dataTypeWidgets.push(config.dataTypeWidgets[i]);
                 }
-                $.extend($.fn.ColumnFilters.defaults.dataTypeWidgets,
-                    config.dataTypeWidgets[i]);
             }
         }
     }
@@ -387,7 +411,7 @@ $.fn.ColumnFilters = function(config) {
         protectedConfig
     );
     thisCF = new ColumnFilters($.fn.ColumnFilters.defaults);
-    $.fn.ColumnFilters.defaults.container.append(thisCF.render());
+    protectedConfig.container.append(thisCF.$el);
     
     // create and return a ColumnFilters object 
     return thisCF;
@@ -747,7 +771,7 @@ $.fn.ColumnFilters.TEXTAREA_TEMPLATE = [
  * @contant {string} NUMBER_SPINNER_TEMPLATE
  */
 $.fn.ColumnFilters.NUMBER_SPINNER_TEMPLATE = [
-    '<div class="spinbox" data-initialize="spinbox">',
+    '<div class="spinbox">',
         '<input type="text" <%= _.map(_.omit(config.attributes, "type"), function(val,key){ return [key,\'="\',val,\'"\'].join("") }).join(" ") %> />',
         '<div class="spinbox-buttons btn-group btn-group-vertical">',
             '<button class="btn btn-default spinbox-up btn-xs">',
@@ -768,9 +792,8 @@ $.fn.ColumnFilters.NUMBER_SPINNER_TEMPLATE = [
  */
 $.fn.ColumnFilters.NUMBER_BETWEEN_TEMPLATE = [
     '<div class="form-group">',
-        '<label class="control-label navbar-nav">from: </label>',
-        '<div class="spinbox cf-fw-from-date" data-initialize="spinbox">',
-            '<input type="text" <%= _.map(_.omit(config.fromAttributes, "type"), function(val,key){ return [key,\'="\',val,\'"\'].join("") }).join(" ") %> />',
+        '<div class="spinbox cf-fw-from-date pull-left">',
+            '<input type="text" <%= _.map(_.omit(config.attributes, "type"), function(val,key){ return [key,\'="\',val,\'"\'].join("") }).join(" ") %> />',
             '<div class="spinbox-buttons btn-group btn-group-vertical">',
                 '<button class="btn btn-default spinbox-up btn-xs">',
                     '<span class="glyphicon glyphicon-chevron-up"></span><span class="sr-only">Increase</span>',
@@ -780,12 +803,9 @@ $.fn.ColumnFilters.NUMBER_BETWEEN_TEMPLATE = [
                 '</button>',
             '</div>',
         '</div>',
-    '</div>',
-    '<div class="form-group" style="margin:2px 10px"><span class="glyphicon glyphicon-resize-horizontal"></span></div>',
-    '<div class="form-group">',
-        '<label class="control-label navbar-nav">to: </label>',
-        '<div class="spinbox cf-fw-from-date" data-initialize="spinbox">',
-            '<input type="text" <%= _.map(_.omit(config.toAttributes, "type"), function(val,key){ return [key,\'="\',val,\'"\'].join("") }).join(" ") %> />',
+        '<div class="input-group-addon col-sm-1 pull-left"></div>',
+        '<div class="spinbox cf-fw-to-date pull-left">',
+            '<input type="text" <%= _.map(_.omit(config.attributes, "type"), function(val,key){ return [key,\'="\',val,\'"\'].join("") }).join(" ") %> />',
             '<div class="spinbox-buttons btn-group btn-group-vertical">',
                 '<button class="btn btn-default spinbox-up btn-xs">',
                     '<span class="glyphicon glyphicon-chevron-up"></span><span class="sr-only">Increase</span>',
@@ -807,7 +827,7 @@ $.fn.ColumnFilters.NUMBER_BETWEEN_TEMPLATE = [
  */
 $.fn.ColumnFilters.NUMBER_LIST_TEMPLATE = [
     '<div class="form-group pull-left">',
-        '<div class="spinbox" data-initialize="spinbox">',
+        '<div class="spinbox">',
             '<input type="text" <%= _.map(_.omit(config.attributes, "type"), function(val,key){ return [key,\'="\',val,\'"\'].join("") }).join(" ") %> />',
             '<div class="spinbox-buttons btn-group btn-group-vertical">',
                 '<button class="btn btn-default spinbox-up btn-xs">',
@@ -944,6 +964,7 @@ var ColumnSelectionControl = Backbone.View.extend(
         var selections, selection, selectedType;
         this.model.set('filterSelectionType', selectionType);
         switch(this.model.get('filterSelectionType')) {
+            // 
             case $.fn.ColumnFilters.FilterSelectionTypes.DEFAULT:
                 $('div.cf-filter-type-select-common', this.$el).hide();
                 $('div.cf-filter-type-select-column', this.$el).show();
@@ -956,6 +977,7 @@ var ColumnSelectionControl = Backbone.View.extend(
                     this.showFilterType(this.model.get('activeColumn').type);
                 }
                 break;
+            // 
             case $.fn.ColumnFilters.FilterSelectionTypes.COMMON_VALUE:
                 $('div.cf-filter-type-select-column', this.$el).hide();
                 $('div.cf-filter-type-select-common', this.$el).show();
@@ -981,6 +1003,7 @@ var ColumnSelectionControl = Backbone.View.extend(
                     this.model.get('filterFactory').reset().hide();//.reset()
                 }
                 break;
+            // 
             case 'reference':
                 $('div.cf-filter-type-select-common', this.$el).hide();
                 $('div.cf-filter-type-select-column', this.$el).hide();
@@ -990,16 +1013,21 @@ var ColumnSelectionControl = Backbone.View.extend(
     },
     
     /**
-     * Uses the parameters to enable/disable the options in the common value select form element.
+     * Uses the parameters to enable/disable the options in the common value 
+     * select form element.
      * @function ColumnSelectionControl#enableColumnsByType
-     * @param {string[]} columnData - an array of values that will match the .data property in the list of columns
+     * @param {string[]} columnData - an array of values that will match the 
+     * .data property in the list of columns
      * @param {string} type - the type value of the option(s) selected
      * @return ColumnSelectionControl
      */
     'enableColumnsByType':function(columnData, type) {
         if(columnData) {
             $('button.cf-add-column-filter-button', this.$el).removeAttr('disabled');
-            var selectedColumns = _.filter(this.model.get('commonColumns'), function(c){ return _.contains(columnData, c.data)}, this);
+            var selectedColumns = _.filter(this.model.get('commonColumns'), 
+                function(c) {
+                    return _.contains(columnData, c.data)
+                }, this);
             $('option', $('div.cf-filter-type-select-common select', this.$el)).each(function(i, e) {
                 if($(e).data('type')!==type) {
                     $(e).attr('disabled', 'disabled').addClass('disabled');
@@ -1042,24 +1070,35 @@ var ColumnSelectionControl = Backbone.View.extend(
      * @return ColumnSelectionControl
      */
     'showFilterType':function(type, operator) {
-        var aw = this.model.get('filterFactory').activeType(type, operator);
+        var at = this.model.get('filterFactory').activeType(),
+            aw = this.model.get('filterFactory').activeType(type, operator);
         if(aw) {
             $('button.cf-add-column-filter-button', this.$el).removeAttr('disabled');
             // inform filterFactory about special filter types
-            if(type==='enum') {
-                this.model.get('filterFactory').configureEnumWidget(
-                    this.model.get('activeColumn').referenceTable,
-                    this.model.get('activeColumn').data
-                );
-            } else if(type==='biglist') {
-                this.model.get('filterFactory').configureBiglistWidget(
-                    this.model.get('activeColumn').referenceTable,
-                    this.model.get('activeColumn').data
-                );
-            } else if(type==='boolean') {
-                this.model.get('filterFactory').configureBooleanWidget(
-                    this.model.get('activeColumn').data
-                );
+            switch(type) {
+                case 'number':
+                    this.model.get('filterFactory').configureNumberWidget(
+                        this.model.get('activeColumn').data,
+                        operator
+                    );
+                    break;
+                case 'boolean':
+                    this.model.get('filterFactory').configureBooleanWidget(
+                        this.model.get('activeColumn').data
+                    );
+                    break;
+                case 'enum':
+                    this.model.get('filterFactory').configureEnumWidget(
+                        this.model.get('activeColumn').referenceTable,
+                        this.model.get('activeColumn').data
+                    );
+                    break;
+                case 'biglist':
+                    this.model.get('filterFactory').configureBiglistWidget(
+                        this.model.get('activeColumn').referenceTable,
+                        this.model.get('activeColumn').data
+                    );
+                    break;
             }
             this.model.get('filterFactory').show();
         } else {
@@ -1243,8 +1282,16 @@ var ColumnSelectionControl = Backbone.View.extend(
          * @listens ColumnSelectionControl.events#"div.cf-filter-type-select-column select":change
          */
         'change div.cf-filter-type-select-column select':function(e) {
-            this.model.set('activeColumn', _.findWhere(this.model.get('columns'), {'data':$(e.currentTarget).val()}));
-            this.showFilterType(this.model.get('activeColumn').type);
+            this.model.set('activeColumn', 
+                _.findWhere(this.model.get('columns'), 
+                    {'data':$(e.currentTarget).val()}));
+            
+            var act = this.model.get('activeColumn').type,
+                at = this.model.get('filterFactory').activeType(),
+                o = act===at ? 
+                    this.model.get('filterFactory').getActiveWidget().getOperator() : 
+                    undefined;
+            this.showFilterType(this.model.get('activeColumn').type, o);
         },
         
         /**
@@ -1405,6 +1452,7 @@ var ColumnSelectionControl = Backbone.View.extend(
      * @class
      * @classdesc A ColumnSelectionControl manages how columns are set up for 
      * the filter factory to apply its filter.
+     * @version 1.0.2
      * @extends Backbone-View
      * @constructs ColumnSelectionControl
      * 
@@ -1433,6 +1481,7 @@ var ColumnSelectionControl = Backbone.View.extend(
      * mode to set this control into
      */
     'initialize':function(options) {
+        this.version = '1.0.2';
         //console.log(options);
         /**
          * This view instance's model data.
@@ -1462,12 +1511,12 @@ var ColumnSelectionControl = Backbone.View.extend(
                 _.reject(this.model.get('columns'), function(c) {
                     _.has(c, 'cfexclude') && c.cfexclude
                 }), 
-                function(c){ return c.type }
+                'type'
             ),
             currentWidget, dataTypeWidgets, widgetsCollection = []
         ;
         
-        // pick out the data-backed columns that their datasources don't match
+        // pick out the data-backed columns where the datasources don't match
         for(i in groupedCol) {
             if(groupedCol[i].length>1) {
                 if(_.contains(['biglist','enum'], i)) {
@@ -1502,21 +1551,25 @@ var ColumnSelectionControl = Backbone.View.extend(
                 break;
         }
         
+        // pass number columns to the filterFactory for processing
+        // pass boolean columns to the filterFactory for processing
         // pass enum columns to the filterFactory for processing
         // pass reference columns to the filterFactory for processing
-        // pass boolean columns to the filterFactory for processing
         // create the filter factory
         this.model.set('filterFactory', new FilterFactory($.extend(
             options.filterFactoryConfig,
             {
+                'numberColumns':_.filter(options.columns, function(c) {
+                    return c.type==='number'
+                }),
+                'booleanColumns':_.filter(options.columns, function(c) {
+                    return c.type==='boolean'
+                }),
                 'enumColumns':_.filter(options.columns, function(c) {
                     return c.type==='enum'
                 }),
                 'biglistColumns':_.filter(options.columns, function(c) {
                     return c.type==='biglist'
-                }),
-                'booleanColumns':_.filter(options.columns, function(c) {
-                    return c.type==='boolean'
                 })
             }
         )));
@@ -1717,7 +1770,11 @@ var FilterSaveControl = Backbone.View.extend(
                             'table':this.model.get('table'),
                             'name':name,
                             'description':desc.length ? desc : null,
-                            'filters':this.filters.clone().toJSON()
+                            'filters':this.filters.clone().toJSON(),
+                            'error':function(cm, resp, opts) {
+                                this.trigger('fsc.ajax.error', resp, cm);
+                                this.$el.trigger('fsc.ajax.error', [resp, cm]);
+                            }
                         });
                     }
                     
@@ -1747,8 +1804,12 @@ var FilterSaveControl = Backbone.View.extend(
                 var m = this.collection.get($(e.currentTarget).data('id'));
                 this.disable();
                 m.destroy({
-                    'sucess':function(model, resp) {
-                        console.log('model destroy success');
+                    'sucess':function(model, resp, opts) {
+                        //console.log('model destroy success');
+                    },
+                    'error':function(model, resp, opts) {
+                        this.trigger('fsc.ajax.error', resp, model);
+                        this.$el.trigger('fsc.ajax.error', [resp, model]);
                     }
                 });
                 this.collection.remove($(e.currentTarget).data('id'));
@@ -1816,7 +1877,13 @@ var FilterSaveControl = Backbone.View.extend(
                 // put the filters from this.filters.collection into the 
                 // editingFilterSet.filters and do an update()
                 this.disable();
-                this.model.get('editingFilterSet').save({'filters':this.filters.toJSON()});
+                this.model.get('editingFilterSet').save({
+                    'filters':this.filters.toJSON(),
+                    'error':function(model, resp, opts) {
+                        this.trigger('fsc.ajax.error', resp, model);
+                        this.$el.trigger('fsc.ajax.error', [resp, model]);
+                    }
+                });
                 this.changeMode($.fn.ColumnFilters.ControlModes.NORMAL);
             }
         }
@@ -1854,7 +1921,11 @@ var FilterSaveControl = Backbone.View.extend(
          * @name model
          * @type {Backbone-Model}
          * @memberof FilterSaveControl.prototype
-         * @property {*} propety1name - 
+         * @property {number} mode - An enum value from ColumnFilters.Modes
+         * @property {string} url - 
+         * @property {string} table - 
+         * @property {number} controlMode - 
+         * @property {object} editingFilterSet - 
          */
         this.model = new Backbone.Model($.extend(
             {
@@ -1872,6 +1943,8 @@ var FilterSaveControl = Backbone.View.extend(
         this.model.on('change:controlMode', this.modeChangeHandler, this);
         
         this.filters = options.filters;
+        
+        // if the mode is one that displays filter sets
         if(_.contains(
                 [$.fn.ColumnFilters.Modes.CATEGORY_SETS,
                  $.fn.ColumnFilters.Modes.CATEGORIES_NO_TYPES], 
@@ -1904,7 +1977,6 @@ var FilterSaveControl = Backbone.View.extend(
                 
                 // after the xhr response
                 this.collection.on('sync', function(col, resp, opts) {
-
                     this.enable();
                 }, this);
                 // when the request is sent
@@ -1913,13 +1985,13 @@ var FilterSaveControl = Backbone.View.extend(
                 }, this);
                 // an error in the xhr happened
                 this.collection.on('error', function(col, resp, opts) {
-                    console.log('collection.sync.error');
-                    console.log(resp);
-                    console.log(opts);
+                    this.trigger('fsc.ajax.error', resp, col);
+                    this.$el.trigger('fsc.ajax.error', [resp, col]);
                 }, this);
                 
                 // initialize the filterSet collection
                 this.collection.fetch({
+                    'context':this,
                     'remove':false, 
                     'data':{'table':options.table},
                     'success':function(col, resp, opts) {
@@ -1939,8 +2011,13 @@ var FilterSaveControl = Backbone.View.extend(
                             }
                         ));
                     },
-                    'context':this
+                    'error':function(col, resp, opts) {
+                        this.trigger('fsc.ajax.error', resp, col);
+                        this.$el.trigger('fsc.ajax.error', [resp, col]);
+                    }
                 });
+            } else {
+                this.render();
             }
         }
     },
@@ -1984,8 +2061,9 @@ var FilterSaveControl = Backbone.View.extend(
 });
 
 
-var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
-    
+var FilterFactory = Backbone.View.extend(
+/** @lends FilterFactory.prototype */
+{
     /**
      * Displays this View instance.
      * @function FilterFactory#show
@@ -2054,7 +2132,6 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
      * @return {FilterFactory}
      */
     'configureEnumWidget':function(enumTable, enumColumn) {
-        // is there an enum filter widget?
         var efw = this.getWidget('enum', 'equals');
         if(efw) {
             efw.useDatasource(enumTable, enumColumn);
@@ -2087,9 +2164,27 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
      */
     'configureBooleanWidget':function(booleanColumn) {
         var bfw = this.getWidget('boolean', 'equals');
-        
         if(bfw) {
             bfw.useDatasource(booleanColumn);
+        }
+        return this;
+    },
+    
+    /**
+     * Prompts the number filter widget(s) to set their datasource using the
+     * passed parameter.
+     * @function FilterFactory#configureNumberWidget
+     * @param {string} numberColumn - the value of the column/data property
+     * @param {string} operator - the operator for the type
+     * @return {FilterFactory}
+     */
+    'configureNumberWidget':function(numberColumn, operator) {
+        var i, widgets = [],
+        numberDT = _.findWhere(this.model.get('dataTypeWidgets'), {'type':'number'});;
+        if(numberDT) {
+            for(i in numberDT.widgets) {
+                numberDT.widgets[i].useDatasource(numberColumn);
+            }
         }
         return this;
     },
@@ -2254,6 +2349,32 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
         return this;
     },
     
+    /**
+     * A function that returns the version of not just this object, but all the 
+     * complex objects that this object manages.
+     * @function FilterFactory#versions
+     * @return {object} A JSON object where the keys represent the class or 
+     * object and the values are the versions.
+     */
+    'versions':function() {
+        var wtypes = _.keys(_.groupBy(this.model.get('dataTypeWidgets'), 'type')),
+            wtv = {},
+            i, j, curT, tempA;
+        for (i in wtypes) {
+            curT = _.findWhere(this.model.get('dataTypeWidgets'), {'type':wtypes[i]});
+            tempA = [];
+            for(j in curT.widgets) {
+                tempA.push(_.createKeyValueObject(curT.widgets[j].getOperator(), curT.widgets[j].version));
+            }
+            $.extend(wtv, _.createKeyValueObject(wtypes[i], tempA));
+        }
+        
+        return {
+            'FilterFactory':this.version,
+            'Data Type Widgets':wtv
+        };
+    },
+    
     
     /**
      * The underscore template used in the render function.
@@ -2284,6 +2405,14 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
             
             // show the widget for the new activeOperator
             this.getActiveWidget().show();
+            
+            // check if the active widget is a number type
+            if(this.activeType()==='number') {
+                this.configureNumberWidget(
+                    this.getActiveWidget().model.get('currentDatasource').get('data'), 
+                    this.getActiveWidget().getOperator()
+                );
+            }
         }
     },
     
@@ -2302,7 +2431,7 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
      * @classdesc An instance of FilterFactory will contain controls for text, number, 
      * date, enum, reference, and boolean value types. However, an instance can be 
      * configured to have a custom set of value type controls.
-     * @version 1.0.1
+     * @version 1.0.2
      * @constructs FilterFactory
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
@@ -2310,9 +2439,10 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
      * @param {object[]} [options.enumColumns=[]] - An array of enum type columns.
      * @param {object[]} [options.biglistColumns=[]] - An array of biglist type columns.
      * @param {object[]} [options.booleanColumns=[]] - An array of boolean type columns.
+     * @param {object[]} [options.numberColumns=[]] - An array of number type columns.
      */
     'initialize':function(options) {
-        this.version = '1.0.1';
+        this.version = '1.0.2';
         //console.log(options);
         /**
          * This view instance's model data.
@@ -2327,7 +2457,8 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
             {
                 'enumColumns':[],
                 'biglistColumns':[],
-                'booleanColumns':[]
+                'booleanColumns':[],
+                'numberColumns':[]
             },
             options
         ));
@@ -2383,6 +2514,14 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
         if(at && this.model.get('booleanColumns').length) {
             for(i in at.widgets) {
                 at.widgets[i].addDatasource(this.model.get('booleanColumns'));
+            }
+        }
+        
+        // process numberColumns
+        at = _.findWhere(dtw, {'type':'number'});
+        if(at && this.model.get('numberColumns').length) {
+            for(i in at.widgets) {
+                at.widgets[i].addDatasource(this.model.get('numberColumns'));
             }
         }
     },
@@ -2521,6 +2660,7 @@ var ColumnFiltersContainer = Backbone.View.extend(
      * options.filters is populated, it will be set to the first filter.
      */
     'initialize':function(options) {
+        this.version = '1.0.1';
         /**
          * This view instance's model data.
          * @name model
@@ -2573,9 +2713,12 @@ var ColumnFiltersContainer = Backbone.View.extend(
                 this.model.get('activeColumnIndex'),
                 '"]'
             ].join(''), this.$el);
-            if(f.length) {
-                f[0].scrollIntoView({'block':'start','behavior':'smooth'});
-            }
+            
+            // this is a bit controversial so I will leave it to the end user 
+            // to decide if they want it or not -- default is off
+            //if(f.length) {
+            //    f[0].scrollIntoView({'block':'start','behavior':'smooth'});
+            //}
         }
         return this.$el;
     }
@@ -2996,17 +3139,17 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
      * @return {object}
      */
     'get':function() {
-        var value = $('div.spinbox', this.$el).spinbox('value');
+        var value = $('div.spinbox', this.$el).spinbox('value'),
+            cds = this.model.get('currentDatasource');
         if(_.isFinite(value)) {
             return {
                 'operator':this.getOperator(), 
+                'column':cds.get('data'),
                 'value':value,
                 'description':['is equal to', value].join(' ')
             };
-        } else {
-            // TODO tigger/handle error notification
-            return false;
         }
+        return false;
     },
     
     /**
@@ -3017,6 +3160,7 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
      * @return {NumberEqualsFilterWidget}
      */
     'set':function(filterValue) {
+        this.useDatasource(filterValue.column);
         if(_.isFinite(filterValue.value)) {
             $('div.spinbox', this.$el).spinbox('value', filterValue.value);
         }
@@ -3029,8 +3173,7 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
      * @return {NumberEqualsFilterWidget}
      */
     'reset':function() {
-        $('div.spinbox', this.$el).spinbox('value', 
-            this.model.get('spinboxConfig').min);
+        this.model.trigger('change:currentDatasource');
         return this;
     },
     
@@ -3041,6 +3184,56 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
      */
     'getOperator':function() {
         return this.model.get('operator');
+    },
+    
+    /**
+     * Adds a single or multiple datasource objects to this View's collection.
+     * @function NumberEqualsFilterWidget#addDatasource
+     * @param {object|object[]} ds - A column data object that includes a 
+     * datasource property, or an array of datasource objects. 
+     * @return {NumberEqualsFilterWidget}
+     */
+    'addDatasource':function(ds) {
+        if(_.isArray(ds)) {
+            for(var i in ds) {
+                this.collection.add(ds[i]);
+            }
+        } else if(_.isObject(ds)) {
+            this.collection.add(ds);
+        }
+        
+        if(this.model.get('currentDatasourceIndex')<0) {
+            this.model.set('currentDatasourceIndex', 0);
+            this.model.set('currentDatasource', 
+                this.collection.at(this.model.get('currentDatasourceIndex')));
+        }
+        return this;
+    },
+    
+    /**
+     * Attempts to change the current datasource by comparing the passed table 
+     * and column parameters.
+     * @function NumberEqualsFilterWidget#useDatasource
+     * @param {string} column - the column/data property of the datasource
+     * @return {boolean} - true when the datasource was changed
+     */
+    'useDatasource':function(column) {
+        var currentDS = this.model.get('currentDatasource'),
+            newDSIndex;
+        if(currentDS.get('data')===column) {
+            return false;
+        }
+        
+        newDSIndex = _.findIndex(this.collection.toJSON(), function(c) {
+            return c.data===column
+        });
+        if(newDSIndex>-1) {
+            this.model.set('currentDatasourceIndex', newDSIndex);
+            this.model.set('currentDatasource', 
+                this.collection.at(this.model.get('currentDatasourceIndex')
+            ));
+        }
+        return true;
     },
     
     
@@ -3092,18 +3285,18 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
      * @typedef {Backbone-View} NumberEqualsFilterWidget
      * @class
      * @classdesc A widget for a number data type that is equal to a value.
-     * @version 1.0.4
+     * @version 1.0.5
      * @constructs NumberEqualsFilterWidget
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
-     * @param {object} [options.attributes={class:"form-control input-mini spinbox-input", autocomplete:"off", placeholder:"is equal to value", size:"6"}] - 
+     * @param {object} [options.attributes={class:"form-control spinbox-input", autocomplete:"off", placeholder:"equal", size:"4"}] - 
      * The attributes that will applied to the input element in this control.
      * @param {object} [options.spinboxConfig={}] - The configuration object 
      * for the fuelux spinbox. See the fuelux spinbox documentation for the
      * default values.
      */
     'initialize':function(options) {
-        this.version = '1.0.4';
+        this.version = '1.0.5';
         /**
          * This view instance's model data.
          * @name model
@@ -3115,31 +3308,50 @@ var NumberEqualsFilterWidget = Backbone.View.extend(
          */
         this.model = new Backbone.Model($.extend(
             {
-                'attributes':{
-                    'class':'form-control spinbox-input', 
-                    'autocomplete':'off',
-                    'placeholder':'equals',
-                    'size':'4'
-                },
-                'spinboxConfig':{
-                    'value':1,
-                    'min':1,
-                    'max':999,
-                    'step':1,
-                    'hold':true,
-                    'speed':'medium',
-                    'disabled':false,
-                    'units':[]
-                }
+                'currentDatasource':null,
+                'currentDatasourceIndex':-1
             },
             options, 
-            {'operator':'equals'}
+            {
+                'operator':'equals',
+                'defaults':{
+                    'attributes':{
+                        'class':'form-control spinbox-input', 
+                        'autocomplete':'off',
+                        'placeholder':'equals',
+                        'size':'4'
+                    },
+                    'spinboxConfig':{
+                        'value':1,
+                        'min':1,
+                        'max':999,
+                        'step':1,
+                        'hold':true,
+                        'speed':'medium',
+                        'disabled':false,
+                        'units':[]
+                    }
+                }
+            }
         ));
-        this.render();
+        
+        this.model.on('change:currentDatasource', 
+            this.render, this);
+        
+        this.collection = new Backbone.Collection();
     },
     
-    'render':function() {
-        this.$el.empty().append(this.template(this.model.toJSON()));
+    'render':function(mod, value, opts) {
+        var cds = this.model.get('currentDatasource');
+        this.$el.empty().append(this.template(
+            {
+                'attributes':cds.has('attributes') ? cds.get('attributes') :
+                    this.model.get('defaults').attributes
+            }
+        ));
+        $('div.spinbox', this.$el).spinbox(
+            cds.has('spinboxConfig') ? cds.get('spinboxConfig') : 
+                this.model.get('defaults').spinboxConfig);
         return this.$el;
     }
 });
@@ -3195,17 +3407,19 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
      */
     'get':function() {
         var from = $('div.cf-fw-from-date', this.$el).spinbox('value'), 
-            to   = $('div.cf-fw-to-date', this.$el).spinbox('value');
+            to   = $('div.cf-fw-to-date', this.$el).spinbox('value'),
+            cds = this.model.get('currentDatasource');
         if(_.isFinite(from) && _.isFinite(to)) {
             return {
                 'operator':this.getOperator(),
+                'column':cds.get('data'),
                 'from':from,
                 'to':to,
                 'description':['is between', from, 'and', to].join(' ')
             };
-        } else {
-            return false;
         }
+        
+        return false;
     },
     
     /**
@@ -3216,6 +3430,7 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
      * @return {NumberBetweenFilterWidget}
      */
     'set':function(filterValue) {
+        this.useDatasource(filterValue.column);
         if(_.isFinite(filterValue.from)) {
             $('div.cf-fw-from-date', this.$el).spinbox('value', filterValue.from);
         }
@@ -3232,10 +3447,7 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
      * @return {NumberBetweenFilterWidget}
      */
     'reset':function() {
-        $('div.cf-fw-from-date', this.$el).spinbox('value', 
-            this.model.get('fromSpinboxConfig').min);
-        $('div.cf-fw-to-date', this.$el).spinbox('value', 
-            this.model.get('toSpinboxConfig').min);
+        this.model.trigger('change:currentDatasource');
         return this;
     },
     
@@ -3246,6 +3458,57 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
      */
     'getOperator':function() {
         return this.model.get('operator');
+    },
+    
+    /**
+     * Adds a single or multiple datasource objects to this View's collection.
+     * @function NumberBetweenFilterWidget#addDatasource
+     * @param {object|object[]} ds - A column data object that includes a 
+     * datasource property, or an array of datasource objects. 
+     * @return {NumberBetweenFilterWidget}
+     */
+    'addDatasource':function(ds) {
+        if(_.isArray(ds)) {
+            for(var i in ds) {
+                this.collection.add(ds[i]);
+            }
+        } else if(_.isObject(ds)) {
+            this.collection.add(ds);
+        }
+        
+        if(this.model.get('currentDatasourceIndex')<0) {
+            this.model.set('currentDatasourceIndex', 0);
+            this.model.set('currentDatasource', 
+                this.collection.at(this.model.get('currentDatasourceIndex')));
+        }
+        return this;
+    },
+    
+    /**
+     * Attempts to change the current datasource by comparing the passed table 
+     * and column parameters.
+     * @function NumberBetweenFilterWidget#useDatasource
+     * @param {string} column - the column/data property of the datasource
+     * @return {boolean} - true when the datasource was changed
+     */
+    'useDatasource':function(column) {
+        var currentDS = this.model.get('currentDatasource'),
+            newDSIndex;
+    
+        if(currentDS.get('data')===column) {
+            return false;
+        }
+        
+        newDSIndex = _.findIndex(this.collection.toJSON(), function(c) {
+            return c.data===column
+        });
+        if(newDSIndex>-1) {
+            this.model.set('currentDatasourceIndex', newDSIndex);
+            this.model.set('currentDatasource', 
+                this.collection.at(this.model.get('currentDatasourceIndex')
+            ));
+        }
+        return true;
     },
     
     
@@ -3267,7 +3530,7 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
         'changed.fu.spinbox':function(e, val) {
             if(!_.isFinite(val)) {
                 // which spinbox is it?
-                
+                console.log(e);
             }
         },
         'keyup input':function(e) {
@@ -3290,13 +3553,13 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
      * @typedef {Backbone-View} NumberBetweenFilterWidget
      * @class
      * @classdesc A widget for number data type that is between two values.
-     * @version 1.0.3
+     * @version 1.0.4
      * @constructs NumberBetweenFilterWidget
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
      */
     'initialize':function(options) {
-        this.version = '1.0.3';
+        this.version = '1.0.4';
         /**
          * This view instance's model data.
          * @name model
@@ -3312,48 +3575,57 @@ var NumberBetweenFilterWidget = Backbone.View.extend(
          */
         this.model = new Backbone.Model($.extend(
             {
-                'fromAttributes':{
-                    'class':'form-control spinbox-input', 
-                    'autocomplete':'off',
-                    'placeholder':'from',
-                    'size':'4'
-                },
-                'toAttributes':{
-                    'class':'form-control spinbox-input', 
-                    'autocomplete':'off',
-                    'placeholder':'to',
-                    'size':'4'
-                },
-                'fromSpinboxConfig':{
-                    'value':1,
-                    'min':1,
-                    'max':999,
-                    'step':1,
-                    'hold':true,
-                    'speed':'medium',
-                    'disabled':false,
-                    'units':[]
-                },
-                'toSpinboxConfig':{
-                    'value':1,
-                    'min':1,
-                    'max':999,
-                    'step':1,
-                    'hold':true,
-                    'speed':'medium',
-                    'disabled':false,
-                    'units':[]
-                }
+                'currentDatasource':null,
+                'currentDatasourceIndex':-1
             },
-            options, 
-            {'operator':'between'}
+            options,
+            {
+                'operator':'between',
+                'defaults':{
+                    'attributes':{
+                        'class':'form-control spinbox-input', 
+                        'autocomplete':'off',
+                        'size':'4'
+                    },
+                    'spinboxConfig':{
+                        'value':1,
+                        'min':1,
+                        'max':999,
+                        'step':1,
+                        'hold':true,
+                        'speed':'medium',
+                        'disabled':false,
+                        'units':[]
+                    }
+                }
+            }
         ));
         
-        this.render();
+        this.model.on('change:currentDatasource', 
+            this.render, this);
+        
+        this.collection = new Backbone.Collection();
     },
     
-    'render':function() {
-        this.$el.empty().append(this.template(this.model.toJSON()));
+    'render':function(mod, value, opts) {
+        var cds = this.model.get('currentDatasource');
+        this.$el.empty().append(this.template(
+            {
+                'attributes':cds.has('attributes') ? 
+                    cds.get('attributes') :
+                    this.model.get('defaults').attributes
+            }
+        ));
+        $('div.cf-fw-from-date', this.$el).spinbox(
+            cds.has('spinboxConfig') ? 
+                cds.get('spinboxConfig') : 
+                this.model.get('defaults').spinboxConfig
+        );
+        $('div.cf-fw-to-date', this.$el).spinbox(
+            cds.has('spinboxConfig') ? 
+                cds.get('spinboxConfig') : 
+                this.model.get('defaults').spinboxConfig
+        );
         return this.$el;
     }
 });
@@ -3411,8 +3683,10 @@ var NumberListFilterWidget = Backbone.View.extend(
         if(this.collection.length<1) {
             return false;
         }
+        var cds = this.model.get('currentDatasource');
         return {
             'operator':this.getOperator(),
+            'column':cds.get('data'),
             'value':this.collection.map(function(n){return n.get('number')}),
             'description':[
                 'is one of these: (',
@@ -3432,6 +3706,7 @@ var NumberListFilterWidget = Backbone.View.extend(
      * @return {NumberListFilterWidget}
      */
     'set':function(filterValue) {
+        this.useDatasource(filterValue.column);
         this.collection.reset(
             _.map(filterValue.value, function(n){
                 return {'number':n}
@@ -3448,6 +3723,7 @@ var NumberListFilterWidget = Backbone.View.extend(
      */
     'reset':function() {
         this.collection.reset();
+        this.model.trigger('change:currentDatasource');
         return this;
     },
     
@@ -3458,6 +3734,57 @@ var NumberListFilterWidget = Backbone.View.extend(
      */
     'getOperator':function() {
         return this.model.get('operator');
+    },
+    
+    /**
+     * Adds a single or multiple datasource objects to this View's collection.
+     * @function NumberListFilterWidget#addDatasource
+     * @param {object|object[]} ds - A column data object that includes a 
+     * datasource property, or an array of datasource objects. 
+     * @return {NumberListFilterWidget}
+     */
+    'addDatasource':function(ds) {
+        if(_.isArray(ds)) {
+            for(var i in ds) {
+                this.datasources.add(ds[i]);
+            }
+        } else if(_.isObject(ds)) {
+            this.datasources.add(ds);
+        }
+        
+        if(this.model.get('currentDatasourceIndex')<0) {
+            this.model.set('currentDatasourceIndex', 0);
+            this.model.set('currentDatasource', 
+                this.datasources.at(this.model.get('currentDatasourceIndex')));
+        }
+        return this;
+    },
+    
+    /**
+     * Attempts to change the current datasource by comparing the passed table 
+     * and column parameters.
+     * @function NumberListFilterWidget#useDatasource
+     * @param {string} column - the column/data property of the datasource
+     * @return {boolean} - true when the datasource was changed
+     */
+    'useDatasource':function(column) {
+        var currentDS = this.model.get('currentDatasource'),
+            newDSIndex;
+        
+        if(currentDS.get('data')===column) {
+            return false;
+        }
+        
+        newDSIndex = _.findIndex(this.datasources.toJSON(), function(c) {
+            return c.data===column
+        });
+        if(newDSIndex>-1) {
+            this.model.set('currentDatasourceIndex', newDSIndex);
+            this.model.set('currentDatasource', 
+                this.datasources.at(this.model.get('currentDatasourceIndex')
+            ));
+        }
+        return true;
     },
     
     
@@ -3514,13 +3841,13 @@ var NumberListFilterWidget = Backbone.View.extend(
      * @typedef {Backbone-View} NumberListFilterWidget
      * @class
      * @classdesc A widget for a list of number data types.
-     * @version 1.0.3
+     * @version 1.0.4
      * @constructs NumberListFilterWidget
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
      */
     'initialize':function(options) {
-        this.version = '1.0.3';
+        this.version = '1.0.4';
         /**
          * This view instance's model data.
          * @name model
@@ -3532,38 +3859,54 @@ var NumberListFilterWidget = Backbone.View.extend(
          */
         this.model = new Backbone.Model($.extend(
             {
-                'attributes':{
-                    'class':'form-control spinbox-input', 
-                    'autocomplete':'off',
-                    'size':'4'
-                },
-                'spinboxConfig':{
-                    'value':1,
-                    'min':1,
-                    'max':999,
-                    'step':1,
-                    'hold':true,
-                    'speed':'medium',
-                    'disabled':false,
-                    'units':[]
-                }
+                'currentDatasource':null,
+                'currentDatasourceIndex':-1
             },
             options, 
-            {'operator':'list'}
+            {
+                'operator':'list',
+                'defaults':{
+                    'attributes':{
+                        'class':'form-control spinbox-input', 
+                        'autocomplete':'off',
+                        'size':'4'
+                    },
+                    'spinboxConfig':{
+                        'value':1,
+                        'min':1,
+                        'max':999,
+                        'step':1,
+                        'hold':true,
+                        'speed':'medium',
+                        'disabled':false,
+                        'units':[]
+                    }
+                }
+            }
         ));
         
         this.collection = new Backbone.Collection();
         this.collection.on('update', this.render, this);
         this.collection.on('reset', this.render, this);
         
-        this.render(this.collection, {});
+        this.model.on('change:currentDatasource', 
+            this.render, this);
+        
+        this.datasources = new Backbone.Collection();
     },
     
-    'render':function(col, opt) {
-        this.$el.empty().append(this.template($.extend(
-            this.model.toJSON(), 
-            {'numbers':this.collection}
-        )));
+    'render':function(mod, value, opts) {
+        var cds = this.model.get('currentDatasource');
+        this.$el.empty().append(this.template(
+            {
+                'attributes':cds.has('attributes') ? cds.get('attributes') :
+                    this.model.get('defaults').attributes,
+                'numbers':this.collection
+            }
+        ));
+        $('div.spinbox', this.$el).spinbox(
+            cds.has('spinboxConfig') ? cds.get('spinboxConfig') : 
+                this.model.get('defaults').spinboxConfig);
         return this.$el;
     }
 });
@@ -3622,7 +3965,7 @@ var DateEqualsFilterWidget = Backbone.View.extend(
         if(d && !isNaN(d.getTime())) {
             return {
                 'operator':this.getOperator(),
-                'value':d.getTime(),
+                'value':d.valueOf(),
                 'description':['is equal to',moment.utc(d).format('M/D/YYYY')].join(' ')
             }
         } else {
@@ -3795,7 +4138,7 @@ var DateAfterFilterWidget = Backbone.View.extend(
         if(d && !isNaN(d.getTime())) {
             return {
                 'operator':this.getOperator(),
-                'value':d.getTime(),
+                'value':d.valueOf(),
                 'description':['is after',moment.utc(d).format('M/D/YYYY')].join(' ')
             }
         } else {
@@ -3964,7 +4307,7 @@ var DateBeforeFilterWidget = Backbone.View.extend(
         if(d && !isNaN(d.getTime())) {
             return {
                 'operator':this.getOperator(),
-                'value':d.getTime(),
+                'value':d.valueOf(),
                 'description':['is before',moment.utc(d).format('M/D/YYYY')].join(' ')
             }
         } else {
@@ -4017,6 +4360,9 @@ var DateBeforeFilterWidget = Backbone.View.extend(
     'template':_.template($.fn.ColumnFilters.DATEPICKER_TEMPLATE, 
         {'variable':'config'}),
     
+    
+    'tagName':'fieldset',
+        
     /**
      * This Backbone View's class values.
      * @readonly
@@ -4030,11 +4376,13 @@ var DateBeforeFilterWidget = Backbone.View.extend(
      * @typedef {Backbone-View} DateBeforeFilterWidget
      * @class
      * @classdesc A widget for text data type that is equal to a value.
+     * @version 1.0.5
      * @constructs DateBeforeFilterWidget
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
      */
     'initialize':function(options) {
+        this.version = '1.0.5';
         /**
          * This view instance's model data.
          * @name model
@@ -4128,8 +4476,8 @@ var DateBetweenFilterWidget = Backbone.View.extend(
     'get':function() {
         var dfrom = $('input:first-child', this.$el).datepicker('getUTCDate'),
             dto = $('input:last-child', this.$el).datepicker('getUTCDate'),
-            fromDateCheck = _.isDate(dfrom) ? dfrom.getTime() : NaN,
-            toDateCheck = _.isDate(dto) ? dto.getTime() : NaN;
+            fromDateCheck = _.isDate(dfrom) ? dfrom.valueOf() : NaN,
+            toDateCheck = _.isDate(dto) ? dto.valueOf() : NaN;
         if( (!isNaN(fromDateCheck) && !isNaN(toDateCheck)) && (fromDateCheck <= toDateCheck) ) {
             return {
                 'operator':this.getOperator(),
@@ -4384,7 +4732,7 @@ var DateListFilterWidget = Backbone.View.extend(
     'events':{
         'click button.cf-fw-numberList-btn-add':function(e) {
             var d = $('div.date', this.$el).datepicker('getUTCDate');
-            if(d && !isNaN(d.getTime()) && this.collection.where({'date':d}).length<1) {
+            if(d && !isNaN(d.valueOf()) && this.collection.where({'date':d}).length<1) {
                 this.collection.add({'date':d});
             }
         },
@@ -5167,7 +5515,9 @@ var BooleanEqualsFilterWidget = Backbone.View.extend(
         });
         if(newDSIndex>-1) {
             this.model.set('currentDatasourceIndex', newDSIndex);
-            this.model.set('currentDatasource', this.collection.at(this.model.get('currentDatasourceIndex')));
+            this.model.set('currentDatasource', 
+                this.collection.at(this.model.get('currentDatasourceIndex')
+            ));
         }
         
         return true;
@@ -5189,16 +5539,6 @@ var BooleanEqualsFilterWidget = Backbone.View.extend(
             '</label>',
         '</div>'
     ].join(''), {'variable':'config'}),
-    
-    /**
-     * This View's events object. 
-     * @readonly
-     * @type {object}
-     * @property {function} namespaced.event - Event handler function
-     */
-    'events':{
-        
-    },
     
     'tagName':'fieldset',
     
@@ -5999,11 +6339,14 @@ $.fn.ColumnFilters.ControlModes = {
 };
 
 
-// plugin default configuration values
+/**
+ * These are the default values for the ColumnFilters plugin.
+ * @memberof $.fn.ColumnFilters
+ */
 $.fn.ColumnFilters.defaults = {
      // Attributes applied to the container element created during construction.
     'wrapperAttributes':{
-        'class':'columnfilters'
+        
     },
     
     // translates database types to columnfilters widget types
@@ -6038,7 +6381,7 @@ $.fn.ColumnFilters.defaults = {
     
     // this is for the ajax calls that manage the filter categories
     'url':null,
-    'ajax':{},
+    'ajax':{}, // TODO do we use this?
     
     // you can use these to pass in pre-populated filters and filter categories
     'filters':[],
@@ -6055,47 +6398,47 @@ $.fn.ColumnFilters.defaults = {
         {
             'type':'text', 
             'widgets':[
-                new TextEqualsFilterWidget({}),
-                new TextSearchFilterWidget({})
+                new TextEqualsFilterWidget(),
+                new TextSearchFilterWidget()
             ]
         },
         {
             'type':'number',
             'widgets':[
-                new NumberEqualsFilterWidget({}),
-                new NumberBetweenFilterWidget({}),
-                new NumberListFilterWidget({})
+                new NumberEqualsFilterWidget(),
+                new NumberBetweenFilterWidget(),
+                new NumberListFilterWidget()
             ]
         },
         {
             'type':'date',
             'widgets':[
-                new DateEqualsFilterWidget({}),
-                new DateAfterFilterWidget({}),
-                new DateBeforeFilterWidget({}),
-                new DateBetweenFilterWidget({}),
-                new DateListFilterWidget({}),
-                new DateMonthFilterWidget({}),
-                new DateMonthYearFilterWidget({}),
-                new DateYearFilterWidget({}),
+                new DateEqualsFilterWidget(),
+                new DateAfterFilterWidget(),
+                new DateBeforeFilterWidget(),
+                new DateBetweenFilterWidget(),
+                new DateListFilterWidget(),
+                new DateMonthFilterWidget(),
+                new DateMonthYearFilterWidget(),
+                new DateYearFilterWidget(),
             ]
         },
         {
             'type':'boolean',
             'widgets':[
-                new BooleanEqualsFilterWidget({})
+                new BooleanEqualsFilterWidget()
             ]
         },
         {
             'type':'enum',
             'widgets':[
-                new EnumEqualsFilterWidget({})
+                new EnumEqualsFilterWidget()
             ]
         },
         {
             'type':'biglist',
             'widgets':[
-                new BiglistEqualsFilterWidget({})
+                new BiglistEqualsFilterWidget()
             ]
         }
     ],
@@ -6147,5 +6490,5 @@ $.fn.ColumnFilters.defaults = {
         }
     };
 
-    $.fn.ColumnFilters.VERSION = '1.0.1';
+    $.fn.ColumnFilters.VERSION = '1.0.2';
 })(jQuery);

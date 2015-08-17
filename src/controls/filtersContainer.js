@@ -97,6 +97,7 @@ var ColumnFiltersContainer = Backbone.View.extend(
      * options.filters is populated, it will be set to the first filter.
      */
     'initialize':function(options) {
+        this.version = '1.0.1';
         /**
          * This view instance's model data.
          * @name model
@@ -149,9 +150,12 @@ var ColumnFiltersContainer = Backbone.View.extend(
                 this.model.get('activeColumnIndex'),
                 '"]'
             ].join(''), this.$el);
-            if(f.length) {
-                f[0].scrollIntoView({'block':'start','behavior':'smooth'});
-            }
+            
+            // this is a bit controversial so I will leave it to the end user 
+            // to decide if they want it or not -- default is off
+            //if(f.length) {
+            //    f[0].scrollIntoView({'block':'start','behavior':'smooth'});
+            //}
         }
         return this.$el;
     }

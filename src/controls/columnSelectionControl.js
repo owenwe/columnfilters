@@ -33,6 +33,7 @@ var ColumnSelectionControl = Backbone.View.extend(
         var selections, selection, selectedType;
         this.model.set('filterSelectionType', selectionType);
         switch(this.model.get('filterSelectionType')) {
+            // 
             case $.fn.ColumnFilters.FilterSelectionTypes.DEFAULT:
                 $('div.cf-filter-type-select-common', this.$el).hide();
                 $('div.cf-filter-type-select-column', this.$el).show();
@@ -45,6 +46,7 @@ var ColumnSelectionControl = Backbone.View.extend(
                     this.showFilterType(this.model.get('activeColumn').type);
                 }
                 break;
+            // 
             case $.fn.ColumnFilters.FilterSelectionTypes.COMMON_VALUE:
                 $('div.cf-filter-type-select-column', this.$el).hide();
                 $('div.cf-filter-type-select-common', this.$el).show();
@@ -70,6 +72,7 @@ var ColumnSelectionControl = Backbone.View.extend(
                     this.model.get('filterFactory').reset().hide();//.reset()
                 }
                 break;
+            // 
             case 'reference':
                 $('div.cf-filter-type-select-common', this.$el).hide();
                 $('div.cf-filter-type-select-column', this.$el).hide();
@@ -79,16 +82,21 @@ var ColumnSelectionControl = Backbone.View.extend(
     },
     
     /**
-     * Uses the parameters to enable/disable the options in the common value select form element.
+     * Uses the parameters to enable/disable the options in the common value 
+     * select form element.
      * @function ColumnSelectionControl#enableColumnsByType
-     * @param {string[]} columnData - an array of values that will match the .data property in the list of columns
+     * @param {string[]} columnData - an array of values that will match the 
+     * .data property in the list of columns
      * @param {string} type - the type value of the option(s) selected
      * @return ColumnSelectionControl
      */
     'enableColumnsByType':function(columnData, type) {
         if(columnData) {
             $('button.cf-add-column-filter-button', this.$el).removeAttr('disabled');
-            var selectedColumns = _.filter(this.model.get('commonColumns'), function(c){ return _.contains(columnData, c.data)}, this);
+            var selectedColumns = _.filter(this.model.get('commonColumns'), 
+                function(c) {
+                    return _.contains(columnData, c.data)
+                }, this);
             $('option', $('div.cf-filter-type-select-common select', this.$el)).each(function(i, e) {
                 if($(e).data('type')!==type) {
                     $(e).attr('disabled', 'disabled').addClass('disabled');
@@ -131,24 +139,35 @@ var ColumnSelectionControl = Backbone.View.extend(
      * @return ColumnSelectionControl
      */
     'showFilterType':function(type, operator) {
-        var aw = this.model.get('filterFactory').activeType(type, operator);
+        var at = this.model.get('filterFactory').activeType(),
+            aw = this.model.get('filterFactory').activeType(type, operator);
         if(aw) {
             $('button.cf-add-column-filter-button', this.$el).removeAttr('disabled');
             // inform filterFactory about special filter types
-            if(type==='enum') {
-                this.model.get('filterFactory').configureEnumWidget(
-                    this.model.get('activeColumn').referenceTable,
-                    this.model.get('activeColumn').data
-                );
-            } else if(type==='biglist') {
-                this.model.get('filterFactory').configureBiglistWidget(
-                    this.model.get('activeColumn').referenceTable,
-                    this.model.get('activeColumn').data
-                );
-            } else if(type==='boolean') {
-                this.model.get('filterFactory').configureBooleanWidget(
-                    this.model.get('activeColumn').data
-                );
+            switch(type) {
+                case 'number':
+                    this.model.get('filterFactory').configureNumberWidget(
+                        this.model.get('activeColumn').data,
+                        operator
+                    );
+                    break;
+                case 'boolean':
+                    this.model.get('filterFactory').configureBooleanWidget(
+                        this.model.get('activeColumn').data
+                    );
+                    break;
+                case 'enum':
+                    this.model.get('filterFactory').configureEnumWidget(
+                        this.model.get('activeColumn').referenceTable,
+                        this.model.get('activeColumn').data
+                    );
+                    break;
+                case 'biglist':
+                    this.model.get('filterFactory').configureBiglistWidget(
+                        this.model.get('activeColumn').referenceTable,
+                        this.model.get('activeColumn').data
+                    );
+                    break;
             }
             this.model.get('filterFactory').show();
         } else {
@@ -332,8 +351,16 @@ var ColumnSelectionControl = Backbone.View.extend(
          * @listens ColumnSelectionControl.events#"div.cf-filter-type-select-column select":change
          */
         'change div.cf-filter-type-select-column select':function(e) {
-            this.model.set('activeColumn', _.findWhere(this.model.get('columns'), {'data':$(e.currentTarget).val()}));
-            this.showFilterType(this.model.get('activeColumn').type);
+            this.model.set('activeColumn', 
+                _.findWhere(this.model.get('columns'), 
+                    {'data':$(e.currentTarget).val()}));
+            
+            var act = this.model.get('activeColumn').type,
+                at = this.model.get('filterFactory').activeType(),
+                o = act===at ? 
+                    this.model.get('filterFactory').getActiveWidget().getOperator() : 
+                    undefined;
+            this.showFilterType(this.model.get('activeColumn').type, o);
         },
         
         /**
@@ -494,6 +521,7 @@ var ColumnSelectionControl = Backbone.View.extend(
      * @class
      * @classdesc A ColumnSelectionControl manages how columns are set up for 
      * the filter factory to apply its filter.
+     * @version 1.0.2
      * @extends Backbone-View
      * @constructs ColumnSelectionControl
      * 
@@ -522,6 +550,7 @@ var ColumnSelectionControl = Backbone.View.extend(
      * mode to set this control into
      */
     'initialize':function(options) {
+        this.version = '1.0.2';
         //console.log(options);
         /**
          * This view instance's model data.
@@ -551,12 +580,12 @@ var ColumnSelectionControl = Backbone.View.extend(
                 _.reject(this.model.get('columns'), function(c) {
                     _.has(c, 'cfexclude') && c.cfexclude
                 }), 
-                function(c){ return c.type }
+                'type'
             ),
             currentWidget, dataTypeWidgets, widgetsCollection = []
         ;
         
-        // pick out the data-backed columns that their datasources don't match
+        // pick out the data-backed columns where the datasources don't match
         for(i in groupedCol) {
             if(groupedCol[i].length>1) {
                 if(_.contains(['biglist','enum'], i)) {
@@ -591,21 +620,25 @@ var ColumnSelectionControl = Backbone.View.extend(
                 break;
         }
         
+        // pass number columns to the filterFactory for processing
+        // pass boolean columns to the filterFactory for processing
         // pass enum columns to the filterFactory for processing
         // pass reference columns to the filterFactory for processing
-        // pass boolean columns to the filterFactory for processing
         // create the filter factory
         this.model.set('filterFactory', new FilterFactory($.extend(
             options.filterFactoryConfig,
             {
+                'numberColumns':_.filter(options.columns, function(c) {
+                    return c.type==='number'
+                }),
+                'booleanColumns':_.filter(options.columns, function(c) {
+                    return c.type==='boolean'
+                }),
                 'enumColumns':_.filter(options.columns, function(c) {
                     return c.type==='enum'
                 }),
                 'biglistColumns':_.filter(options.columns, function(c) {
                     return c.type==='biglist'
-                }),
-                'booleanColumns':_.filter(options.columns, function(c) {
-                    return c.type==='boolean'
                 })
             }
         )));
