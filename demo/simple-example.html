@@ -2,13 +2,12 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" charset="utf-8" content="text/html; charset=UTF-8" />
-    <title>columnfilters implementation page</title>
+    <title>ColumnFilters Demonstration page</title>
     <link rel="stylesheet" href="media/css/bootstrap.min.css" />
     <link rel="stylesheet" href="media/css/bootstrap-theme.min.css" />
     <link rel="stylesheet" href="media/css/dataTables.bootstrap.css" />
     <link rel="stylesheet" href="media/css/bootstrap-datepicker3.min.css" />
     <link rel="stylesheet" href="media/css/fuelux.min.css" />
-    <link rel="stylesheet" href="media/css/typeahead-ext.css" />
     <link rel="stylesheet" href="../dist/dataTables.columnfilters.min.css" />
     <style>
 	body {
@@ -40,9 +39,7 @@
 <script>
 'use strict';
 
-var tc, 
-    cf,
-    
+var cf,
     cities = new Bloodhound({
         'name':'cities',
         'datumTokenizer':$.fn.ColumnFilters.tokenizers.whitespace,
@@ -143,6 +140,22 @@ var tc,
             }
         },
 		{'data':'notes', 'title':'Notes', 'type':'longtext'},
+		{
+            'data':'iNumber',
+            'title':'Integer',
+            'type':'int'
+        },
+		{
+		    'data':'fNumber',
+		    'title':'Decimal',
+		    'type':'decimal',
+		    'spinboxConfig':{
+		        'value':1,
+                'min':0,
+                'max':9.75,
+                'step':.25
+		    }
+		},
 		{'data':'boolTest', 'title':'Bool 1', 'type':'boolean', 'trueLabel':'Yes', 'falseLabel':'No'}
     ]
 ;
@@ -150,7 +163,10 @@ var tc,
 $(document).ready(function(e) {
 	cf = $('#simple-example').ColumnFilters({
 	    'mode':$.fn.ColumnFilters.Modes.CATEGORY_SETS,
-        'table':'employees', 
+	    //'mode':$.fn.ColumnFilters.Modes.NO_TYPES,
+	    //'mode':$.fn.ColumnFilters.Modes.CATEGORIES_NO_TYPES,
+	    
+	    'table':'employees', 
         'columns':sampleColumns,
         'columnsControlConfig':{
             'defaultSelectedColumnValue':'hired'

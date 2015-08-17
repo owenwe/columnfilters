@@ -51,7 +51,7 @@ var DateEqualsFilterWidget = Backbone.View.extend(
         if(d && !isNaN(d.getTime())) {
             return {
                 'operator':this.getOperator(),
-                'value':d.getTime(),
+                'value':d.valueOf(),
                 'description':['is equal to',moment.utc(d).format('M/D/YYYY')].join(' ')
             }
         } else {

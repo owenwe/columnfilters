@@ -118,7 +118,7 @@ var DateListFilterWidget = Backbone.View.extend(
     'events':{
         'click button.cf-fw-numberList-btn-add':function(e) {
             var d = $('div.date', this.$el).datepicker('getUTCDate');
-            if(d && !isNaN(d.getTime()) && this.collection.where({'date':d}).length<1) {
+            if(d && !isNaN(d.valueOf()) && this.collection.where({'date':d}).length<1) {
                 this.collection.add({'date':d});
             }
         },

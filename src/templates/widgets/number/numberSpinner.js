@@ -4,7 +4,7 @@
  * @contant {string} NUMBER_SPINNER_TEMPLATE
  */
 $.fn.ColumnFilters.NUMBER_SPINNER_TEMPLATE = [
-    '<div class="spinbox" data-initialize="spinbox">',
+    '<div class="spinbox">',
         '<input type="text" <%= _.map(_.omit(config.attributes, "type"), function(val,key){ return [key,\'="\',val,\'"\'].join("") }).join(" ") %> />',
         '<div class="spinbox-buttons btn-group btn-group-vertical">',
             '<button class="btn btn-default spinbox-up btn-xs">',

@@ -38,6 +38,7 @@
 				<file name="filtersContainer.css" />
 				<file name="saveControl.css" />
 				<file name="notification.css" />
+				<file name="typeahead-ext.css" />
 			</filelist>
 		</concat>
 		<concat destfile="${basedir}/dist/dataTables.columnfilters.js" ignoreempty="yes" fixlastline="yes">
@@ -129,8 +130,6 @@
         <exec dir="${basedir}" osfamily="unix" executable="jsdoc">
             <arg line="${source.dir}" />
             <arg line="-c conf.json" />
-            <arg line="-r README.md" />
-            <arg line="-d docs" />
         </exec>
     </target>
 	

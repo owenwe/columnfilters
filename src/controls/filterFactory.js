@@ -1,5 +1,6 @@
-var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
-    
+var FilterFactory = Backbone.View.extend(
+/** @lends FilterFactory.prototype */
+{
     /**
      * Displays this View instance.
      * @function FilterFactory#show
@@ -68,7 +69,6 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
      * @return {FilterFactory}
      */
     'configureEnumWidget':function(enumTable, enumColumn) {
-        // is there an enum filter widget?
         var efw = this.getWidget('enum', 'equals');
         if(efw) {
             efw.useDatasource(enumTable, enumColumn);
@@ -101,9 +101,27 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
      */
     'configureBooleanWidget':function(booleanColumn) {
         var bfw = this.getWidget('boolean', 'equals');
-        
         if(bfw) {
             bfw.useDatasource(booleanColumn);
+        }
+        return this;
+    },
+    
+    /**
+     * Prompts the number filter widget(s) to set their datasource using the
+     * passed parameter.
+     * @function FilterFactory#configureNumberWidget
+     * @param {string} numberColumn - the value of the column/data property
+     * @param {string} operator - the operator for the type
+     * @return {FilterFactory}
+     */
+    'configureNumberWidget':function(numberColumn, operator) {
+        var i, widgets = [],
+        numberDT = _.findWhere(this.model.get('dataTypeWidgets'), {'type':'number'});;
+        if(numberDT) {
+            for(i in numberDT.widgets) {
+                numberDT.widgets[i].useDatasource(numberColumn);
+            }
         }
         return this;
     },
@@ -268,6 +286,32 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
         return this;
     },
     
+    /**
+     * A function that returns the version of not just this object, but all the 
+     * complex objects that this object manages.
+     * @function FilterFactory#versions
+     * @return {object} A JSON object where the keys represent the class or 
+     * object and the values are the versions.
+     */
+    'versions':function() {
+        var wtypes = _.keys(_.groupBy(this.model.get('dataTypeWidgets'), 'type')),
+            wtv = {},
+            i, j, curT, tempA;
+        for (i in wtypes) {
+            curT = _.findWhere(this.model.get('dataTypeWidgets'), {'type':wtypes[i]});
+            tempA = [];
+            for(j in curT.widgets) {
+                tempA.push(_.createKeyValueObject(curT.widgets[j].getOperator(), curT.widgets[j].version));
+            }
+            $.extend(wtv, _.createKeyValueObject(wtypes[i], tempA));
+        }
+        
+        return {
+            'FilterFactory':this.version,
+            'Data Type Widgets':wtv
+        };
+    },
+    
     
     /**
      * The underscore template used in the render function.
@@ -298,6 +342,14 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
             
             // show the widget for the new activeOperator
             this.getActiveWidget().show();
+            
+            // check if the active widget is a number type
+            if(this.activeType()==='number') {
+                this.configureNumberWidget(
+                    this.getActiveWidget().model.get('currentDatasource').get('data'), 
+                    this.getActiveWidget().getOperator()
+                );
+            }
         }
     },
     
@@ -316,7 +368,7 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
      * @classdesc An instance of FilterFactory will contain controls for text, number, 
      * date, enum, reference, and boolean value types. However, an instance can be 
      * configured to have a custom set of value type controls.
-     * @version 1.0.1
+     * @version 1.0.2
      * @constructs FilterFactory
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
@@ -324,9 +376,10 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
      * @param {object[]} [options.enumColumns=[]] - An array of enum type columns.
      * @param {object[]} [options.biglistColumns=[]] - An array of biglist type columns.
      * @param {object[]} [options.booleanColumns=[]] - An array of boolean type columns.
+     * @param {object[]} [options.numberColumns=[]] - An array of number type columns.
      */
     'initialize':function(options) {
-        this.version = '1.0.1';
+        this.version = '1.0.2';
         //console.log(options);
         /**
          * This view instance's model data.
@@ -341,7 +394,8 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
             {
                 'enumColumns':[],
                 'biglistColumns':[],
-                'booleanColumns':[]
+                'booleanColumns':[],
+                'numberColumns':[]
             },
             options
         ));
@@ -397,6 +451,14 @@ var FilterFactory = Backbone.View.extend(/** @lends FilterFactory.prototype */{
         if(at && this.model.get('booleanColumns').length) {
             for(i in at.widgets) {
                 at.widgets[i].addDatasource(this.model.get('booleanColumns'));
+            }
+        }
+        
+        // process numberColumns
+        at = _.findWhere(dtw, {'type':'number'});
+        if(at && this.model.get('numberColumns').length) {
+            for(i in at.widgets) {
+                at.widgets[i].addDatasource(this.model.get('numberColumns'));
             }
         }
     },

@@ -6,7 +6,7 @@
  */
 $.fn.ColumnFilters.NUMBER_LIST_TEMPLATE = [
     '<div class="form-group pull-left">',
-        '<div class="spinbox" data-initialize="spinbox">',
+        '<div class="spinbox">',
             '<input type="text" <%= _.map(_.omit(config.attributes, "type"), function(val,key){ return [key,\'="\',val,\'"\'].join("") }).join(" ") %> />',
             '<div class="spinbox-buttons btn-group btn-group-vertical">',
                 '<button class="btn btn-default spinbox-up btn-xs">',

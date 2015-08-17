@@ -20,6 +20,26 @@ var ColumnFilters = Backbone.View.extend(
         return this.model.get(key);
     },
     
+    /**
+     * A function that returns the version of not just this object, but all the 
+     * complex objects that this object manages.
+     * @function ColumnFilters#versions
+     * @return {object} A JSON object where the keys represent the class or 
+     * object and the values are the versions.
+     */
+    'versions':function() {
+        var dtws = this.get('columnControl').model.get('filterFactory').model.get('dataTypeWidgets'),
+            dtwTypes = _.groupBy(dtws, 'type');
+        
+        return {
+            'ColumnFilters':this.version,
+            'ColumnSelectionControl':this.get('columnControl').version,
+            'FilterFactory':this.get('columnControl').model.get('filterFactory').versions(),
+            'ColumnFiltersContainer':this.get('filtersContainer').version,
+            'FilterSaveControl':this.get('filtersControl').version
+        };
+    },
+    
     
     /**
      * This View's events object. 
@@ -76,15 +96,15 @@ var ColumnFilters = Backbone.View.extend(
      * @type {string}
      * @default
      */
-    'className':'panel panel-default',
+    'className':'columnfilters',
     
     /**
      * The main Backbone View used in this plugin.
      * @author Wes Owen wowen@ccctechcenter.org
-     * @version 1.0.1
      * @typedef {Backbone-View} ColumnFilters
      * @class
      * @classdesc This view renders and controls the ColumnFilters jQuery plugin.
+     * @version 1.0.2
      * @constructs ColumnFilters
      * @extends Backbone-View
      * @param {object} options - configuration options for this View instance
@@ -92,9 +112,10 @@ var ColumnFilters = Backbone.View.extend(
      * for the datatables server-side data.
      */
     'initialize':function(options) {
-        this.version = '1.0.1';
+        this.version = '1.0.2';
         
-        // 
+        // add this view as the context to the ajax object used in the filter 
+        // set Backbone.sync request
         options.ajax.context = this;
         
         /**
@@ -125,19 +146,18 @@ var ColumnFilters = Backbone.View.extend(
             'columnsControlConfig'
         ]), {'cachedFilter':null}));
         
-        // for now let's keep the filters in this view's collection
+        // this.collection == filters
         this.collection = new Backbone.Collection(options.filters);
-        // the add event will be caught here first
-        this.collection.on('update', function(coll, opt) {
-            // TODO 
+        
+        // re-broadcast this event
+        this.collection.on('update', function(col, opt) {
+            this.trigger('filters.update', col, opt);
+            this.$el.trigger('filters.update', [col, opt]);
             
         }, this);
         this.collection.on('reset', function(col, opt) {
-            /*if(col) {
-                this.collection.reset(col);
-            } else {
-                this.collection.reset();
-            }*/
+            this.trigger('filters.reset', col, opt);
+            this.$el.trigger('filters.reset', [col, opt]);
         }, this);
         
         /* 
@@ -153,16 +173,16 @@ var ColumnFilters = Backbone.View.extend(
         this.model.set('columnControl', new ColumnSelectionControl(
             $.extend(options.columnsControlConfig, {
                 'columns': _.map(
-                    _.reject(options.columns, function(c){
+                    _.reject(options.columns, function(c) {
                         return _.has(c,'cfexclude') && c.cfexclude
                     }),
-                    function(c){
+                    function(c) {
                         if(_.contains(['reference', 'object'], c.type)) {
                             // a table property is required for these types
                             _.extendOwn(c, {'referenceTable':c.table});
                         }
                         _.extendOwn(c, {'table':options.table});
-                        return _.extendOwn(c, {
+                        return $.extend(c, {
                             'type':this.get('DB_TO_CF_TYPES')[c.type]
                         });
                     },
@@ -189,14 +209,22 @@ var ColumnFilters = Backbone.View.extend(
             }),
             'filters':this.collection
         }));
+        this.model.get('filtersControl').on('fsc.ajax.error', function(xhr, obj) {
+            this.trigger('columnfilters.ajax.error', xhr, obj);
+            this.$el.trigger('columnfilters.ajax.error', [xhr, obj]);
+        }, this);
+        
+        this.render();
     },
     
     'render':function() {
         this.$el.empty();
         this.$el.append(
-            this.get('columnControl').$el, 
-            this.get('filtersContainer').$el, 
-            this.get('filtersControl').$el
+            $('<div />').addClass('panel panel-default').append(
+                this.get('columnControl').$el, 
+                this.get('filtersContainer').$el, 
+                this.get('filtersControl').$el
+            )
         );
         return this.$el;
     }
@@ -205,16 +233,11 @@ var ColumnFilters = Backbone.View.extend(
 
 /**
  * The ColumnFilters jQuery plugin namespace. Access by using 
- * <code>$.fn.ColumnFilters</code>
+ * <code>$.fn.ColumnFilters</code>. To construct, pass in a configuration object 
+ * or call <code>ColumnFilters(<em>config</em>)</code> on a jQuery selection.
  * @namespace $.fn.ColumnFilters
  */
 $.fn.ColumnFilters = function(config) {
-    
-    if(this.length<1 || !this.is('div')) {
-        console.error('ColumnFilters must be called on a <div> element');
-        return;
-    }
-    
     // variables used in this scope
     var i, j,
         dtw,
@@ -234,12 +257,17 @@ $.fn.ColumnFilters = function(config) {
         'notification':null
     };
     
-    
     // create the container for the view
-    protectedConfig.container = $('<div />').attr(
-        $.fn.ColumnFilters.defaults.wrapperAttributes
-    );
-    this.replaceWith(protectedConfig.container);
+    if(this.length && _.isElement(this[0])) {
+        this.attr(
+            $.fn.ColumnFilters.defaults.wrapperAttributes
+        );
+        protectedConfig.container = this;
+    } else {
+        protectedConfig.container = $('<div />').attr(
+            $.fn.ColumnFilters.defaults.wrapperAttributes
+        );
+    }
     
     // combine and save the defaults with the passed in configuration object and 
     // protected configuration options
@@ -256,11 +284,7 @@ $.fn.ColumnFilters = function(config) {
                     for(j in config.dataTypeWidgets[i].widgets) {
                         dtw.widgets.push(config.dataTypeWidgets[i].widgets[j]);
                     }
-                } else {
-                    $.fn.ColumnFilters.defaults.dataTypeWidgets.push(config.dataTypeWidgets[i]);
                 }
-                $.extend($.fn.ColumnFilters.defaults.dataTypeWidgets,
-                    config.dataTypeWidgets[i]);
             }
         }
     }
@@ -271,7 +295,7 @@ $.fn.ColumnFilters = function(config) {
         protectedConfig
     );
     thisCF = new ColumnFilters($.fn.ColumnFilters.defaults);
-    $.fn.ColumnFilters.defaults.container.append(thisCF.render());
+    protectedConfig.container.append(thisCF.$el);
     
     // create and return a ColumnFilters object 
     return thisCF;

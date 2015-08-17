@@ -50,8 +50,10 @@ var NumberListFilterWidget = Backbone.View.extend(
         if(this.collection.length<1) {
             return false;
         }
+        var cds = this.model.get('currentDatasource');
         return {
             'operator':this.getOperator(),
+            'column':cds.get('data'),
             'value':this.collection.map(function(n){return n.get('number')}),
             'description':[
                 'is one of these: (',
@@ -71,6 +73,7 @@ var NumberListFilterWidget = Backbone.View.extend(
      * @return {NumberListFilterWidget}
      */
     'set':function(filterValue) {
+        this.useDatasource(filterValue.column);
         this.collection.reset(
             _.map(filterValue.value, function(n){
                 return {'number':n}
@@ -87,6 +90,7 @@ var NumberListFilterWidget = Backbone.View.extend(
      */
     'reset':function() {
         this.collection.reset();
+        this.model.trigger('change:currentDatasource');
         return this;
     },
     
@@ -97,6 +101,57 @@ var NumberListFilterWidget = Backbone.View.extend(
      */
     'getOperator':function() {
         return this.model.get('operator');
+    },
+    
+    /**
+     * Adds a single or multiple datasource objects to this View's collection.
+     * @function NumberListFilterWidget#addDatasource
+     * @param {object|object[]} ds - A column data object that includes a 
+     * datasource property, or an array of datasource objects. 
+     * @return {NumberListFilterWidget}
+     */
+    'addDatasource':function(ds) {
+        if(_.isArray(ds)) {
+            for(var i in ds) {
+                this.datasources.add(ds[i]);
+            }
+        } else if(_.isObject(ds)) {
+            this.datasources.add(ds);
+        }
+        
+        if(this.model.get('currentDatasourceIndex')<0) {
+            this.model.set('currentDatasourceIndex', 0);
+            this.model.set('currentDatasource', 
+                this.datasources.at(this.model.get('currentDatasourceIndex')));
+        }
+        return this;
+    },
+    
+    /**
+     * Attempts to change the current datasource by comparing the passed table 
+     * and column parameters.
+     * @function NumberListFilterWidget#useDatasource
+     * @param {string} column - the column/data property of the datasource
+     * @return {boolean} - true when the datasource was changed
+     */
+    'useDatasource':function(column) {
+        var currentDS = this.model.get('currentDatasource'),
+            newDSIndex;
+        
+        if(currentDS.get('data')===column) {
+            return false;
+        }
+        
+        newDSIndex = _.findIndex(this.datasources.toJSON(), function(c) {
+            return c.data===column
+        });
+        if(newDSIndex>-1) {
+            this.model.set('currentDatasourceIndex', newDSIndex);
+            this.model.set('currentDatasource', 
+                this.datasources.at(this.model.get('currentDatasourceIndex')
+            ));
+        }
+        return true;
     },
     
     
@@ -153,13 +208,13 @@ var NumberListFilterWidget = Backbone.View.extend(
      * @typedef {Backbone-View} NumberListFilterWidget
      * @class
      * @classdesc A widget for a list of number data types.
-     * @version 1.0.3
+     * @version 1.0.4
      * @constructs NumberListFilterWidget
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
      */
     'initialize':function(options) {
-        this.version = '1.0.3';
+        this.version = '1.0.4';
         /**
          * This view instance's model data.
          * @name model
@@ -171,38 +226,54 @@ var NumberListFilterWidget = Backbone.View.extend(
          */
         this.model = new Backbone.Model($.extend(
             {
-                'attributes':{
-                    'class':'form-control spinbox-input', 
-                    'autocomplete':'off',
-                    'size':'4'
-                },
-                'spinboxConfig':{
-                    'value':1,
-                    'min':1,
-                    'max':999,
-                    'step':1,
-                    'hold':true,
-                    'speed':'medium',
-                    'disabled':false,
-                    'units':[]
-                }
+                'currentDatasource':null,
+                'currentDatasourceIndex':-1
             },
             options, 
-            {'operator':'list'}
+            {
+                'operator':'list',
+                'defaults':{
+                    'attributes':{
+                        'class':'form-control spinbox-input', 
+                        'autocomplete':'off',
+                        'size':'4'
+                    },
+                    'spinboxConfig':{
+                        'value':1,
+                        'min':1,
+                        'max':999,
+                        'step':1,
+                        'hold':true,
+                        'speed':'medium',
+                        'disabled':false,
+                        'units':[]
+                    }
+                }
+            }
         ));
         
         this.collection = new Backbone.Collection();
         this.collection.on('update', this.render, this);
         this.collection.on('reset', this.render, this);
         
-        this.render(this.collection, {});
+        this.model.on('change:currentDatasource', 
+            this.render, this);
+        
+        this.datasources = new Backbone.Collection();
     },
     
-    'render':function(col, opt) {
-        this.$el.empty().append(this.template($.extend(
-            this.model.toJSON(), 
-            {'numbers':this.collection}
-        )));
+    'render':function(mod, value, opts) {
+        var cds = this.model.get('currentDatasource');
+        this.$el.empty().append(this.template(
+            {
+                'attributes':cds.has('attributes') ? cds.get('attributes') :
+                    this.model.get('defaults').attributes,
+                'numbers':this.collection
+            }
+        ));
+        $('div.spinbox', this.$el).spinbox(
+            cds.has('spinboxConfig') ? cds.get('spinboxConfig') : 
+                this.model.get('defaults').spinboxConfig);
         return this.$el;
     }
 });
