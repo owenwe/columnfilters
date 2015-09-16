@@ -42,7 +42,7 @@ var BiglistEqualsFilterWidget = Backbone.View.extend(
     },
     
     /**
-     * 
+     * Returns the filter value
      * @function BiglistEqualsFilterWidget#get
      * @return {object}
      */
@@ -54,6 +54,7 @@ var BiglistEqualsFilterWidget = Backbone.View.extend(
                 'table':this.model.get('currentDatasource').get('referenceTable'),
                 'column':this.model.get('currentDatasource').get('data'),
                 'value':this.model.get('selectedItem'),
+                'valueKey':this.model.get('currentDatasource').get('valueKey'),
                 'description':[
                     'is',
                     typeof(displayer)==='string' ? 
@@ -141,8 +142,7 @@ var BiglistEqualsFilterWidget = Backbone.View.extend(
     'useDatasource':function(table, column) {
         // check if table == currentDatasource.get('referenceTable')
         // and if column == currentDatasource.get('data')
-        var currentDS = this.model.get('currentDatasource'), 
-            newDSIndex;
+        var currentDS = this.model.get('currentDatasource'), newDSIndex;
         
         // even if the datasource remains the same, reset the selectedItem
         this.model.set('selectedItem', undefined);
@@ -227,13 +227,13 @@ var BiglistEqualsFilterWidget = Backbone.View.extend(
      * @typedef {Backbone-View} BiglistEqualsFilterWidget
      * @class
      * @classdesc A widget for biglist data type that is equal to a value.
-     * @version 1.0.4
+     * @version 1.0.5
      * @constructs BiglistEqualsFilterWidget
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
      */
     'initialize':function(options) {
-        this.version = '1.0.4';
+        this.version = '1.0.5';
         /**
          * This view instance's model data.
          * @name model
