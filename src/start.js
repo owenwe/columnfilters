@@ -1,6 +1,6 @@
 /**
  * ColumnFilters jQuery Plugin
- * @version 1.0.1
+ * @version 1.0.3
  * @author Wes Owen wowen@ccctechcenter.org
  */
 (function($){
