@@ -104,7 +104,7 @@ var ColumnFilters = Backbone.View.extend(
      * @typedef {Backbone-View} ColumnFilters
      * @class
      * @classdesc This view renders and controls the ColumnFilters jQuery plugin.
-     * @version 1.0.2
+     * @version 1.0.3
      * @constructs ColumnFilters
      * @extends Backbone-View
      * @param {object} options - configuration options for this View instance
@@ -112,7 +112,7 @@ var ColumnFilters = Backbone.View.extend(
      * for the datatables server-side data.
      */
     'initialize':function(options) {
-        this.version = '1.0.2';
+        this.version = '1.0.3';
         
         // add this view as the context to the ajax object used in the filter 
         // set Backbone.sync request
