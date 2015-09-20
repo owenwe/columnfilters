@@ -121,7 +121,7 @@
 
     
     <dt class="tag-version">Version:</dt>
-    <dd class="tag-version"><ul class="dummy"><li>1.0.1</li></ul></dd>
+    <dd class="tag-version"><ul class="dummy"><li>1.0.2</li></ul></dd>
     
 
     
@@ -149,7 +149,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1907">line 1907</a>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1945">line 1945</a>
     </li></ul></dd>
     
 
@@ -270,7 +270,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1905">line 1905</a>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1943">line 1943</a>
     </li></ul></dd>
     
 
@@ -486,7 +486,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1919">line 1919</a>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1957">line 1957</a>
     </li></ul></dd>
     
 
@@ -558,7 +558,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1897">line 1897</a>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1935">line 1935</a>
     </li></ul></dd>
     
 
@@ -685,7 +685,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1635">line 1635</a>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1657">line 1657</a>
     </li></ul></dd>
     
 
@@ -739,6 +739,10 @@
     
 
 
+
+<div class="description">
+    A function to change the the control mode state. Usually there are 3 modestates; normal, edit, and disabled.
+</div>
 
 
 
@@ -830,7 +834,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1664">line 1664</a>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1686">line 1686</a>
     </li></ul></dd>
     
 
@@ -979,7 +983,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1651">line 1651</a>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1673">line 1673</a>
     </li></ul></dd>
     
 
@@ -1024,6 +1028,201 @@
 
 
         
+            
+
+    
+
+    <h4 class="name" id="modeChangeHandler"><span class="type-signature"></span>modeChangeHandler<span class="signature">(m, v, options)</span><span class="type-signature"> &rarr; {undefined}</span></h4>
+
+    
+
+
+
+<div class="description">
+    A triggered event function when the controlMode model attribute is changed.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>m</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the model object</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>v</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the changed value</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">model options object</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dataTables.columnfilters.js.html">dataTables.columnfilters.js</a>, <a href="dataTables.columnfilters.js.html#line1701">line 1701</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">undefined</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
     
 
     
@@ -1045,7 +1244,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Tue Sep 15 2015 22:55:18 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Sun Sep 20 2015 00:08:11 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

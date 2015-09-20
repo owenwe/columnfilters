@@ -49,18 +49,30 @@ var EnumEqualsFilterWidget = Backbone.View.extend(
      * @return {object|false}
      */
     'get':function() {
-        var checkedValues = $.map($('input:checked', this.$el), 
-            function(e, i) {
-                return {'code':e.value, 'name':$(e).data('label')}
-            }
-        );
-        if(checkedValues.length) {
+        var ds = this.model.get('currentDatasource'),
+            vkey = ds.get('valueKey'),
+            dkey = ds.get('displayKey'),
+            valOnly = (ds.has('cftype')&&ds.get('cftype')=='enum'),
+            checkedValues = $.map($('input:checked', this.$el), 
+                function(e, i) {
+                    var retVal = {};
+                    retVal[vkey] = e.value;
+                    retVal[dkey] = $(e).data('label');
+                    return retVal;
+                }
+            );
+        if(checkedValues.length) { 
             return {
                 'operator':this.getOperator(),
-                'table':this.model.get('currentDatasource').get('referenceTable'),
-                'column':this.model.get('currentDatasource').get('data'),
+                'table':ds.get('referenceTable'),
+                'column':ds.get('data'),
+                'valueOnly':valOnly,
                 'value':checkedValues,
-                'description':['is one of these: (',_.pluck(checkedValues, 'name').join(', '),')'].join('')
+                'valueKey':vkey,
+                'description':[
+                    'is one of these: (',
+                    _.pluck(checkedValues, dkey).join(', '),')'
+                ].join('')
             };
         }
         return false;
@@ -76,8 +88,10 @@ var EnumEqualsFilterWidget = Backbone.View.extend(
     'set':function(filterValue) {
         // make sure the datasource is correct
         this.useDatasource(filterValue.table, filterValue.column);
+        var ds = this.model.get('currentDatasource');
         $('input', this.$el).each(function(i, e) {
-            e.checked = _.contains(_.pluck(filterValue.value, 'code'), e.value);
+            e.checked = _.contains(_.pluck(filterValue.value, ds.get('valueKey')
+            ), e.value);
         });
         return this;
     },

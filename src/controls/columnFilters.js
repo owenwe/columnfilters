@@ -86,6 +86,20 @@ var ColumnFilters = Backbone.View.extend(
         'cc.filter-cancel.click':function(e) {
             this.get('columnControl').changeMode($.fn.ColumnFilters.ControlModes.NORMAL);
             this.get('filtersContainer').enable();
+        },
+        
+        'cc.mode.change':function(e, mode) {
+            // TODO 
+        },
+        
+        // when the filter save control changes control mode
+        'fsc.controlMode.change':function(e, mode) {
+            switch(mode) {
+                case $.fn.ColumnFilters.ControlModes.NORMAL:
+                    this.get('columnControl').changeMode($.fn.ColumnFilters.ControlModes.NORMAL);
+                    this.get('filtersContainer').enable();
+                    break;
+            }
         }
     },
     
@@ -104,7 +118,7 @@ var ColumnFilters = Backbone.View.extend(
      * @typedef {Backbone-View} ColumnFilters
      * @class
      * @classdesc This view renders and controls the ColumnFilters jQuery plugin.
-     * @version 1.0.3
+     * @version 1.0.4
      * @constructs ColumnFilters
      * @extends Backbone-View
      * @param {object} options - configuration options for this View instance
@@ -112,7 +126,7 @@ var ColumnFilters = Backbone.View.extend(
      * for the datatables server-side data.
      */
     'initialize':function(options) {
-        this.version = '1.0.3';
+        this.version = '1.0.4';
         
         // add this view as the context to the ajax object used in the filter 
         // set Backbone.sync request
@@ -153,7 +167,6 @@ var ColumnFilters = Backbone.View.extend(
         this.collection.on('update', function(col, opt) {
             this.trigger('filters.update', col, opt);
             this.$el.trigger('filters.update', [col, opt]);
-            
         }, this);
         this.collection.on('reset', function(col, opt) {
             this.trigger('filters.reset', col, opt);
