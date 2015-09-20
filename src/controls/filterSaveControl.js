@@ -41,7 +41,8 @@ var FilterSaveControl = Backbone.View.extend(
     },
     
     /**
-     * 
+     * A function to change the the control mode state. Usually there are 3 mode
+     * states; normal, edit, and disabled.
      * @function FilterSaveControl#changeMode
      * @param {number} newMode - An enum value from ControlModes, if the value 
      * passed is the same as the current controlMode value, nothing will happen.
@@ -54,9 +55,21 @@ var FilterSaveControl = Backbone.View.extend(
         return this;
     },
     
-    // private function -- not sure if we need now
+    /**
+     * A triggered event function when the controlMode model attribute is changed.
+     * @function FilterSaveControl#modeChangeHandler
+     * @param {object} m - the model object
+     * @param {*} v - the changed value
+     * @param {object} options - model options object
+     * @return {undefined}
+     */
     'modeChangeHandler':function(m, v, options) {
+        // propagate the filter update event
         this.filters.trigger('update');
+        
+        // trigger fsc.controlMode.change event
+        this.trigger('fsc.controlMode.change', this.model.get('controlMode'));
+        this.$el.trigger('fsc.controlMode.change', [this.model.get('controlMode')]);
     },
     
     
@@ -73,7 +86,7 @@ var FilterSaveControl = Backbone.View.extend(
          * @event FilterSaveControl.events#"li.cf-save-filter-list-item ul.dropdown-menu li":click
          */
         /**
-         * Click event handler for when a filterset list item is clicked.
+         * Click event handler for when a save filterset list item is clicked.
          * @function FilterSaveControl.events#"li.cf-save-filter-list-item ul.dropdown-menu li":click
          * @param {object} e - the click event object
          * @listens FilterSaveControl.events#"li.cf-save-filter-list-item ul.dropdown-menu li":click
@@ -256,13 +269,16 @@ var FilterSaveControl = Backbone.View.extend(
                 // put the filters from this.filters.collection into the 
                 // editingFilterSet.filters and do an update()
                 this.disable();
-                this.model.get('editingFilterSet').save({
-                    'filters':this.filters.toJSON(),
-                    'error':function(model, resp, opts) {
-                        this.trigger('fsc.ajax.error', resp, model);
-                        this.$el.trigger('fsc.ajax.error', [resp, model]);
-                    }
-                });
+                if(this.model.get('url')) {
+                    this.model.get('editingFilterSet').save({
+                        'filters':this.filters.toJSON(),
+                        'error':function(model, resp, opts) {
+                            console.error('fsc.ajax.error');
+                            this.trigger('fsc.ajax.error', resp, model);
+                            this.$el.trigger('fsc.ajax.error', [resp, model]);
+                        }
+                    });
+                }
                 this.changeMode($.fn.ColumnFilters.ControlModes.NORMAL);
             }
         }
@@ -288,13 +304,13 @@ var FilterSaveControl = Backbone.View.extend(
      * @typedef {Backbone-View} FilterSaveControl
      * @class
      * @classdesc The FilterSaveControl manages how filters are applied to columns.
-     * @version 1.0.1
+     * @version 1.0.2
      * @constructs FilterSaveControl
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
      */
     'initialize':function(options) {
-        this.version = '1.0.1';
+        this.version = '1.0.2';
         /**
          * This view instance's model data.
          * @name model

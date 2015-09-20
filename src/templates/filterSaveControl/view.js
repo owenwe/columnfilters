@@ -4,6 +4,11 @@
  * @memberof $.fn.ColumnFilters
  * @constant {string} DATA_FILTERS_CONTROL_FOOTER_TEMPLATE
  * @property {object} config - the template object
+ * @property {number} config.mode - 
+ * @property {string} config.url - 
+ * @property {string} config.table - 
+ * @property {number} config.controlMode - 
+ * @property {object} config.editingFilterSet - 
  * @property {object[]} config.filters - 
  * @property {object[]} config.categories - 
  * @property {object[]} config.filtersets - 

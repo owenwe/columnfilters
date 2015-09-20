@@ -18,5 +18,5 @@
         }
     };
 
-    $.fn.ColumnFilters.VERSION = '1.0.3';
+    $.fn.ColumnFilters.VERSION = '1.0.4';
 })(jQuery);

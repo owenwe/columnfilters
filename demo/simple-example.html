@@ -156,7 +156,15 @@ var cf,
                 'step':.25
 		    }
 		},
-		{'data':'boolTest', 'title':'Bool 1', 'type':'boolean', 'trueLabel':'Yes', 'falseLabel':'No'}
+		{'data':'boolTest', 'title':'Bool 1', 'type':'boolean', 'trueLabel':'Yes', 'falseLabel':'No'},
+		{
+		    'data':'enumTest', 
+		    'title':'Enum Test', 
+		    'type':'object', 
+		    'datasource':[{'id':'ACTIVE'},{'id':'INACTIVE'},{'id':'OUTAGE'}], 
+		    'valueKey':'id',
+		    'displayKey':'id'
+		}
     ]
 ;
 
