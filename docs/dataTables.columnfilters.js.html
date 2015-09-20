@@ -28,7 +28,7 @@
         <article>
             <pre class="prettyprint source linenums"><code>/**
  * ColumnFilters jQuery Plugin
- * @version 1.0.3
+ * @version 1.0.4
  * @author Wes Owen wowen@ccctechcenter.org
  */
 (function($){
@@ -230,6 +230,21 @@ var ColumnFilters = Backbone.View.extend(
         'cc.filter-cancel.click':function(e) {
             this.get('columnControl').changeMode($.fn.ColumnFilters.ControlModes.NORMAL);
             this.get('filtersContainer').enable();
+        },
+        
+        'cc.mode.change':function(e, mode) {
+            // TODO 
+        },
+        
+        // when the filter save control changes control mode
+        'fsc.controlMode.change':function(e, mode) {
+            console.log('filter save control mode change: '+mode);
+            switch(mode) {
+                case $.fn.ColumnFilters.ControlModes.NORMAL:
+                    this.get('columnControl').changeMode($.fn.ColumnFilters.ControlModes.NORMAL);
+                    this.get('filtersContainer').enable();
+                    break;
+            }
         }
     },
     
@@ -248,7 +263,7 @@ var ColumnFilters = Backbone.View.extend(
      * @typedef {Backbone-View} ColumnFilters
      * @class
      * @classdesc This view renders and controls the ColumnFilters jQuery plugin.
-     * @version 1.0.3
+     * @version 1.0.4
      * @constructs ColumnFilters
      * @extends Backbone-View
      * @param {object} options - configuration options for this View instance
@@ -256,7 +271,7 @@ var ColumnFilters = Backbone.View.extend(
      * for the datatables server-side data.
      */
     'initialize':function(options) {
-        this.version = '1.0.3';
+        this.version = '1.0.4';
         
         // add this view as the context to the ajax object used in the filter 
         // set Backbone.sync request
@@ -297,7 +312,6 @@ var ColumnFilters = Backbone.View.extend(
         this.collection.on('update', function(col, opt) {
             this.trigger('filters.update', col, opt);
             this.$el.trigger('filters.update', [col, opt]);
-            
         }, this);
         this.collection.on('reset', function(col, opt) {
             this.trigger('filters.reset', col, opt);
@@ -620,6 +634,11 @@ $.fn.ColumnFilters.FILTERS_CONTAINER_VIEW_TEMPLATE = [
  * @memberof $.fn.ColumnFilters
  * @constant {string} DATA_FILTERS_CONTROL_FOOTER_TEMPLATE
  * @property {object} config - the template object
+ * @property {number} config.mode - 
+ * @property {string} config.url - 
+ * @property {string} config.table - 
+ * @property {number} config.controlMode - 
+ * @property {object} config.editingFilterSet - 
  * @property {object[]} config.filters - 
  * @property {object[]} config.categories - 
  * @property {object[]} config.filtersets - 
@@ -1248,6 +1267,9 @@ var ColumnSelectionControl = Backbone.View.extend(
                 this.disable();
                 break;
         }
+        
+        this.trigger('cc.mode.change', this.model.get('mode'));
+        this.$el.trigger('cc.mode.change', [this.model.get('mode')]);
     },
     
     
@@ -1480,7 +1502,7 @@ var ColumnSelectionControl = Backbone.View.extend(
      * @class
      * @classdesc A ColumnSelectionControl manages how columns are set up for 
      * the filter factory to apply its filter.
-     * @version 1.0.2
+     * @version 1.0.3
      * @extends Backbone-View
      * @constructs ColumnSelectionControl
      * 
@@ -1509,7 +1531,7 @@ var ColumnSelectionControl = Backbone.View.extend(
      * mode to set this control into
      */
     'initialize':function(options) {
-        this.version = '1.0.2';
+        this.version = '1.0.3';
         //console.log(options);
         /**
          * This view instance's model data.
@@ -1690,7 +1712,8 @@ var FilterSaveControl = Backbone.View.extend(
     },
     
     /**
-     * 
+     * A function to change the the control mode state. Usually there are 3 mode
+     * states; normal, edit, and disabled.
      * @function FilterSaveControl#changeMode
      * @param {number} newMode - An enum value from ControlModes, if the value 
      * passed is the same as the current controlMode value, nothing will happen.
@@ -1703,9 +1726,21 @@ var FilterSaveControl = Backbone.View.extend(
         return this;
     },
     
-    // private function -- not sure if we need now
+    /**
+     * A triggered event function when the controlMode model attribute is changed.
+     * @function FilterSaveControl#modeChangeHandler
+     * @param {object} m - the model object
+     * @param {*} v - the changed value
+     * @param {object} options - model options object
+     * @return {undefined}
+     */
     'modeChangeHandler':function(m, v, options) {
+        // propagate the filter update event
         this.filters.trigger('update');
+        
+        // trigger fsc.controlMode.change event
+        this.trigger('fsc.controlMode.change', this.model.get('controlMode'));
+        this.$el.trigger('fsc.controlMode.change', [this.model.get('controlMode')]);
     },
     
     
@@ -1722,7 +1757,7 @@ var FilterSaveControl = Backbone.View.extend(
          * @event FilterSaveControl.events#"li.cf-save-filter-list-item ul.dropdown-menu li":click
          */
         /**
-         * Click event handler for when a filterset list item is clicked.
+         * Click event handler for when a save filterset list item is clicked.
          * @function FilterSaveControl.events#"li.cf-save-filter-list-item ul.dropdown-menu li":click
          * @param {object} e - the click event object
          * @listens FilterSaveControl.events#"li.cf-save-filter-list-item ul.dropdown-menu li":click
@@ -1905,13 +1940,16 @@ var FilterSaveControl = Backbone.View.extend(
                 // put the filters from this.filters.collection into the 
                 // editingFilterSet.filters and do an update()
                 this.disable();
-                this.model.get('editingFilterSet').save({
-                    'filters':this.filters.toJSON(),
-                    'error':function(model, resp, opts) {
-                        this.trigger('fsc.ajax.error', resp, model);
-                        this.$el.trigger('fsc.ajax.error', [resp, model]);
-                    }
-                });
+                if(this.model.get('url')) {
+                    this.model.get('editingFilterSet').save({
+                        'filters':this.filters.toJSON(),
+                        'error':function(model, resp, opts) {
+                            console.error('fsc.ajax.error');
+                            this.trigger('fsc.ajax.error', resp, model);
+                            this.$el.trigger('fsc.ajax.error', [resp, model]);
+                        }
+                    });
+                }
                 this.changeMode($.fn.ColumnFilters.ControlModes.NORMAL);
             }
         }
@@ -1937,13 +1975,13 @@ var FilterSaveControl = Backbone.View.extend(
      * @typedef {Backbone-View} FilterSaveControl
      * @class
      * @classdesc The FilterSaveControl manages how filters are applied to columns.
-     * @version 1.0.1
+     * @version 1.0.2
      * @constructs FilterSaveControl
      * @extends Backbone-View
      * @param {object} options - The configuration options for this View instance.
      */
     'initialize':function(options) {
-        this.version = '1.0.1';
+        this.version = '1.0.2';
         /**
          * This view instance's model data.
          * @name model
@@ -5695,18 +5733,30 @@ var EnumEqualsFilterWidget = Backbone.View.extend(
      * @return {object|false}
      */
     'get':function() {
-        var checkedValues = $.map($('input:checked', this.$el), 
-            function(e, i) {
-                return {'code':e.value, 'name':$(e).data('label')}
-            }
-        );
-        if(checkedValues.length) {
+        var ds = this.model.get('currentDatasource'),
+            vkey = ds.get('valueKey'),
+            dkey = ds.get('displayKey'),
+            valOnly = (ds.has('cftype')&amp;&amp;ds.get('cftype')=='enum'),
+            checkedValues = $.map($('input:checked', this.$el), 
+                function(e, i) {
+                    var retVal = {};
+                    retVal[vkey] = e.value;
+                    retVal[dkey] = $(e).data('label');
+                    return retVal;
+                }
+            );
+        if(checkedValues.length) { 
             return {
                 'operator':this.getOperator(),
-                'table':this.model.get('currentDatasource').get('referenceTable'),
-                'column':this.model.get('currentDatasource').get('data'),
+                'table':ds.get('referenceTable'),
+                'column':ds.get('data'),
+                'valueOnly':valOnly,
                 'value':checkedValues,
-                'description':['is one of these: (',_.pluck(checkedValues, 'name').join(', '),')'].join('')
+                'valueKey':vkey,
+                'description':[
+                    'is one of these: (',
+                    _.pluck(checkedValues, dkey).join(', '),')'
+                ].join('')
             };
         }
         return false;
@@ -5722,8 +5772,10 @@ var EnumEqualsFilterWidget = Backbone.View.extend(
     'set':function(filterValue) {
         // make sure the datasource is correct
         this.useDatasource(filterValue.table, filterValue.column);
+        var ds = this.model.get('currentDatasource');
         $('input', this.$el).each(function(i, e) {
-            e.checked = _.contains(_.pluck(filterValue.value, 'code'), e.value);
+            e.checked = _.contains(_.pluck(filterValue.value, ds.get('valueKey')
+            ), e.value);
         });
         return this;
     },
@@ -6518,7 +6570,7 @@ $.fn.ColumnFilters.defaults = {
         }
     };
 
-    $.fn.ColumnFilters.VERSION = '1.0.3';
+    $.fn.ColumnFilters.VERSION = '1.0.4';
 })(jQuery);
 </code></pre>
         </article>
@@ -6536,7 +6588,7 @@ $.fn.ColumnFilters.defaults = {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Tue Sep 15 2015 22:55:18 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Sun Sep 20 2015 00:08:11 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

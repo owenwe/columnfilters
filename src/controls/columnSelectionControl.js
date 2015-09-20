@@ -289,6 +289,9 @@ var ColumnSelectionControl = Backbone.View.extend(
                 this.disable();
                 break;
         }
+        
+        this.trigger('cc.mode.change', this.model.get('mode'));
+        this.$el.trigger('cc.mode.change', [this.model.get('mode')]);
     },
     
     
@@ -521,7 +524,7 @@ var ColumnSelectionControl = Backbone.View.extend(
      * @class
      * @classdesc A ColumnSelectionControl manages how columns are set up for 
      * the filter factory to apply its filter.
-     * @version 1.0.2
+     * @version 1.0.3
      * @extends Backbone-View
      * @constructs ColumnSelectionControl
      * 
@@ -550,7 +553,7 @@ var ColumnSelectionControl = Backbone.View.extend(
      * mode to set this control into
      */
     'initialize':function(options) {
-        this.version = '1.0.2';
+        this.version = '1.0.3';
         //console.log(options);
         /**
          * This view instance's model data.
