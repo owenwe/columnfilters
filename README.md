@@ -1,6 +1,8 @@
 # ColumnFilters
 Javascript and HTML UI controls for managing search filters on DataTable columns
 
+## This is an archived repository
+
 ## Requirements
 Resource | Minimum Version | Notes
 --- | --- | --- 
